@@ -43,7 +43,7 @@ window.config = {
     textMuted: '#7983bb',
     borderColor: '#434968'
   },
-  enableMenuLocalStorage: true // Enable menu state with local storage support
+  enableMenuLocalStorage: false // Enable menu state with local storage support
 };
 
 window.assetsPath = document.documentElement.getAttribute('data-assets-path');

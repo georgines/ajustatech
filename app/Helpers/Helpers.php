@@ -2,7 +2,7 @@
 
 namespace App\Helpers;
 
-// use Config;
+use Config;
 use Illuminate\Support\Str;
 
 class Helpers
