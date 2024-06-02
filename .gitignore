@@ -18,3 +18,8 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+
+!/public/assets
+!/public/assets/*
+/public/css
+/public/js
