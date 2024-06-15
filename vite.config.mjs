@@ -52,6 +52,10 @@ function libsWindowAssignment() {
 }
 
 export default defineConfig({
+    server: {
+        host: '192.168.2.108',
+        port: 3000,
+      },
   plugins: [
     laravel({
       input: [
@@ -65,7 +69,8 @@ export default defineConfig({
         ...CoreScssFiles,
         ...LibsScssFiles,
         ...LibsCssFiles,
-        ...FontsScssFiles
+        ...FontsScssFiles,
+        'modules/Ajustatech/UI/resources/assets/scss/cupom.scss'
       ],
       refresh: true
     }),
