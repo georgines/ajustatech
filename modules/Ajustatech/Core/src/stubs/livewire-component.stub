@@ -1,0 +1,13 @@
+<?php
+
+namespace $NAMESPACE$\Http\Livewire;
+
+use Livewire\Component;
+
+class $CLASS_NAME$ extends Component
+{
+    public function render()
+    {
+        return view('livewire.$KABAB_CASE_NAME$');
+    }
+}

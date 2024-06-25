@@ -1,0 +1,7 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+Route::prefix('$LOWERCASE_MODULE_NAME$')->group(function () {
+    // Define your module routes here
+});
