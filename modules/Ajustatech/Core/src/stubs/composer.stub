@@ -1,6 +1,6 @@
 {
-    "name": "$VENDOR$/$LOWERCASE_MODULE_NAME$",
-    "description": "Module $MODULE_NAME$",
+    "name": "$VENDOR$/$KABAB_CASE_NAME$",
+    "description": "Module $CLASS_NAME$",
     "license": "$LICENSE$",
     "authors": [
         {

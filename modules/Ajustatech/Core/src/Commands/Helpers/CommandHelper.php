@@ -66,6 +66,7 @@ class CommandHelper
         $contents = [
             'CLASS_NAME' => $className,
             'NAMESPACE' => $this->namespace,
+            "PSR4_NAMESPACE" => $this->getPsr4Namespace(),
             'KABAB_CASE_NAME' => $this->getKebabCaseName($className),
             'SNAKE_CASE_NAME' => $this->getSnakeCaseName($className),
             'VENDOR' => $this->config['vendor'],
@@ -73,6 +74,7 @@ class CommandHelper
             'AUTHOR_NAME' => $this->config['author']['name'],
             'AUTHOR_EMAIL' => $this->config['author']['email'],
             'ORGANIZATION' => $this->config['organization'],
+
         ];
 
         $contents = $this->getStubContents($stubPath, $contents);
@@ -135,6 +137,11 @@ class CommandHelper
         $ignore_subdir = $this->config['ignore_subdir'];
         $path = Str::replaceLast("/$ignore_subdir", "", $path);
         return Str::of($path)->trim('/')->explode('/')->last();
+    }
+
+    protected function getPsr4Namespace() : string
+    {
+        return Str::of($this->namespace)->replace("\\", "\\\\")."\\\\";
     }
 
     public function getNamespaceFromPath($path): string
