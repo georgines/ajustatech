@@ -3,7 +3,6 @@
 namespace Ajustatech\Core\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Filesystem\Filesystem;
 use Ajustatech\Core\Commands\Helpers\CommandHelper;
 
 class MakeLivewireComponentCommand extends Command
