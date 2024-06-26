@@ -25,9 +25,7 @@ class MakeModuleCommand extends Command
         $moduleName = $this->helper->getClassName($name);
         $basePath = $this->helper->getBasePath();
         $path = "modules/Ajustatech/{$moduleName}";
-        $namespace = $this->helper->getNamespaceFromPath($path);
-
-        // dd(["name" => $name, "moduleName" => $moduleName, "path" => $path, "basePath" => $basePath, "namespace" => $namespace]);
+        $this->helper->getNamespaceFromPath($path);
 
         $this->helper->createDirectoryStructure($basePath, [
             "{$path}/src/Providers",
