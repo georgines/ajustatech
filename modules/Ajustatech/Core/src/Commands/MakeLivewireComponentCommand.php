@@ -6,7 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Ajustatech\Core\Commands\Helpers\CommandHelper;
 
-class MakeLivewireComponent extends Command
+class MakeLivewireComponentCommand extends Command
 {
     protected $signature = 'make:livewire-component {name} {path}';
     protected $description = 'Create a new Livewire 3 component in a specified path';

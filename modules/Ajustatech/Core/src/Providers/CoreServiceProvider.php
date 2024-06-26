@@ -6,7 +6,7 @@ use Ajustatech\Core\Commands\MakeModuleCommand;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\ServiceProvider;
 // use Ajustatech\PrintService\Providers\PrintServiceProvider;
-use Ajustatech\Core\Commands\MakeLivewireComponent;
+use Ajustatech\Core\Commands\MakeLivewireComponentCommand;
 
 class CoreServiceProvider extends ServiceProvider
 {
@@ -16,7 +16,7 @@ class CoreServiceProvider extends ServiceProvider
         // $this->app->register(PrintServiceProvider::class);
         $this->commands([
             MakeModuleCommand::class,
-            MakeLivewireComponent::class
+            MakeLivewireComponentCommand::class
         ]);
     }
 
