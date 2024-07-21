@@ -21,9 +21,7 @@ class CommandHelperTest extends TestCase
         $this->commandHelper = new CommandHelper();
 
         $this->filesystem = $this->createMock(Filesystem::class);
-        $this->setProtectedProperty($this->commandHelper, "files", $this->filesystem );
-
-
+        $this->setProtectedProperty($this->commandHelper, "files", $this->filesystem);
     }
 
     public function test_load_config_from_array()
@@ -138,6 +136,12 @@ class CommandHelperTest extends TestCase
 
         $this->commandHelper->setBasePath('home/vagrant/');
         $this->assertEquals('TestOrg\\Core', $this->commandHelper->getNamespaceFromPath('modules/Ajustatech/Core/src'));
+    }
+
+    public function test_add_contents(){
+        $contents = ['key' => 'value'];
+        $this->commandHelper->addContents($contents);
+        $this->assertEquals($contents, $this->commandHelper->getContents());
     }
 
     // Métodos utilitários para acessar métodos e propriedades protegidos/privados

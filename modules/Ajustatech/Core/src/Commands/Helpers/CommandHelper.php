@@ -13,6 +13,7 @@ class CommandHelper
     protected $namespace;
     protected $basePath = '';
     protected $pathToConfigFile = "modules/Ajustatech/Core/src/config/commands.php";
+    protected $newContents = [];
 
     public function __construct()
     {
@@ -74,14 +75,24 @@ class CommandHelper
             'AUTHOR_NAME' => $this->config['author']['name'],
             'AUTHOR_EMAIL' => $this->config['author']['email'],
             'ORGANIZATION' => $this->config['organization'],
-
         ];
 
+        $contents = array_merge($contents, $this->newContents);
+        
         $contents = $this->getStubContents($stubPath, $contents);
+
 
         if (!$this->files->exists($filePath)) {
             $this->files->put($filePath, $contents);
         }
+    }
+
+    public function addContents($array){
+        $this->newContents =  array_merge($this->newContents, $array);
+    }
+
+    public function getContents(){
+        return $this->newContents;
     }
 
     protected function getStubPath($stub): string

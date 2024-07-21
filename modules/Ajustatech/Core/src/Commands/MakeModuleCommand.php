@@ -24,21 +24,26 @@ class MakeModuleCommand extends Command
         $name = $this->argument('name');
         $moduleName = $this->helper->getClassName($name);
         $basePath = $this->helper->getBasePath();
-        $path = "modules/Ajustatech/{$moduleName}";
-        $this->helper->getNamespaceFromPath($path);
+        $modulePath = "modules/Ajustatech/{$moduleName}";
+        $this->helper->getNamespaceFromPath($modulePath);
+
+        // "modules/Ajustatech/Core/src/Tests/"
+
+        $this->helper->addContents(["MODULO_TEST_PATH"=>"{$modulePath}/src/Tests/"]);      
 
         $this->helper->createDirectoryStructure($basePath, [
-            "{$path}/src/Providers",
-            "{$path}/src/Routes",
-            "{$path}/src/Models",
-            "{$path}/src/Http/Livewire",
+            "{$modulePath}/src/Providers",
+            "{$modulePath}/src/Routes",
+            "{$modulePath}/src/Models",
+            "{$modulePath}/src/Tests/Unit",
+            "{$modulePath}/src/Tests/Feature",
         ]);
 
         $this->helper->createStubFiles($basePath, $moduleName, [
-            'composer.stub' => "{$path}/composer.json",
-            'provider.stub' => "{$path}/src/Providers/{$moduleName}ServiceProvider.php",
-            'routes.stub' => "{$path}/src/Routes/web.php",
-            'model.stub' => "{$path}/src/Models/{$moduleName}.php"
+            'composer.stub' => "{$modulePath}/composer.json",
+            'provider.stub' => "{$modulePath}/src/Providers/{$moduleName}ServiceProvider.php",
+            'routes.stub' => "{$modulePath}/src/Routes/web.php",
+            'model.stub' => "{$modulePath}/src/Models/{$moduleName}.php"
         ]);
 
         $this->info("Module {$moduleName} created successfully.");

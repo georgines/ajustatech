@@ -12,5 +12,10 @@
         "psr-4": {
             "$PSR4_NAMESPACE$": "src/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "$PSR4_NAMESPACE$Tests\\": "$MODULO_TEST_PATH$"
+        }
     }
 }
