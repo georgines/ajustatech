@@ -26,7 +26,7 @@
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
             "Ajustatech\\Core\\": "modules/Ajustatech/Core/src",
-            "Ajustatech\\PrintService\\": "modules/Ajustatech/PrintService/src"
+            "Ajustatech\\NewModule\\": "modules/Ajustatech/NewModule/src"
         }
     },
     "autoload-dev": {

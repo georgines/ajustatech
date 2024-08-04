@@ -53,7 +53,7 @@ function libsWindowAssignment() {
 
 export default defineConfig({
     server: {
-        host: '192.168.2.108',
+        host: '192.168.0.120',
         port: 3000,
       },
   plugins: [
