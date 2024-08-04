@@ -1,12 +1,11 @@
 <?php
 
-namespace Tests\Unit;
+namespace Ajustatech\Core\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 use Illuminate\Filesystem\Filesystem;
 use Ajustatech\Core\Commands\Helpers\CommandHelper;
-use Illuminate\Support\Str;
-use ReflectionClass; // Adiciona a importação da classe ReflectionClass
+use ReflectionClass;
 
 class CommandHelperTest extends TestCase
 {
