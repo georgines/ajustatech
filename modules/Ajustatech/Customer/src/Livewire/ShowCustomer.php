@@ -1,7 +1,6 @@
 <?php
 
-namespace App\Livewire;
-// namespace Ajustatech\Customer\Livewire;
+namespace Ajustatech\Customer\Livewire;
 
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -70,7 +69,7 @@ class ShowCustomer extends Component
     public function render()
     {
         $pageConfigs = ['myLayout' => 'vertical'];
-        return view('livewire.show-customer')->with([
+        return view('customer::livewire.show-customer')->with([
 			'customers' => $this->customers,
             'pageConfigs' => $pageConfigs
 		]);

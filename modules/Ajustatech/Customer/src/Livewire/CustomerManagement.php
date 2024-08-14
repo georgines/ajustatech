@@ -1,7 +1,6 @@
 <?php
 
-namespace App\Livewire;
-// namespace Ajustatech\Customer\Livewire;
+namespace Ajustatech\Customer\Livewire;
 
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -140,6 +139,6 @@ class CustomerManagement extends Component
     #[Title('clientes')]
     public function render()
     {
-        return view('livewire.customer-management');
+        return view('customer::livewire.customer-management');
     }
 }
