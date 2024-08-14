@@ -3,6 +3,7 @@
 namespace Ajustatech\Core\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Ajustatech\Customer\Providers\CustomerServiceProvider;
 
 class CoreServiceProvider extends ServiceProvider
 {
@@ -11,6 +12,7 @@ class CoreServiceProvider extends ServiceProvider
     { 
         $this->app->register(CommandServiceProvider::class);
         $this->app->register(MenuServiceProvider::class);       
+        $this->app->register(CustomerServiceProvider::class);       
         $this->app->register(ViewServiceProvider::class);
     }
 
