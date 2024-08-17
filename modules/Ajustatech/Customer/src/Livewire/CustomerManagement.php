@@ -6,7 +6,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
-use Ajustatech\Customer\Databese\Models\Customer;
+use Ajustatech\Customer\Database\Models\Customer;
 use Livewire\Attributes\Locked;
 use Ajustatech\Core\Rules\CnpjValidation;
 use Ajustatech\Core\Rules\CpfValidator;
