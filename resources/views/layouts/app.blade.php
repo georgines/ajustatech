@@ -5,16 +5,7 @@
 @extends('layouts/layoutMaster')
 
 @section('vendor-style')
-@livewireStyles
-
-    {{-- <link rel="stylesheet" href="{{ asset(mix('assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css')) }}" />
-    <link rel="stylesheet"
-        href="{{ asset(mix('assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css')) }}" />
-    <link rel="stylesheet"
-        href="{{ asset(mix('assets/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css')) }}" />
-    <link rel="stylesheet" href="{{ asset(mix('assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css')) }}" />
-    <link rel="stylesheet" href="{{ asset(mix('assets/vendor/libs/flatpickr/flatpickr.css')) }}" />
-    <link rel="stylesheet" href="{{ asset(mix('assets/vendor/libs/sweetalert2/sweetalert2.css')) }}"> --}}
+    @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'])
     @isset($vendor_style)
         {{ $vendor_style }}
     @endisset
@@ -46,11 +37,47 @@
 @endsection
 
 @section('vendor-script')
-@livewireScripts
-    {{-- <script src="{{ asset(mix('assets/vendor/libs/toastr/toastr.js')) }}"></script>
-    <script src="{{ asset(mix('assets/vendor/libs/sweetalert2/sweetalert2.js')) }}"></script>
+    @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.js'])
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('alert', event => {
+                Swal.fire({
+                    icon: event.alert.type,
+                    title: event.alert.message,
+                    customClass: {
+                        confirmButton: 'btn btn-primary'
+                    },
+                    buttonsStyling: false
+                });
+            });
 
-    <script src="{{ asset(mix('js/app.js')) }}"></script> --}}
+            Livewire.on('confirmation', event => {
+                Swal.fire({
+                    icon: event.confirmation.type,
+                    title: event.confirmation.message,
+                    showCancelButton: true,
+                    confirmButtonText: event.confirmation.confirmText,
+                    cancelButtonText: event.confirmation.cancelText,
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-danger'
+                    },
+                    buttonsStyling: false
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        if (event.confirmation.dispatchTo != null) {
+                            let parameters = event.confirmation.parameters;
+                            if(typeof parameters === "object"){
+                                Livewire.dispatch(event.confirmation.dispatchTo, parameters);
+                            }else{
+                                Livewire.dispatch(event.confirmation.dispatchTo)
+                            }
+                        }
+                    }
+                });
+            });
+        });
+    </script>
     @isset($vendor_script)
         {{ $vendor_script }}
     @endisset
