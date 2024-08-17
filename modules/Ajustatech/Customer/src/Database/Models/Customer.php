@@ -2,8 +2,7 @@
 
 namespace Ajustatech\Customer\Database\Models;
 
-// use Illuminate\Database\Console\Migrations\StatusCommand;
-// use Illuminate\Database\Eloquent\Collection;
+use Ajustatech\Customer\Database\Factories\CustomerFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -78,4 +77,8 @@ class Customer extends Model
 				->orWhere('email', 'LIKE', '%' . $search . '%');
 		});
 	}
+
+    protected static function newFactory(){
+        return CustomerFactory::new();
+    }
 }

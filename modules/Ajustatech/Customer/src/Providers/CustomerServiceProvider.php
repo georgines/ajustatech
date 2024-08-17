@@ -7,8 +7,7 @@ use Illuminate\Support\ServiceProvider;
 use Ajustatech\Core\Helpers\MenuManagerInterface;
 use Ajustatech\Customer\Livewire\ShowCustomer;
 use Ajustatech\Customer\Livewire\CustomerManagement;
-use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Str;
+
 
 class CustomerServiceProvider extends ServiceProvider
 {
@@ -25,7 +24,6 @@ class CustomerServiceProvider extends ServiceProvider
     {
         $this->initializeMenus();
         $this->initializeLivewireComponents();
-        $this->initializeFactories();
     }
 
     public function initializeMenus()
@@ -42,14 +40,5 @@ class CustomerServiceProvider extends ServiceProvider
     {
         Livewire::component('show-customer', ShowCustomer::class);
         Livewire::component('customer-management', CustomerManagement::class);
-    }
-
-    public function initializeFactories()
-    {
-        Factory::guessFactoryNamesUsing(function (string $modelName) {
-            $namespace = "Ajustatech\\Customer\\Database";
-            $modelName = Str::replace("$namespace\\Models\\", '', $modelName);
-            return "$namespace\\Factories\\" . $modelName . "Factory";
-        });
     }
 }
