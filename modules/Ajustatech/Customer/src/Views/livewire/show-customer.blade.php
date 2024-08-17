@@ -94,16 +94,3 @@
         </div>
     </div>
 </section>
-@script
-    <script>
-        document.addEventListener('livewire:initialized', () => {
-            Livewire.on('confirm-status', event => {
-                if (confirm('Tem certeza que deseja alterar o status?')) {
-                    Livewire.dispatch('change-status', {
-                        id: event.id
-                    });
-                }
-            });
-        });
-    </script>
-@endscript

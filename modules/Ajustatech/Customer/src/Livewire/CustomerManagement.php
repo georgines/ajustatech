@@ -11,8 +11,7 @@ use Livewire\Attributes\Locked;
 use Ajustatech\Core\Rules\CnpjValidation;
 use Ajustatech\Core\Rules\CpfValidator;
 
-#[Layout('layouts.app')]
-// #[Layout('customer::layouts.app')]
+#[Layout('customer::layouts.app')]
 class CustomerManagement extends Component
 {
     #[Locked]

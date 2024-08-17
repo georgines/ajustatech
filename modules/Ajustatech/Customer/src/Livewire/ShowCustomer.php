@@ -9,8 +9,7 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Ajustatech\Customer\Database\Models\Customer;
 
-#[Layout('layouts.app')]
-// #[Layout('customer::layouts.app')]
+#[Layout('customer::layouts.app')]
 class ShowCustomer extends Component
 {
     use SwitchAlertDispatch;
@@ -49,7 +48,6 @@ class ShowCustomer extends Component
 		return;
 	}
 
-
 	public function confirmChangeStatus($id)
 	{
         $message = "Você confirma a mudança de status?";
@@ -66,8 +64,6 @@ class ShowCustomer extends Component
 			$this->searchCustomer($this->search, $this->activeonly, $this->limiteperpage);
 		}
 	}
-
-
 
 	#[Title('clientes')]
     public function render()
