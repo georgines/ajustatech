@@ -2,7 +2,7 @@
 
 namespace Ajustatech\Customer\Tests\Feature\Customer;
 
-use Ajustatech\Customer\Http\Livewire\ShowCustomer;
+use Ajustatech\Customer\Livewire\ShowCustomer;
 use Ajustatech\Customer\Models\Customer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;

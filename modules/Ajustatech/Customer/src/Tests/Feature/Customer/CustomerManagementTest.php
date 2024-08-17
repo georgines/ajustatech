@@ -2,7 +2,7 @@
 
 namespace Ajustatech\Customer\Tests\Feature\Customer;
 
-use Ajustatech\Customer\Http\Livewire\CustomerManagement;
+use Ajustatech\Customer\Livewire\CustomerManagement;
 use Ajustatech\Customer\Models\Customer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -12,16 +12,14 @@ class CustomerManagementTest extends TestCase
 {
 	use RefreshDatabase;
 
-	/** @test */
-	public function renders_successfully()
+	public function test_renders_successfully()
 	{
 		Livewire::test(CustomerManagement::class)
 			->assertStatus(200);
 	}
 
-	/** @test */
 	//crie testes para verificar se a propriedade mode não está sendo alterada pelo usuário
-	public function mode_property_is_locked()
+	public function test_mode_property_is_locked()
 	{
 		Livewire::test(CustomerManagement::class)
 			->assertSet('mode', 'create');
@@ -33,8 +31,7 @@ class CustomerManagementTest extends TestCase
 			->set('mode', 'edit');
 	}
 
-	/** @test */
-	public function required_fields()
+	public function test_required_fields()
 	{
 		Livewire::test(CustomerManagement::class)
 			->call('save')
@@ -52,8 +49,7 @@ class CustomerManagementTest extends TestCase
 			]);
 	}
 
-	/** @test */
-	public function save_customer()
+	public function test_save_customer()
 	{
 		$customer = Customer::factory()->make();
 
@@ -98,8 +94,7 @@ class CustomerManagementTest extends TestCase
 		]);
 	}
 
-	/** @test */
-	public function update_customer()
+	public function test_update_customer()
 	{
 		$customer = Customer::factory()->create();
 
