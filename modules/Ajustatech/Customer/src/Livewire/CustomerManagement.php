@@ -6,8 +6,10 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
-use Ajustatech\Customer\Models\Customer;
+use Ajustatech\Customer\Databese\Models\Customer;
 use Livewire\Attributes\Locked;
+use Ajustatech\Core\Rules\CnpjValidation;
+use Ajustatech\Core\Rules\CpfValidator;
 
 #[Layout('layouts.app')]
 // #[Layout('customer::layouts.app')]
@@ -54,22 +56,19 @@ class CustomerManagement extends Component
 
     private function create()
     {
-        // $customer = null;
-        // $this->validateData();
-        // $customer = Customer::create($this->customer_);
-        // if ($customer) {
-        //     $this->resetFiels();
-        // }
-
-        dd("create");
+        $customer = null;
+        $this->validateData();
+        $customer = Customer::create($this->customer_);
+        if ($customer) {
+            $this->resetFiels();
+        }
     }
 
     private function update()
     {
-        // $customer = Customer::findOrFail($this->customer_['id']);
-        // $this->validateData($customer->id);
-        // $customer->update($this->customer_);
-        dd("update");
+        $customer = Customer::findOrFail($this->customer_['id']);
+        $this->validateData($customer->id);
+        $customer->update($this->customer_);
     }
 
     public function save()
@@ -108,7 +107,7 @@ class CustomerManagement extends Component
         $this->validate([
             'customer_.email' => 'required|email|unique:customers,email,' . $id . ',id',
             'customer_.name' => 'required|min:3',
-            // 'customer_.cpf_cnpj' => $this->customer_['person'] == 'F' ? ['required', 'unique:customers,cpf_cnpj,' . $id . 'id', 'min:11', new CpfValidator,] : ['required', 'unique:customers,cpf_cnpj,' . $id . 'id', 'min:14', new CnpjValidation],
+            'customer_.cpf_cnpj' => $this->customer_['person'] == 'F' ? ['required', 'unique:customers,cpf_cnpj,' . $id . 'id', 'min:11', new CpfValidator,] : ['required', 'unique:customers,cpf_cnpj,' . $id . 'id', 'min:14', new CnpjValidation],
             'customer_.cellphone' => 'required|min:11',
             'customer_.date_of_birth' => 'required|date',
             'customer_.zip_code' => 'required|min:8',
@@ -121,7 +120,7 @@ class CustomerManagement extends Component
             'customer_.email' => 'Email',
             'customer_.name' => $this->customer_['person'] == 'F' ? 'Nome Completo' : 'Razão Social',
             'customer_.person' => 'Tipo de Pessoa',
-            // 'customer_.cpf_cnpj' => $this->customer_['person'] == 'F' ? 'CPF' : 'CNPJ',
+            'customer_.cpf_cnpj' => $this->customer_['person'] == 'F' ? 'CPF' : 'CNPJ',
             'customer_.cellphone' => 'Celular',
             'customer_.phone' => 'Telefone',
             'customer_.date_of_birth' => 'Data de Nascimento',

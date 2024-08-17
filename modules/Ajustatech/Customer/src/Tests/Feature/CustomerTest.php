@@ -3,7 +3,7 @@
 namespace Ajustatech\Customer\Tests\Feature;
 
 
-use Ajustatech\Customer\Models\Customer;
+use Ajustatech\Customer\Database\Models\Customer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

@@ -6,7 +6,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
-use Ajustatech\Customer\Models\Customer;
+use Ajustatech\Customer\Database\Models\Customer;
 
 #[Layout('layouts.app')]
 // #[Layout('customer::layouts.app')]
@@ -65,7 +65,7 @@ class ShowCustomer extends Component
 
 
 
-	#[Title('clientes')] 
+	#[Title('clientes')]
     public function render()
     {
         $pageConfigs = ['myLayout' => 'vertical'];

@@ -3,7 +3,7 @@
 namespace Ajustatech\Customer\Tests\Feature\Customer;
 
 use Ajustatech\Customer\Livewire\CustomerManagement;
-use Ajustatech\Customer\Models\Customer;
+use Ajustatech\Customer\Database\Models\Customer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;

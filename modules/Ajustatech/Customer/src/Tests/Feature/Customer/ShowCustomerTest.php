@@ -3,7 +3,7 @@
 namespace Ajustatech\Customer\Tests\Feature\Customer;
 
 use Ajustatech\Customer\Livewire\ShowCustomer;
-use Ajustatech\Customer\Models\Customer;
+use Ajustatech\Customer\Database\Models\Customer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -18,7 +18,7 @@ class ShowCustomerTest extends TestCase
 			->assertStatus(200);
 	}
 
-	
+
 	public function test_saech_for_customer(): void
 	{
 		$customer = Customer::factory()->create([
@@ -33,14 +33,14 @@ class ShowCustomerTest extends TestCase
 			->assertSee($customer->fresh()->email);
 	}
 
-	
+
 	public function test_count_the_number_of_customers(): void
 	{
 		Customer::factory(7)->create(['status' => '1']);
 		Livewire::test(ShowCustomer::class)->assertCount('customers', 7);
 	}
 
-	
+
 	public function test_can_filter_customers_by_name()
 	{
 		$customer1 = Customer::factory()->create(['name' => 'John Doe', 'status' => '1']);
@@ -54,7 +54,7 @@ class ShowCustomerTest extends TestCase
 			->assertDontSeeHtml($customer3->name);
 	}
 
-	
+
 	public function test_does_not_show_inactive_customers()
 	{
 		$activeCustomer = Customer::factory()->create(['status' => '1']);
@@ -65,7 +65,7 @@ class ShowCustomerTest extends TestCase
 			->assertDontSeeHtml($inactiveCustomer->name);
 	}
 
-	
+
 	public function test_shows_both_active_and_inactive_customers()
 	{
 		$activeCustomer = Customer::factory()->create(['status' => '1']);
@@ -77,7 +77,7 @@ class ShowCustomerTest extends TestCase
 			->assertSeeHtml($inactiveCustomer->name);
 	}
 
-	
+
 	public function test_can_change_customer_status()
 	{
 		$customer = Customer::factory()->create(['status' => '1']);
