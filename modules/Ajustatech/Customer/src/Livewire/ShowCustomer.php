@@ -2,6 +2,7 @@
 
 namespace Ajustatech\Customer\Livewire;
 
+use Ajustatech\Core\Traits\SwitchAlertDispatch;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\Attributes\On;
@@ -12,6 +13,8 @@ use Ajustatech\Customer\Database\Models\Customer;
 // #[Layout('customer::layouts.app')]
 class ShowCustomer extends Component
 {
+    use SwitchAlertDispatch;
+
     public $customers = [];
 	public $search = '';
 	public $activeonly = true;
@@ -49,7 +52,8 @@ class ShowCustomer extends Component
 
 	public function confirmChangeStatus($id)
 	{
-		$this->dispatch('confirm-status', id: $id);
+        $message = "Você confirma a mudança de status?";
+        $this->dispatchConfirmationEvent($message, "change-status", id: $id );
 	}
 
 	#[On('change-status')]
