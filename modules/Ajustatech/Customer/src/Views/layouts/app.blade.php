@@ -40,37 +40,38 @@
     @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.js'])
     <script>
         document.addEventListener('livewire:initialized', () => {
-            Livewire.on('alert', event => {
-                Swal.fire({
-                    icon: event.alert.type,
-                    title: event.alert.message,
-                    customClass: {
-                        confirmButton: 'btn btn-primary'
-                    },
-                    buttonsStyling: false
-                });
-            });
-
             Livewire.on('confirmation', event => {
-                Swal.fire({
-                    icon: event.confirmation.type,
-                    title: event.confirmation.message,
-                    showCancelButton: true,
-                    confirmButtonText: event.confirmation.confirmText,
-                    cancelButtonText: event.confirmation.cancelText,
+                const data = event[0];
+
+                const swalOptions = {
+                    icon: data.type,
+                    title: data.message,
+                    showCancelButton: data.cancelText !== 'default',
+                    confirmButtonText: data.confirmText,
+                    cancelButtonText: data.cancelText,
                     customClass: {
                         confirmButton: 'btn btn-primary',
                         cancelButton: 'btn btn-danger'
                     },
                     buttonsStyling: false
-                }).then(result => {
+                };
+
+                if (!data.message) {
+                    delete swalOptions.title;
+                }
+
+                if (data.cancelText === "default") {
+                    delete swalOptions.customClass.cancelButton;
+                }
+
+                Swal.fire(swalOptions).then(result => {
                     if (result.isConfirmed) {
-                        if (event.confirmation.dispatchTo != null) {
-                            let parameters = event.confirmation.parameters;
-                            if(typeof parameters === "object"){
-                                Livewire.dispatch(event.confirmation.dispatchTo, parameters);
-                            }else{
-                                Livewire.dispatch(event.confirmation.dispatchTo)
+                        if (data.dispatchTo && data.dispatchTo !== 'default') {
+                            let parameters = data.parameters;
+                            if (parameters.length !== 0) {
+                                Livewire.dispatch(data.dispatchTo, parameters);
+                            } else if (parameters.length === 0) {
+                                Livewire.dispatch(data.dispatchTo);
                             }
                         }
                     }
