@@ -4,67 +4,74 @@ namespace Ajustatech\Core\Traits;
 
 trait SwitchAlertDispatch
 {
-    protected $confirmText = 'Sim';
-    protected $cancelText = 'Não';
+    protected string $alertType = 'question';
+    protected string $confirmText = "Ok";
+    protected string $cancelText = "default";
+    protected string $dispatchTo = "default";
+    protected array $parameters = [];
+    protected string $message = "";
 
-    public function dispatchAlertSuccess($message)
+    public function dispatchConfirmation(string $message)
     {
-        $this->dispatchAlert('success', $message);
+        $this->message = $message;
+        return $this;
     }
 
-    public function dispatchAlertError($message)
+    public function typeSuccess()
     {
-        $this->dispatchAlert('error', $message);
+        $this->alertType = 'success';
+        return $this;
     }
 
-    public function dispatchAlertWarning($message)
+    public function typeError()
     {
-        $this->dispatchAlert('warning', $message);
+        $this->alertType = 'error';
+        return $this;
     }
 
-    public function dispatchAlertInfo($message)
+    public function typeWarning()
     {
-        $this->dispatchAlert('info', $message);
+        $this->alertType = 'warning';
+        return $this;
     }
 
-    public function dispatchConfirm($message, $dispatchTo = null,  $confirmText = 'Sim', $cancelText = 'Não')
+    public function typeInfo()
     {
-        $this->dispatch('confirmation', confirmation: ['type' => 'question', 'message' => $message, 'dispatchTo' => $dispatchTo, 'confirmText' => $confirmText, 'cancelText' => $cancelText]);
+        $this->alertType = 'info';
+        return $this;
     }
 
-    public function dispatchConfirmationEvent($message, $dispatchTo, ...$parameters)
-    {
-        $this->dispatch('confirmation', confirmation: ['type' => 'question', 'message' => $message, 'dispatchTo' => $dispatchTo, 'parameters' => $parameters, 'confirmText' => $this->confirmText, 'cancelText' => $this->cancelText]);
-    }
-
-    public function setTextConfirmation(string $confirmText)
+    public function setButtonOK(string $confirmText = "Ok")
     {
         $this->confirmText = $confirmText;
+        return $this;
     }
 
-    public function setCancelText(string $cancelText)
+    public function to(string $dispatchTo, ...$parameters)
+    {
+        $this->dispatchTo = $dispatchTo;
+        $this->parameters = $parameters;
+        return $this;
+    }
+
+    public function setButtonCancel(string $cancelText = "Cancel")
     {
         $this->cancelText = $cancelText;
+        return $this;
     }
 
-    private function dispatchAlert($type, $message)
+    public function run()
     {
-        switch ($type) {
-            case 'success':
-                $this->dispatch('alert', alert: ['type' => 'success', 'message' => $message]);
-                break;
-            case 'error':
-                $this->dispatch('alert', alert: ['type' => 'error', 'message' => $message]);
-                break;
-            case 'warning':
-                $this->dispatch('alert', alert: ['type' => 'warning', 'message' => $message]);
-                break;
-            case 'info':
-                $this->dispatch('alert', alert: ['type' => 'info', 'message' => $message]);
-                break;
-            default:
-                $this->dispatch('alert', alert: ['type' => 'info', 'message' => $message]);
-                break;
-        }
+        $this->dispatch(
+            'confirmation',
+            [
+                'type' => $this->alertType,
+                'message' => $this->message,
+                'dispatchTo' => $this->dispatchTo,
+                'parameters' => $this->parameters,
+                'confirmText' => $this->confirmText,
+                'cancelText' => $this->cancelText,
+            ]
+        );
     }
 }
