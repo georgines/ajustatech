@@ -72,7 +72,7 @@ class CustomerManagementTest extends TestCase
 			->set('customer_.status', $customer->status)
 			->call('save')
 			->assertHasNoErrors();
-		// ->assertRedirect(route('customers.index'));
+		// ->assertRedirect(route('customers-show'));
 
 		$this->assertDatabaseHas('customers', [
 			'name' => $customer->name,

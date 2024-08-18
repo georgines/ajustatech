@@ -18,7 +18,6 @@ class ShowCustomerTest extends TestCase
             ->assertStatus(200);
     }
 
-
     public function test_saech_for_customer(): void
     {
         $customer = Customer::factory()->create([

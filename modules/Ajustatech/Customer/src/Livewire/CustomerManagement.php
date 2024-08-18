@@ -10,10 +10,13 @@ use Ajustatech\Customer\Database\Models\Customer;
 use Livewire\Attributes\Locked;
 use Ajustatech\Core\Rules\CnpjValidation;
 use Ajustatech\Core\Rules\CpfValidator;
+use Ajustatech\Core\Traits\SwitchAlertDispatch;
 
 #[Layout('customer::layouts.app')]
 class CustomerManagement extends Component
 {
+    use SwitchAlertDispatch;
+
     #[Locked]
     public $title = 'Cadastrar Cliente';
 
@@ -59,15 +62,34 @@ class CustomerManagement extends Component
         $this->validateData();
         $customer = Customer::create($this->customer_);
         if ($customer) {
-            $this->resetFiels();
+            $message = 'Cliente salvo!';
+
+            $this->dispatchConfirmation($message)
+            ->to('redirect-to')
+            ->typeSuccess()
+            ->run();
         }
+    }
+
+    #[On('redirect-to')]
+    public function redirectTo()
+    {
+        $this->redirectRoute('customers-show');
     }
 
     private function update()
     {
         $customer = Customer::findOrFail($this->customer_['id']);
         $this->validateData($customer->id);
-        $customer->update($this->customer_);
+        $updated = $customer->update($this->customer_);
+        if ($updated) {
+            $message = 'Cliente atualizado!';
+
+            $this->dispatchConfirmation($message)
+            ->to('redirect-to')
+            ->typeSuccess()
+            ->run();
+        }
     }
 
     public function save()

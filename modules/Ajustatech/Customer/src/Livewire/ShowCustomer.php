@@ -50,8 +50,14 @@ class ShowCustomer extends Component
 
 	public function confirmChangeStatus($id)
 	{
-        $message = "Você confirma a mudança de status?";
-        $this->dispatchConfirmationEvent($message, "change-status", id: $id );
+        $message = "Confirma a mudança de status?";
+
+        $this->dispatchConfirmation($message)
+            ->to('change-status', id: $id)
+            ->typeSuccess()
+            ->setButtonOK("Sim")
+            ->setButtonCancel("Não")
+            ->run();
 	}
 
 	#[On('change-status')]
