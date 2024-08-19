@@ -1,4 +1,7 @@
 <section>
+    @php
+        use Ajustatech\Core\Helpers\Status;
+    @endphp
     <div class="col-md">
         <div class="card mb-4">
             <div class="card-header header-elements">
@@ -68,8 +71,8 @@
                                     <td>{{ $customer->email }}</td>
                                     <td>
                                         <span wire:click="confirmChangeStatus({{ $customer->id }})"
-                                            class="badge bg-{{ $customer->status === '1' ? 'success' : 'secondary' }}">
-                                            {{ $customer->status === '1' ? 'Ativo' : 'Inativo' }}
+                                            class="badge bg-{{ $customer->status === Status::Active->value ? 'success' : 'secondary' }}">
+                                            {{ $customer->status === Status::Active->value ? 'Ativo' : 'Inativo' }}
                                         </span>
                                     </td>
                                     <td>

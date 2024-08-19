@@ -8,6 +8,7 @@ use Livewire\Component;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Ajustatech\Customer\Database\Models\Customer;
+use Ajustatech\Core\Helpers\Status;
 
 #[Layout('customer::layouts.app')]
 class ShowCustomer extends Component
@@ -65,7 +66,7 @@ class ShowCustomer extends Component
 	{
 		$customer = Customer::find($id);
 		if ($customer) {
-			$customer->status = $customer->status == '1' ? '0' : '1';
+			$customer->status = $customer->status == Status::Active->value ? Status::Inactive->value  : Status::Active->value ;
 			$customer->save();
 			$this->searchCustomer($this->search, $this->activeonly, $this->limiteperpage);
 		}
