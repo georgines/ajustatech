@@ -12,7 +12,7 @@ use Ajustatech\Core\Rules\CnpjValidation;
 use Ajustatech\Core\Rules\CpfValidator;
 use Ajustatech\Core\Traits\SwitchAlertDispatch;
 
-#[Layout('customer::layouts.app')]
+#[Layout('core::layouts.app')]
 class CustomerManagement extends Component
 {
     use SwitchAlertDispatch;

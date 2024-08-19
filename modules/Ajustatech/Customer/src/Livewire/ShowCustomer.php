@@ -10,7 +10,7 @@ use Livewire\Attributes\Title;
 use Ajustatech\Customer\Database\Models\Customer;
 use Ajustatech\Core\Enums\Status;
 
-#[Layout('customer::layouts.app')]
+#[Layout('core::layouts.app')]
 class ShowCustomer extends Component
 {
     use SwitchAlertDispatch;
