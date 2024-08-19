@@ -7,7 +7,7 @@ use Illuminate\Support\ServiceProvider;
 use Ajustatech\Core\Helpers\MenuManagerInterface;
 use Ajustatech\Customer\Livewire\ShowCustomer;
 use Ajustatech\Customer\Livewire\CustomerManagement;
-
+use Ajustatech\Customer\Commands\SeedCustomerCommand;
 
 class CustomerServiceProvider extends ServiceProvider
 {
@@ -18,6 +18,7 @@ class CustomerServiceProvider extends ServiceProvider
         $this->loadRoutesFrom("$this->path/Routes/web.php");
         $this->loadViewsFrom("$this->path/views", "customer");
         $this->loadMigrationsFrom("$this->path/Database/migrations");
+        $this->loadCommands();
     }
 
     public function boot()
@@ -40,5 +41,11 @@ class CustomerServiceProvider extends ServiceProvider
     {
         Livewire::component('show-customer', ShowCustomer::class);
         Livewire::component('customer-management', CustomerManagement::class);
+    }
+
+    private function loadCommands(){
+        $this->commands([
+            SeedCustomerCommand::class
+        ]);
     }
 }
