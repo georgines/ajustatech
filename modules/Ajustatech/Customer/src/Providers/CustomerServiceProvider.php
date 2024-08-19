@@ -16,7 +16,7 @@ class CustomerServiceProvider extends ServiceProvider
     public function register()
     {
         $this->loadRoutesFrom("$this->path/Routes/web.php");
-        $this->loadViewsFrom("$this->path/views", "customer");
+        $this->loadViewsFrom("$this->path/Views", "customer");
         $this->loadMigrationsFrom("$this->path/Database/migrations");
         $this->loadCommands();
     }
@@ -27,17 +27,17 @@ class CustomerServiceProvider extends ServiceProvider
         $this->initializeLivewireComponents();
     }
 
-    public function initializeMenus()
+    private function initializeMenus()
     {
-        $verticalMenu = json_decode(file_get_contents("$this->path/menu/verticalMenu.json"));
-        $horizontalMenu = json_decode(file_get_contents("$this->path/menu/verticalMenu.json"));
+        $verticalMenu = json_decode(file_get_contents("$this->path/Menu/verticalMenu.json"));
+        $horizontalMenu = json_decode(file_get_contents("$this->path/Menu/verticalMenu.json"));
 
         $menu = app(MenuManagerInterface::class);
         $menu->addVerticalMenu($verticalMenu);
         $menu->addHorizontalMenu($horizontalMenu);
     }
 
-    public function initializeLivewireComponents()
+    private function initializeLivewireComponents()
     {
         Livewire::component('show-customer', ShowCustomer::class);
         Livewire::component('customer-management', CustomerManagement::class);
