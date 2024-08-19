@@ -8,7 +8,7 @@ use Livewire\Component;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Ajustatech\Customer\Database\Models\Customer;
-use Ajustatech\Core\Helpers\Status;
+use Ajustatech\Core\Enums\Status;
 
 #[Layout('customer::layouts.app')]
 class ShowCustomer extends Component

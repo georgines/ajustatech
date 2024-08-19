@@ -1,5 +1,5 @@
 <?php
-namespace Ajustatech\Core\Helpers;
+namespace Ajustatech\Core\Enums;
 
 enum Status: string {
     case Active = '1';

@@ -1,6 +1,6 @@
 <section>
     @php
-        use Ajustatech\Core\Helpers\Status;
+        use Ajustatech\Core\Enums\Status;
     @endphp
     <div class="col-md">
         <div class="card mb-4">
