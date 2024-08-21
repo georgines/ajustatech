@@ -1,0 +1,16 @@
+{
+	"menu": [		
+		{
+			"name": "Pessoas",
+			"icon": "menu-icon tf-icons ti ti-users",
+			"slug": "customers",
+			"submenu": [
+				{
+					"url": "clientes",
+					"name": "Clientes",
+					"slug": "customers-show"
+				}
+			]
+		}
+	]
+}

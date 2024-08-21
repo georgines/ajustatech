@@ -1,0 +1,21 @@
+{
+    "name": "georgines/customer",
+    "description": "Module Customer",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Georgines Bezerra Pereira",
+            "email": "geoginae.p2@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Ajustatech\\Customer\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ajustatech\\Customer\\Tests\\": "modules/Ajustatech/Customer/src/Tests/"
+        }
+    }
+}

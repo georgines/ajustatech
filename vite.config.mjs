@@ -2,7 +2,8 @@ import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import html from '@rollup/plugin-html';
 import { glob } from 'glob';
-
+import dotenv from 'dotenv';
+dotenv.config();
 /**
  * Get Files from a directory
  * @param {string} query
@@ -51,7 +52,18 @@ function libsWindowAssignment() {
   };
 }
 
+function getHostFromUrl(url) {
+    return url.replace(/^https?:\/\//, '').split('/')[0];
+  }
+
+  const appUrl = process.env.APP_URL || 'http://localhost';
+  const host = getHostFromUrl(appUrl);
+
 export default defineConfig({
+    server: {
+        host: host,
+        port: 3000,
+      },
   plugins: [
     laravel({
       input: [
@@ -65,7 +77,8 @@ export default defineConfig({
         ...CoreScssFiles,
         ...LibsScssFiles,
         ...LibsCssFiles,
-        ...FontsScssFiles
+        ...FontsScssFiles,
+        'modules/Ajustatech/UI/resources/assets/scss/cupom.scss'
       ],
       refresh: true
     }),

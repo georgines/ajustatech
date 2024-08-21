@@ -1,0 +1,49 @@
+<?php
+
+namespace $NAMESPACE$\Providers;
+
+use Livewire\Livewire;
+use Illuminate\Support\ServiceProvider;
+use $ORGANIZATION$\Core\Helpers\MenuManagerInterface;
+$USE_NAMESPACE$
+
+class $CLASS_NAME$ServiceProvider extends ServiceProvider
+{
+
+    protected $path = __DIR__ . "/..";
+
+    public function register()
+    {
+        $this->loadRoutesFrom("$this->path/Routes/web.php");
+        $this->loadViewsFrom("$this->path/Views", "$KABAB_CASE_NAME$");
+        $this->loadMigrationsFrom("$this->path/Database/migrations");
+        $this->loadCommands();
+    }
+
+    public function boot()
+    {
+        $this->initializeMenus();
+        $this->initializeLivewireComponents();
+    }
+
+    private function initializeMenus()
+    {
+        $verticalMenu = json_decode(file_get_contents("$this->path/Menu/verticalMenu.json"));
+        $horizontalMenu = json_decode(file_get_contents("$this->path/Menu/verticalMenu.json"));
+
+        $menu = app(MenuManagerInterface::class);
+        $menu->addVerticalMenu($verticalMenu);
+        $menu->addHorizontalMenu($horizontalMenu);
+    }
+
+    private function initializeLivewireComponents()
+    {
+$REGISTRED_COMPONENTS$
+    }
+
+    private function loadCommands(){
+        $this->commands([
+            Seed$CLASS_NAME$Command::class
+        ]);
+    }
+}

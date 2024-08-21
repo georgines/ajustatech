@@ -1,0 +1,31 @@
+{
+    "name": "georgines/laravel-core",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Georgines Bezerra Pereira",
+            "email": "geoginae.p2@gmail.com"
+        }
+    ],
+    "require": {
+    },
+    "autoload": {
+        "psr-4": {
+            "Ajustatech\\Core\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ajustatech\\Core\\Tests\\": "modules/Ajustatech/Core/src/Tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Ajustatech\\Core\\Providers\\CoreServiceProvider"
+            ],
+            "aliases": {}
+        }
+    },
+    "minimum-stability": "dev"
+}

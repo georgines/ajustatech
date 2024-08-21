@@ -1,0 +1,15 @@
+<?php
+
+namespace $NAMESPACE$\Livewire;
+
+use Livewire\Attributes\Layout;
+use Livewire\Component;
+
+#[Layout('core::layouts.app')]
+class $COMPONENT_NAME$ extends Component
+{
+    public function render()
+    {
+        return view('$LOW_CLASS_NAME$::livewire.$KABAB_CASE_NAME$');
+    }
+}

@@ -1,0 +1,20 @@
+namespace $NAMESPACE$\Tests\Feature;
+
+
+use $NAMESPACE$\Database\Models\$CLASS_NAME$;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class $CLASS_NAME$Test extends TestCase
+{
+	use RefreshDatabase;
+
+
+	public function test_can_create_$KABAB_CASE_NAME$()
+	{
+		$LOW_CLASS_NAME$ =  $CLASS_NAME$::factory()->create();
+		$this->assertDatabaseHas('$LOW_CLASS_NAME$', [
+			
+		]);
+	}
+}
