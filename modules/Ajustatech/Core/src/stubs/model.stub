@@ -1,12 +1,21 @@
 <?php
 
-namespace $NAMESPACE$\Models;
+namespace $NAMESPACE$\Database\Models;
 
+use $NAMESPACE$\Database\Factories\$CLASS_NAME$Factory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class $CLASS_NAME$ extends Model
 {
+    use HasFactory;
+    
     protected $fillable = [
-        // Define fillable fields
+
     ];
+
+
+    protected static function newFactory(){
+        return $CLASS_NAME$Factory::new();
+    }
 }

@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+$COMPONENT_ROUTE$
 
-Route::prefix('$KABAB_CASE_NAME$')->group(function () {
-    // Define your module routes here
-});
+$ROUTE_COMPONENTS$

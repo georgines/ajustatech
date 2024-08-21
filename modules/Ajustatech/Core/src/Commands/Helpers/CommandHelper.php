@@ -78,7 +78,7 @@ class CommandHelper
         ];
 
         $contents = array_merge($contents, $this->newContents);
-        
+
         $contents = $this->getStubContents($stubPath, $contents);
 
 
@@ -184,4 +184,67 @@ class CommandHelper
     {
         return str_replace($this->basePath . '/', '', $path);
     }
+
+    // public function ddcreateStubFiles($basePath, $className, array $stubs): void
+    // {
+    //     foreach ($stubs as $stub => $file) {
+    //         $stubPath = $this->getStubPath($stub);
+    //         $filePath = "{$basePath}/{$file}";
+
+    //         $contents = [
+    //             'CLASS_NAME' => $className,
+    //             'NAMESPACE' => $this->namespace,
+    //             "PSR4_NAMESPACE" => $this->getPsr4Namespace(),
+    //             'KABAB_CASE_NAME' => $this->getKebabCaseName($className),
+    //             'SNAKE_CASE_NAME' => $this->getSnakeCaseName($className),
+    //             'VENDOR' => $this->config['vendor'],
+    //             'LICENSE' => $this->config['license'],
+    //             'AUTHOR_NAME' => $this->config['author']['name'],
+    //             'AUTHOR_EMAIL' => $this->config['author']['email'],
+    //             'ORGANIZATION' => $this->config['organization'],
+    //         ];
+
+    //         $contents = array_merge($contents, $this->newContents);
+    //         $contents = $this->getStubContents($stubPath, $contents);
+
+    //         // Exibe os dados que seriam usados para criar os arquivos
+    //         dd([
+    //             'filePath' => $filePath,
+    //             'contents' => $contents
+    //         ]);
+    //     }
+    // }
+    public function ddcreateStubFiles($basePath, $className, array $stubs): void
+    {
+        $output = []; // Inicializa um array para coletar as saídas
+
+        foreach ($stubs as $stub => $file) {
+            $stubPath = $this->getStubPath($stub);
+            $filePath = "{$basePath}/{$file}";
+
+            $contents = [
+                'CLASS_NAME' => $className,
+                'NAMESPACE' => $this->namespace,
+                "PSR4_NAMESPACE" => $this->getPsr4Namespace(),
+                'KABAB_CASE_NAME' => $this->getKebabCaseName($className),
+                'SNAKE_CASE_NAME' => $this->getSnakeCaseName($className),
+                'VENDOR' => $this->config['vendor'],
+                'LICENSE' => $this->config['license'],
+                'AUTHOR_NAME' => $this->config['author']['name'],
+                'AUTHOR_EMAIL' => $this->config['author']['email'],
+                'ORGANIZATION' => $this->config['organization'],
+            ];
+
+            $contents = array_merge($contents, $this->newContents);
+            $contents = $this->getStubContents($stubPath, $contents);
+
+            $output[] = [
+                'filePath' => $filePath,
+                'contents' => $contents
+            ];
+        }
+
+        dd($output);
+    }
+
 }

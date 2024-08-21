@@ -1,0 +1,20 @@
+<?php
+
+namespace $NAMESPACE$\Tests\Feature\$CLASS_NAME$;
+
+use $NAMESPACE$\Livewire\$COMPONENT_NAME$;
+use $NAMESPACE$\Database\Models\$CLASS_NAME$;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
+use Tests\TestCase;
+
+class $COMPONENT_NAME$Test extends TestCase
+{
+	use RefreshDatabase;
+
+	public function test_renders_successfully()
+	{
+		Livewire::test($COMPONENT_NAME$::class)
+			->assertStatus(200);
+	}
+}

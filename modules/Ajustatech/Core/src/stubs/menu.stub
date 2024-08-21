@@ -1,0 +1,16 @@
+{
+	"menu": [
+		{
+			"name": "Nome_categoria",
+			"icon": "menu-icon tf-icons ti ti-users",
+			"slug": "$LOW_CLASS_NAME$",
+			"submenu": [
+				{
+					"url": "Nome_url",
+					"name": "Nome_botao_url",
+					"slug": "$LOW_CLASS_NAME$-show"
+				}
+			]
+		}
+	]
+}
