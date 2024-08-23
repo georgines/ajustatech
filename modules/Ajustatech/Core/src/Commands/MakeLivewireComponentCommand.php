@@ -37,25 +37,10 @@ class MakeLivewireComponentCommand extends Command
         $managementKebabComponentName = Str::kebab($managementComponentName);
         $timestamp = $this->genarateMigrationTimestamp();
 
-        // dd([
-        //     "name" => $name,
-        //     "path" => $path,
-        //     "basePath" => $basePath,
-        //     "namespace" => $namespace,
-        //     "componentName" => $componentName,
-        //     "kebabComponentName" => $kebabComponentName,
-        //     "lowComponentName" => $lowComponentName,
-        //     "showComponentName" => $showComponentName,
-        //     "showKebabComponentName" => $showKebabComponentName,
-        //     "managementComponentName" => $managementComponentName,
-        //     "managementKebabComponentName" => $managementKebabComponentName,
-        //     "timestamp" => $timestamp,
-        // ]);
-
         $namespaceList = [
-             [ 'name'=>"{$namespace}\Livewire\\{$showComponentName}"],
-             [ 'name'=>"{$namespace}\Livewire\\{$managementComponentName}"],
-             [ 'name'=>"{$namespace}\Commands\Seed{$componentName}Command"],
+            ['name' => "{$namespace}\Livewire\\{$showComponentName}"],
+            ['name' => "{$namespace}\Livewire\\{$managementComponentName}"],
+            ['name' => "{$namespace}\Commands\Seed{$componentName}Command"],
         ];
 
         $useTemplate = "use {name};";
@@ -81,7 +66,7 @@ class MakeLivewireComponentCommand extends Command
         ]);
 
         $this->helper->createStubFiles($basePath, $componentName, [
-            'provider.stub' => "{$path}/Providers/{$componentName}ServiceProvider.php",
+            ['provider.stub' => "{$path}/Providers/{$componentName}ServiceProvider.php"],
         ]);
 
         $this->helper->addContents([
@@ -89,16 +74,13 @@ class MakeLivewireComponentCommand extends Command
         ]);
 
         $this->helper->createStubFiles($basePath, $componentName, [
-            'menu.stub' => "{$path}/Menu/horizontalMenu.json",
-        ]);
-
-        $this->helper->createStubFiles($basePath, $componentName, [
-            'menu.stub' => "{$path}/Menu/verticalMenu.json",
+            ['menu.stub' => "{$path}/Menu/horizontalMenu.json"],
+            ['menu.stub' => "{$path}/Menu/verticalMenu.json"],
         ]);
 
         $routeNamespaceList = [
-           [ 'name'=> "{$namespace}\Livewire\\{$showComponentName}"],
-           [ 'name'=> "{$namespace}\Livewire\\{$managementComponentName}"]
+            ['name' => "{$namespace}\Livewire\\{$showComponentName}"],
+            ['name' => "{$namespace}\Livewire\\{$managementComponentName}"]
         ];
 
         $routeTemplate = "use {name};";
@@ -127,20 +109,20 @@ class MakeLivewireComponentCommand extends Command
 
         $this->helper->addContents([
             "LOW_CLASS_NAME" => $lowComponentName,
-            "KABAB_CASE_NAME" > $kebabComponentName,
+            "KABAB_CASE_NAME" => $kebabComponentName,
             "COMPONENT_ROUTE" => $componentRoute,
             "ROUTE_COMPONENTS" => $registeredRoutes,
             "COMPONENT_NAME" => $showComponentName
         ]);
 
         $this->helper->createStubFiles($basePath, $componentName, [
-            'command.stub' => "{$path}/Commands/Seed{$componentName}Command.php",
-            'factory.stub' => "{$path}/Database/Factories/{$componentName}Factory.php",
-            'migration.stub' => "{$path}/Database/Migrations/{$timestamp}_create_{$lowComponentName}_table.php",
-            'model.stub' => "{$path}/Database/Models/{$componentName}.php",
-            'seeder.stub' => "{$path}/Database/Seeders/{$componentName}Seeder.php",
-            'routes.stub' => "{$path}/Routes/web.php",
-            'test.stub' => "{$path}/Tests/Feature/{$componentName}Test.php"
+            ['command.stub' => "{$path}/Commands/Seed{$componentName}Command.php"],
+            ['factory.stub' => "{$path}/Database/Factories/{$componentName}Factory.php"],
+            ['migration.stub' => "{$path}/Database/Migrations/{$timestamp}_create_{$lowComponentName}_table.php"],
+            ['model.stub' => "{$path}/Database/Models/{$componentName}.php"],
+            ['seeder.stub' => "{$path}/Database/Seeders/{$componentName}Seeder.php"],
+            ['routes.stub' => "{$path}/Routes/web.php"],
+            ['test.stub' => "{$path}/Tests/Feature/{$componentName}Test.php"]
         ]);
 
         $this->helper->addContents([
@@ -151,9 +133,9 @@ class MakeLivewireComponentCommand extends Command
         ]);
 
         $this->helper->createStubFiles($basePath, $componentName, [
-            'test-component.stub' => "{$path}/Tests/Feature/{$componentName}/{$showComponentName}Test.php",
-            'livewire-component.stub' => "{$path}/Livewire/{$showComponentName}.php",
-            'livewire-view.stub' => "{$path}/Views/livewire/{$showKebabComponentName}.blade.php"
+            ['test-component.stub' => "{$path}/Tests/Feature/{$componentName}/{$showComponentName}Test.php"],
+            ['livewire-component.stub' => "{$path}/Livewire/{$showComponentName}.php"],
+            ['livewire-view.stub' => "{$path}/Views/livewire/{$showKebabComponentName}.blade.php"]
         ]);
 
         $this->helper->addContents([
@@ -164,9 +146,9 @@ class MakeLivewireComponentCommand extends Command
         ]);
 
         $this->helper->createStubFiles($basePath, $componentName, [
-            'test-component.stub' => "{$path}/Tests/Feature/{$componentName}/{$managementComponentName}Test.php",
-            'livewire-component.stub' => "{$path}/Livewire/{$managementComponentName}.php",
-            'livewire-view.stub' => "{$path}/Views/livewire/{$managementKebabComponentName}.blade.php",
+            ['test-component.stub' => "{$path}/Tests/Feature/{$componentName}/{$managementComponentName}Test.php"],
+            ['livewire-component.stub' => "{$path}/Livewire/{$managementComponentName}.php"],
+            ['livewire-view.stub' => "{$path}/Views/livewire/{$managementKebabComponentName}.blade.php"],
         ]);
 
         $this->info("Livewire component {$componentName} created successfully at {$basePath}.");
