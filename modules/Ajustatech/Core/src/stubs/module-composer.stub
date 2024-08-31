@@ -1,0 +1,21 @@
+{
+    "name": "$VENDOR$/$KABAB_CASE_NAME$",
+    "description": "Module $CLASS_NAME$",
+    "license": "$LICENSE$",
+    "authors": [
+        {
+            "name": "$AUTHOR_NAME$",
+            "email": "$AUTHOR_EMAIL$"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "$PSR4_NAMESPACE$": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "$PSR4_NAMESPACE$Tests\\": "$MODULO_TEST_PATH$"
+        }
+    }
+}

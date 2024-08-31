@@ -1,0 +1,23 @@
+<?php
+
+namespace $NAMESPACE$\Database\Models;
+
+use $NAMESPACE$\Database\Factories\$CLASS_NAME$Factory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+
+class $CLASS_NAME$ extends Model
+{
+    use HasFactory;
+    use HasUuids;
+
+    protected $fillable = [
+
+    ];
+
+
+    protected static function newFactory(){
+        return $CLASS_NAME$Factory::new();
+    }
+}

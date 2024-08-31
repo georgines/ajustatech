@@ -61,7 +61,7 @@ class MakeModuleCommand extends Command
             // 'seeder.stub' => "{$modulePath}/src/Database/Seeders/{$moduleName}Seeder.php",
             // 'routes-component.stub' => "{$modulePath}/src/Routes/web.php",
             // 'test-component.stub' => "{$modulePath}/src/Tests/Feature/CustomerTest.php",
-            ['composer.stub' => "{$modulePath}/composer.json"]
+            ['module-composer.stub' => "{$modulePath}/composer.json"]
 
         ]);
 

@@ -1,8 +1,9 @@
 <?php
 
-namespace $NAMESPACE$;
+namespace $NAMESPACE$\Tests\Feature\$CLASS_NAME$;
 
-$NAMESPACE_IMPORT$
+use $NAMESPACE$\Livewire\$COMPONENT_NAME$;
+use $NAMESPACE$\Database\Models\$CLASS_NAME$;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;

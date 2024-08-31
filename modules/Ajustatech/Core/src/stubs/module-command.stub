@@ -1,0 +1,20 @@
+<?php
+
+namespace $NAMESPACE$\Commands;
+
+use Illuminate\Console\Command;
+
+class Seed$CLASS_NAME$Command extends Command
+{
+
+    protected $signature = 'db:seed-$LOW_CLASS_NAME$';
+
+    protected $description = 'Seeds the database with $LOW_CLASS_NAME$ data';
+
+    public function handle()
+    {
+        $this->call('db:seed', [
+            '--class'=>'$NAMESPACE$\Database\Seeders\$CLASS_NAME$Seeder'
+        ]);
+    }
+}

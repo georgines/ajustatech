@@ -6,7 +6,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 #[Layout('core::layouts.app')]
-class $CLASS_NAME$ extends Component
+class $COMPONENT_NAME$ extends Component
 {
     public function render()
     {

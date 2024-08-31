@@ -12,6 +12,20 @@ class MakeLivewireComponentCommand extends Command
     protected $description = 'Create a new Livewire 3 component in a specified path';
     protected $helper;
 
+    protected $name;
+    protected $path;
+    protected $basePath;
+    protected $namespace;
+    protected $componentName;
+    protected $kebabComponentName;
+    protected $lowComponentName;
+    protected $showComponentName;
+    protected $showKebabComponentName;
+    protected $managementComponentName;
+    protected $managementKebabComponentName;
+    protected $timestamp;
+
+
     public function __construct(CommandHelper $helper)
     {
         parent::__construct();
@@ -22,84 +36,119 @@ class MakeLivewireComponentCommand extends Command
 
     public function handle()
     {
-        $name = $this->argument('name');
-        $path = $this->argument('path');
+        $this->initializeProperties();
 
-        $basePath = $this->helper->getBasePath();
-        $namespace = $this->helper->getNamespaceFromPath($path);
-        $componentName = $this->helper->getClassName($name);
-        $kebabComponentName = $this->helper->getKebabCaseName($name);
-        $lowComponentName = Str::lower($componentName);
-        $showComponentName = "Show" . $componentName;
-        $showKebabComponentName = Str::kebab($showComponentName);
-        $managementComponentName = $componentName . "Management";
-        $managementKebabComponentName = Str::kebab($managementComponentName);
-        $timestamp = $this->helper->generateMigrationTimestamp();
+        $this->generateUseNamespaces();
+        $this->generateComponentRegistration();
+        $this->createProviderStub();
+        $this->createMenuStubs();
+        $this->generateRouteNamespaces();
+        $this->generateRoutes();
+        $this->createCommandAndDatabaseStubs();
+        $this->createTestAndLivewireStubs();
 
+        $this->info("Livewire component {$this->componentName} created successfully at {$this->basePath}.");
+    }
+
+    protected function initializeProperties()
+    {
+        $this->name = $this->argument('name');
+        $this->path = $this->argument('path');
+
+        $this->basePath = $this->helper->getBasePath();
+        $this->namespace = $this->helper->getNamespaceFromPath($this->path);
+        $this->componentName = $this->helper->getClassName($this->name);
+        $this->kebabComponentName = $this->helper->getKebabCaseName($this->name);
+        $this->lowComponentName = Str::lower($this->componentName);
+        $this->showComponentName = "Show" . $this->componentName;
+        $this->showKebabComponentName = Str::kebab($this->showComponentName);
+        $this->managementComponentName = $this->componentName . "Management";
+        $this->managementKebabComponentName = Str::kebab($this->managementComponentName);
+        $this->timestamp = $this->helper->generateMigrationTimestamp();
+    }
+
+    protected function generateUseNamespaces()
+    {
         $namespaceList = [
-            ['name' => "{$namespace}\Livewire\\{$showComponentName}"],
-            ['name' => "{$namespace}\Livewire\\{$managementComponentName}"],
-            ['name' => "{$namespace}\Commands\Seed{$componentName}Command"],
+            ['name' => "{$this->namespace}\Livewire\\{$this->showComponentName}"],
+            ['name' => "{$this->namespace}\Livewire\\{$this->managementComponentName}"],
+            ['name' => "{$this->namespace}\Commands\Seed{$this->componentName}Command"],
         ];
 
         $useTemplate = "use {name};";
         $useNamespace = $this->helper->generateDynamicString($namespaceList, $useTemplate);
 
+        $this->helper->addContents(['NAMESPACE_IMPORT' => $useNamespace]);
+    }
+
+    protected function generateComponentRegistration()
+    {
         $components = [
             [
-                'name' => $showKebabComponentName,
-                'class' => "{$showComponentName}::class"
+                'name' => $this->showKebabComponentName,
+                'class' => "{$this->showComponentName}::class"
             ],
             [
-                'name' => $managementKebabComponentName,
-                'class' => "{$managementComponentName}::class"
+                'name' => $this->managementKebabComponentName,
+                'class' => "{$this->managementComponentName}::class"
             ]
         ];
 
         $template = "\t\tLivewire::component('{name}', {class});";
         $registredComponents = $this->helper->generateDynamicString($components, $template);
 
-        $this->helper->addContents([
-            'USE_NAMESPACE' => $useNamespace,
-            'REGISTRED_COMPONENTS' => $registredComponents
-        ]);
+        $this->helper->addContents(['REGISTRED_COMPONENTS' => $registredComponents]);
+    }
 
-        $this->helper->createStubFiles($basePath, $componentName, [
-            ['provider.stub' => "{$path}/Providers/{$componentName}ServiceProvider.php"],
+    protected function createProviderStub()
+    {
+        $this->helper->createStubFiles($this->basePath, $this->componentName, [
+            ['module-provider.stub' => "{$this->namespace}/Providers/{$this->componentName}ServiceProvider.php"],
         ]);
+    }
 
-        $this->helper->addContents([
-            "LOW_CLASS_NAME" => $lowComponentName
+    protected function createMenuStubs()
+    {
+        $this->helper->addContents(["LOW_CLASS_NAME" => $this->lowComponentName]);
+
+        $this->helper->createStubFiles($this->basePath, $this->componentName, [
+            ['module-menu.stub' => "{$this->path}/Menu/horizontalMenu.json"],
+            ['module-menu.stub' => "{$this->path}/Menu/verticalMenu.json"],
         ]);
+    }
 
-        $this->helper->createStubFiles($basePath, $componentName, [
-            ['menu.stub' => "{$path}/Menu/horizontalMenu.json"],
-            ['menu.stub' => "{$path}/Menu/verticalMenu.json"],
-        ]);
-
+    protected function generateRouteNamespaces()
+    {
         $routeNamespaceList = [
-            ['name' => "{$namespace}\Livewire\\{$showComponentName}"],
-            ['name' => "{$namespace}\Livewire\\{$managementComponentName}"]
+            ['name' => "{$this->namespace}\Livewire\\{$this->showComponentName}"],
+            ['name' => "{$this->namespace}\Livewire\\{$this->managementComponentName}"]
         ];
 
         $routeTemplate = "use {name};";
         $componentRoute = $this->helper->generateDynamicString($routeNamespaceList, $routeTemplate);
 
+        $this->helper->addContents([
+            "COMPONENT_ROUTE" => $componentRoute
+        ]);
+    }
+
+    protected function generateRoutes()
+    {
         $routes = [
             [
-                'uri' => "/{$kebabComponentName}",
-                'action' => "{$showComponentName}::class",
-                'name' => "{$kebabComponentName}-show"
+                'uri' => "/{$this->kebabComponentName}",
+                'action' => "{$this->showComponentName}::class",
+                'name' => "{$this->kebabComponentName}-show"
             ],
             [
-                'uri' => "/{$kebabComponentName}/cadastro",
-                'action' => "{$managementComponentName}::class",
-                'name' => "{$kebabComponentName}-create"
+                'uri' => "/{$this->kebabComponentName}/cadastro",
+                'action' => "{$this->managementComponentName}::class",
+                'name' => "{$this->kebabComponentName}-create"
             ],
             [
-                'uri' => "/{$kebabComponentName}/{{$kebabComponentName}}/editar",
-                'action' => "{$managementComponentName}::class",
-                'name' => "{$kebabComponentName}-edit"
+                'uri' => "/{$this->kebabComponentName}/{{$this->kebabComponentName}}/editar",
+                'action' => "{$this->managementComponentName}::class",
+                'name' => "{$this->kebabComponentName}-edit"
             ]
         ];
 
@@ -107,50 +156,50 @@ class MakeLivewireComponentCommand extends Command
         $registeredRoutes = $this->helper->generateDynamicString($routes, $template);
 
         $this->helper->addContents([
-            "LOW_CLASS_NAME" => $lowComponentName,
-            "KABAB_CASE_NAME" => $kebabComponentName,
-            "COMPONENT_ROUTE" => $componentRoute,
-            "ROUTE_COMPONENTS" => $registeredRoutes,
-            "COMPONENT_NAME" => $showComponentName
+            "ROUTE_COMPONENTS" => $registeredRoutes
         ]);
-
-        $this->helper->createStubFiles($basePath, $componentName, [
-            ['command.stub' => "{$path}/Commands/Seed{$componentName}Command.php"],
-            ['factory.stub' => "{$path}/Database/Factories/{$componentName}Factory.php"],
-            ['migration.stub' => "{$path}/Database/Migrations/{$timestamp}_create_{$lowComponentName}_table.php"],
-            ['model.stub' => "{$path}/Database/Models/{$componentName}.php"],
-            ['seeder.stub' => "{$path}/Database/Seeders/{$componentName}Seeder.php"],
-            ['routes.stub' => "{$path}/Routes/web.php"],
-            ['test.stub' => "{$path}/Tests/Feature/{$componentName}Test.php"]
-        ]);
-
-        $this->helper->addContents([
-            "LOW_CLASS_NAME" => $lowComponentName,
-            "CLASS_NAME" => $componentName,
-            "KABAB_CASE_NAME" => $showKebabComponentName,
-            "COMPONENT_NAME" => $showComponentName
-        ]);
-
-        $this->helper->createStubFiles($basePath, $componentName, [
-            ['test-component.stub' => "{$path}/Tests/Feature/{$componentName}/{$showComponentName}Test.php"],
-            ['livewire-component.stub' => "{$path}/Livewire/{$showComponentName}.php"],
-            ['livewire-view.stub' => "{$path}/Views/livewire/{$showKebabComponentName}.blade.php"]
-        ]);
-
-        $this->helper->addContents([
-            "LOW_CLASS_NAME" => $lowComponentName,
-            "CLASS_NAME" => $componentName,
-            "KABAB_CASE_NAME" => $managementKebabComponentName,
-            "COMPONENT_NAME" => $managementComponentName
-        ]);
-
-        $this->helper->createStubFiles($basePath, $componentName, [
-            ['test-component.stub' => "{$path}/Tests/Feature/{$componentName}/{$managementComponentName}Test.php"],
-            ['livewire-component.stub' => "{$path}/Livewire/{$managementComponentName}.php"],
-            ['livewire-view.stub' => "{$path}/Views/livewire/{$managementKebabComponentName}.blade.php"],
-        ]);
-
-        $this->info("Livewire component {$componentName} created successfully at {$basePath}.");
     }
 
+    protected function createCommandAndDatabaseStubs()
+    {
+        $this->helper->addContents([
+            "LOW_CLASS_NAME" => $this->lowComponentName,
+            "CLASS_NAME" => $this->componentName
+        ]);
+
+        $this->helper->createStubFiles($this->basePath, $this->componentName, [
+            ['module-command.stub' => "{$this->namespace}/Commands/Seed{$this->componentName}Command.php"],
+            ['module-factory.stub' => "{$this->namespace}/Database/Factories/{$this->componentName}Factory.php"],
+            ['module-migration.stub' => "{$this->namespace}/Database/Migrations/{$this->timestamp}_create_{$this->lowComponentName}_table.php"],
+            ['module-model.stub' => "{$this->namespace}/Database/Models/{$this->componentName}.php"],
+            ['module-seeder.stub' => "{$this->namespace}/Database/Seeders/{$this->componentName}Seeder.php"],
+            ['module-routes.stub' => "{$this->namespace}/Routes/web.php"],
+            ['module-test-model.stub' => "{$this->namespace}/Tests/Feature/{$this->componentName}Test.php"]
+        ]);
+    }
+
+    protected function createTestAndLivewireStubs()
+    {
+        $this->helper->addContents([
+            "KABAB_CASE_NAME" => $this->showKebabComponentName,
+            "COMPONENT_NAME" => $this->showComponentName
+        ]);
+
+        $this->helper->createStubFiles($this->basePath, $this->componentName, [
+            ['module-test-component.stub' => "{$this->namespace}/Tests/Feature/{$this->componentName}/{$this->showComponentName}Test.php"],
+            ['module-livewire-component.stub' => "{$this->namespace}/Livewire/{$this->showComponentName}.php"],
+            ['module-livewire-view.stub' => "{$this->namespace}/Views/livewire/{$this->showKebabComponentName}.blade.php"]
+        ]);
+
+        $this->helper->addContents([
+            "KABAB_CASE_NAME" => $this->managementKebabComponentName,
+            "COMPONENT_NAME" => $this->managementComponentName
+        ]);
+
+        $this->helper->createStubFiles($this->basePath, $this->componentName, [
+            ['module-test-component.stub' => "{$this->namespace}/Tests/Feature/{$this->componentName}/{$this->managementComponentName}Test.php"],
+            ['module-livewire-component' => "{$this->namespace}/Livewire/{$this->managementComponentName}.php"],
+            ['module-livewire-view.stub' => "{$this->namespace}/Views/livewire/{$this->managementKebabComponentName}.blade.php"],
+        ]);
+    }
 }
