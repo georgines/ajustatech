@@ -70,9 +70,9 @@ class MakeLivewireComponentCommand extends Command
     protected function generateUseNamespaces()
     {
         $namespaceList = [
-            ['name' => "{$this->namespace}\Livewire\\{$this->showComponentName}"],
-            ['name' => "{$this->namespace}\Livewire\\{$this->managementComponentName}"],
-            ['name' => "{$this->namespace}\Commands\Seed{$this->componentName}Command"],
+            ['name' => "{$this->path}\Livewire\\{$this->showComponentName}"],
+            ['name' => "{$this->path}\Livewire\\{$this->managementComponentName}"],
+            ['name' => "{$this->path}\Commands\Seed{$this->componentName}Command"],
         ];
 
         $useTemplate = "use {name};";
@@ -103,7 +103,7 @@ class MakeLivewireComponentCommand extends Command
     protected function createProviderStub()
     {
         $this->helper->createStubFiles($this->basePath, $this->componentName, [
-            ['module-provider.stub' => "{$this->namespace}/Providers/{$this->componentName}ServiceProvider.php"],
+            ['module-provider.stub' => "{$this->path}/Providers/{$this->componentName}ServiceProvider.php"],
         ]);
     }
 
@@ -120,8 +120,8 @@ class MakeLivewireComponentCommand extends Command
     protected function generateRouteNamespaces()
     {
         $routeNamespaceList = [
-            ['name' => "{$this->namespace}\Livewire\\{$this->showComponentName}"],
-            ['name' => "{$this->namespace}\Livewire\\{$this->managementComponentName}"]
+            ['name' => "{$this->path}\Livewire\\{$this->showComponentName}"],
+            ['name' => "{$this->path}\Livewire\\{$this->managementComponentName}"]
         ];
 
         $routeTemplate = "use {name};";
@@ -168,13 +168,13 @@ class MakeLivewireComponentCommand extends Command
         ]);
 
         $this->helper->createStubFiles($this->basePath, $this->componentName, [
-            ['module-command.stub' => "{$this->namespace}/Commands/Seed{$this->componentName}Command.php"],
-            ['module-factory.stub' => "{$this->namespace}/Database/Factories/{$this->componentName}Factory.php"],
-            ['module-migration.stub' => "{$this->namespace}/Database/Migrations/{$this->timestamp}_create_{$this->lowComponentName}_table.php"],
-            ['module-model.stub' => "{$this->namespace}/Database/Models/{$this->componentName}.php"],
-            ['module-seeder.stub' => "{$this->namespace}/Database/Seeders/{$this->componentName}Seeder.php"],
-            ['module-routes.stub' => "{$this->namespace}/Routes/web.php"],
-            ['module-test-model.stub' => "{$this->namespace}/Tests/Feature/{$this->componentName}Test.php"]
+            ['module-command.stub' => "{$this->path}/Commands/Seed{$this->componentName}Command.php"],
+            ['module-factory.stub' => "{$this->path}/Database/Factories/{$this->componentName}Factory.php"],
+            ['module-migration.stub' => "{$this->path}/Database/Migrations/{$this->timestamp}_create_{$this->lowComponentName}_table.php"],
+            ['module-model.stub' => "{$this->path}/Database/Models/{$this->componentName}.php"],
+            ['module-seeder.stub' => "{$this->path}/Database/Seeders/{$this->componentName}Seeder.php"],
+            ['module-routes.stub' => "{$this->path}/Routes/web.php"],
+            ['module-test-model.stub' => "{$this->path}/Tests/Feature/{$this->componentName}Test.php"]
         ]);
     }
 
@@ -186,9 +186,9 @@ class MakeLivewireComponentCommand extends Command
         ]);
 
         $this->helper->createStubFiles($this->basePath, $this->componentName, [
-            ['module-test-component.stub' => "{$this->namespace}/Tests/Feature/{$this->componentName}/{$this->showComponentName}Test.php"],
-            ['module-livewire-component.stub' => "{$this->namespace}/Livewire/{$this->showComponentName}.php"],
-            ['module-livewire-view.stub' => "{$this->namespace}/Views/livewire/{$this->showKebabComponentName}.blade.php"]
+            ['module-test-component.stub' => "{$this->path}/Tests/Feature/{$this->componentName}/{$this->showComponentName}Test.php"],
+            ['module-livewire-component.stub' => "{$this->path}/Livewire/{$this->showComponentName}.php"],
+            ['module-livewire-view.stub' => "{$this->path}/Views/livewire/{$this->showKebabComponentName}.blade.php"]
         ]);
 
         $this->helper->addContents([
@@ -197,9 +197,9 @@ class MakeLivewireComponentCommand extends Command
         ]);
 
         $this->helper->createStubFiles($this->basePath, $this->componentName, [
-            ['module-test-component.stub' => "{$this->namespace}/Tests/Feature/{$this->componentName}/{$this->managementComponentName}Test.php"],
-            ['module-livewire-component' => "{$this->namespace}/Livewire/{$this->managementComponentName}.php"],
-            ['module-livewire-view.stub' => "{$this->namespace}/Views/livewire/{$this->managementKebabComponentName}.blade.php"],
+            ['module-test-component.stub' => "{$this->path}/Tests/Feature/{$this->componentName}/{$this->managementComponentName}Test.php"],
+            ['module-livewire-component.stub' => "{$this->path}/Livewire/{$this->managementComponentName}.php"],
+            ['module-livewire-view.stub' => "{$this->path}/Views/livewire/{$this->managementKebabComponentName}.blade.php"],
         ]);
     }
 }
