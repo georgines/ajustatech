@@ -3,12 +3,14 @@
 namespace Ajustatech\Customer\Database\Models;
 
 use Ajustatech\Customer\Database\Factories\CustomerFactory;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Customer extends Model
 {
 	use HasFactory;
+    use HasUuids;
 
 	protected $fillable = [
 		'name',

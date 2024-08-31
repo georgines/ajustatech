@@ -51,7 +51,6 @@
                 <table class="datatables-basic table">
                     <thead>
                         <tr>
-                            <th>Id</th>
                             <th>Nome</th>
                             <th>CPF/CNPJ</th>
                             <th>Celular</th>
@@ -64,13 +63,12 @@
                         @if ($customers->count() > 0)
                             @foreach ($customers as $customer)
                                 <tr wire:key='{{ $customer->id }}'>
-                                    <td>{{ $customer->id }}</td>
                                     <td>{{ $customer->name }}</td>
                                     <td>{{ $customer->cpf_cnpj }}</td>
                                     <td>{{ $customer->cellphone }}</td>
                                     <td>{{ $customer->email }}</td>
                                     <td>
-                                        <span wire:click="confirmChangeStatus({{ $customer->id }})"
+                                        <span wire:click="confirmChangeStatus('{{ $customer->id }}')"
                                             class="badge bg-{{ $customer->status === Status::Active->value ? 'success' : 'secondary' }}">
                                             {{ $customer->status === Status::Active->value ? 'Ativo' : 'Inativo' }}
                                         </span>

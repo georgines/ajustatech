@@ -11,6 +11,7 @@ use Livewire\Attributes\Locked;
 use Ajustatech\Core\Rules\CnpjValidation;
 use Ajustatech\Core\Rules\CpfValidator;
 use Ajustatech\Core\Traits\SwitchAlertDispatch;
+use Illuminate\Validation\Rule;
 
 #[Layout('core::layouts.app')]
 class CustomerManagement extends Component
@@ -65,9 +66,9 @@ class CustomerManagement extends Component
             $message = 'Cliente salvo!';
 
             $this->dispatchConfirmation($message)
-            ->to('redirect-to')
-            ->typeSuccess()
-            ->run();
+                ->to('redirect-to')
+                ->typeSuccess()
+                ->run();
         }
     }
 
@@ -86,9 +87,9 @@ class CustomerManagement extends Component
             $message = 'Cliente atualizado!';
 
             $this->dispatchConfirmation($message)
-            ->to('redirect-to')
-            ->typeSuccess()
-            ->run();
+                ->to('redirect-to')
+                ->typeSuccess()
+                ->run();
         }
     }
 
@@ -128,7 +129,7 @@ class CustomerManagement extends Component
         $this->validate([
             'customer_.email' => 'required|email|unique:customers,email,' . $id . ',id',
             'customer_.name' => 'required|min:3',
-            'customer_.cpf_cnpj' => $this->customer_['person'] == 'F' ? ['required', 'unique:customers,cpf_cnpj,' . $id . 'id', 'min:11', new CpfValidator,] : ['required', 'unique:customers,cpf_cnpj,' . $id . 'id', 'min:14', new CnpjValidation],
+            'customer_.cpf_cnpj' => $this->customer_['person'] == 'F' ? ['required',  Rule::unique('customers', 'cpf_cnpj')->ignore($id), 'min:11', new CpfValidator,] : ['required',  Rule::unique('customers', 'cpf_cnpj')->ignore($id), 'min:14', new CnpjValidation],
             'customer_.cellphone' => 'required|min:11',
             'customer_.date_of_birth' => 'required|date',
             'customer_.zip_code' => 'required|min:8',
