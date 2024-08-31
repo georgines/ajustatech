@@ -70,9 +70,9 @@ class MakeLivewireComponentCommand extends Command
     protected function generateUseNamespaces()
     {
         $namespaceList = [
-            ['name' => "{$this->path}\Livewire\\{$this->showComponentName}"],
-            ['name' => "{$this->path}\Livewire\\{$this->managementComponentName}"],
-            ['name' => "{$this->path}\Commands\Seed{$this->componentName}Command"],
+            ['name' => "{$this->namespace}\Livewire\\{$this->showComponentName}"],
+            ['name' => "{$this->namespace}\Livewire\\{$this->managementComponentName}"],
+            ['name' => "{$this->namespace}\Commands\Seed{$this->componentName}Command"],
         ];
 
         $useTemplate = "use {name};";
@@ -120,8 +120,8 @@ class MakeLivewireComponentCommand extends Command
     protected function generateRouteNamespaces()
     {
         $routeNamespaceList = [
-            ['name' => "{$this->path}\Livewire\\{$this->showComponentName}"],
-            ['name' => "{$this->path}\Livewire\\{$this->managementComponentName}"]
+            ['name' => "{$this->namespace}\Livewire\\{$this->showComponentName}"],
+            ['name' => "{$this->namespace}\Livewire\\{$this->managementComponentName}"]
         ];
 
         $routeTemplate = "use {name};";
