@@ -2,6 +2,7 @@
 
 namespace Ajustatech\Core\Commands\Helpers;
 
+use Carbon\Carbon;
 use Illuminate\Support\Pluralizer;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Str;
@@ -190,6 +191,22 @@ class CommandHelper
     private function getRelativePath($path): string
     {
         return str_replace($this->basePath . '/', '', $path);
+    }
+
+    public function generateDynamicString(array $items, string $template): string
+    {
+        return collect($items)
+            ->map(function ($item) use ($template) {
+                return preg_replace_callback('/\{(\w+)\}/', function ($matches) use ($item) {
+                    return $item[$matches[1]] ?? $matches[0];
+                }, $template);
+            })
+            ->implode("\n");
+    }
+
+    public function generateMigrationTimestamp(): string
+    {
+        return Carbon::now()->format('Y_m_d_His');
     }
 
     public function ddcreateStubFiles($basePath, $className, array $stubs): void

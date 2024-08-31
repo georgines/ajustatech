@@ -137,56 +137,57 @@ class CommandHelperTest extends TestCase
         $this->assertEquals('TestOrg\\Core', $this->commandHelper->getNamespaceFromPath('modules/Ajustatech/Core/src'));
     }
 
-    public function test_add_contents(){
+    public function test_add_contents()
+    {
         $contents = ['key' => 'value'];
         $this->commandHelper->addContents($contents);
         $this->assertEquals($contents, $this->commandHelper->getContents());
     }
 
     public function test_create_multiple_files_from_stubs()
-{
-    $this->setProtectedProperty($this->commandHelper, "namespace", "TestOrg");
-    $className = "TestClass";
-    $basePath = "/test/base/path";
+    {
+        $this->setProtectedProperty($this->commandHelper, "namespace", "TestOrg");
+        $className = "TestClass";
+        $basePath = "/test/base/path";
 
-    // Definindo os stubs e os nomes dos arquivos esperados
-    $stubs = [
-        ['testStub1.stub' => "output/testFile1.php"],
-        ['testStub1.stub' => "output/testFile2.php"],
-        ['testStub3.stub' => "output/testFile3.php"],
-    ];
+        // Definindo os stubs e os nomes dos arquivos esperados
+        $stubs = [
+            ['testStub1.stub' => "output/testFile1.php"],
+            ['testStub1.stub' => "output/testFile2.php"],
+            ['testStub3.stub' => "output/testFile3.php"],
+        ];
 
-    $stubContents = [
-        'testStub1.stub' => 'Stub content for $CLASS_NAME$ in file 1.',
-        'testStub3.stub' => 'Stub content for $CLASS_NAME$ in file 3.',
-    ];
+        $stubContents = [
+            'testStub1.stub' => 'Stub content for $CLASS_NAME$ in file 1.',
+            'testStub3.stub' => 'Stub content for $CLASS_NAME$ in file 3.',
+        ];
 
-    $expectedContents = [
-        "{$basePath}/output/testFile1.php" => 'Stub content for TestClass in file 1.',
-        "{$basePath}/output/testFile2.php" => 'Stub content for TestClass in file 1.',
-        "{$basePath}/output/testFile3.php" => 'Stub content for TestClass in file 3.',
-    ];
+        $expectedContents = [
+            "{$basePath}/output/testFile1.php" => 'Stub content for TestClass in file 1.',
+            "{$basePath}/output/testFile2.php" => 'Stub content for TestClass in file 1.',
+            "{$basePath}/output/testFile3.php" => 'Stub content for TestClass in file 3.',
+        ];
 
-    // Mockando o comportamento do Filesystem
-    $this->filesystem->method('get')
-        ->willReturnCallback(function ($stubPath) use ($stubContents) {
-            return $stubContents[basename($stubPath)];
-        });
+        // Mockando o comportamento do Filesystem
+        $this->filesystem->method('get')
+            ->willReturnCallback(function ($stubPath) use ($stubContents) {
+                return $stubContents[basename($stubPath)];
+            });
 
-    $this->filesystem->method('exists')->willReturn(false);
+        $this->filesystem->method('exists')->willReturn(false);
 
-    $matcher = $this->exactly(count($stubs));
+        $matcher = $this->exactly(count($stubs));
 
-    $this->filesystem->expects($matcher)
-        ->method('put')
-        ->willReturnCallback(function ($filePath, $content) use ($expectedContents, $matcher) {
-            $count = $matcher->numberOfInvocations() - 1;
-            $this->assertEquals($expectedContents[$filePath], $content);
-        });
+        $this->filesystem->expects($matcher)
+            ->method('put')
+            ->willReturnCallback(function ($filePath, $content) use ($expectedContents, $matcher) {
+                $count = $matcher->numberOfInvocations() - 1;
+                $this->assertEquals($expectedContents[$filePath], $content);
+            });
 
-    // Invocando o método createStubFiles com o novo formato de stubs
-    $this->commandHelper->createStubFiles($basePath, $className, $stubs);
-}
+        // Invocando o método createStubFiles com o novo formato de stubs
+        $this->commandHelper->createStubFiles($basePath, $className, $stubs);
+    }
 
 
     // Métodos utilitários para acessar métodos e propriedades protegidos/privados
@@ -212,5 +213,26 @@ class CommandHelperTest extends TestCase
         $property = $reflection->getProperty($propertyName);
         $property->setAccessible(true);
         $property->setValue($object, $value);
+    }
+
+    public function test_generate_dynamic_string()
+    {
+        $items = [
+            ['name' => 'Item1', 'value' => 'Value1'],
+            ['name' => 'Item2', 'value' => 'Value2'],
+        ];
+        $template = 'Name: {name}, Value: {value}';
+        $expectedOutput = "Name: Item1, Value: Value1\nName: Item2, Value: Value2";
+
+        $result = $this->commandHelper->generateDynamicString($items, $template);
+
+        $this->assertEquals($expectedOutput, $result);
+    }
+
+    public function test_generate_migration_timestamp()
+    {
+        $result = $this->commandHelper->generateMigrationTimestamp();
+
+        $this->assertMatchesRegularExpression('/^\d{4}_\d{2}_\d{2}_\d{6}$/', $result);
     }
 }

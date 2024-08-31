@@ -4,7 +4,6 @@ namespace Ajustatech\Core\Commands;
 
 use Illuminate\Console\Command;
 use Ajustatech\Core\Commands\Helpers\CommandHelper;
-use Carbon\Carbon;
 use Illuminate\Support\Str;
 
 class MakeLivewireComponentCommand extends Command
@@ -35,7 +34,7 @@ class MakeLivewireComponentCommand extends Command
         $showKebabComponentName = Str::kebab($showComponentName);
         $managementComponentName = $componentName . "Management";
         $managementKebabComponentName = Str::kebab($managementComponentName);
-        $timestamp = $this->genarateMigrationTimestamp();
+        $timestamp = $this->helper->generateMigrationTimestamp();
 
         $namespaceList = [
             ['name' => "{$namespace}\Livewire\\{$showComponentName}"],
@@ -44,7 +43,7 @@ class MakeLivewireComponentCommand extends Command
         ];
 
         $useTemplate = "use {name};";
-        $useNamespace = $this->generateDynamicString($namespaceList, $useTemplate);
+        $useNamespace = $this->helper->generateDynamicString($namespaceList, $useTemplate);
 
         $components = [
             [
@@ -58,7 +57,7 @@ class MakeLivewireComponentCommand extends Command
         ];
 
         $template = "\t\tLivewire::component('{name}', {class});";
-        $registredComponents = $this->generateDynamicString($components, $template);
+        $registredComponents = $this->helper->generateDynamicString($components, $template);
 
         $this->helper->addContents([
             'USE_NAMESPACE' => $useNamespace,
@@ -84,7 +83,7 @@ class MakeLivewireComponentCommand extends Command
         ];
 
         $routeTemplate = "use {name};";
-        $componentRoute = $this->generateDynamicString($routeNamespaceList, $routeTemplate);
+        $componentRoute = $this->helper->generateDynamicString($routeNamespaceList, $routeTemplate);
 
         $routes = [
             [
@@ -105,7 +104,7 @@ class MakeLivewireComponentCommand extends Command
         ];
 
         $template = "Route::get('{uri}', {action})->name('{name}');";
-        $registeredRoutes = $this->generateDynamicString($routes, $template);
+        $registeredRoutes = $this->helper->generateDynamicString($routes, $template);
 
         $this->helper->addContents([
             "LOW_CLASS_NAME" => $lowComponentName,
@@ -154,19 +153,4 @@ class MakeLivewireComponentCommand extends Command
         $this->info("Livewire component {$componentName} created successfully at {$basePath}.");
     }
 
-    function generateDynamicString(array $items, string $template): string
-    {
-        return collect($items)
-            ->map(function ($item) use ($template) {
-                return preg_replace_callback('/\{(\w+)\}/', function ($matches) use ($item) {
-                    return $item[$matches[1]] ?? $matches[0];
-                }, $template);
-            })
-            ->implode("\n");
-    }
-
-    private function genarateMigrationTimestamp(): string
-    {
-        return Carbon::now()->format('Y_m_d_His');
-    }
 }
