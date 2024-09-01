@@ -1,6 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-$COMPONENT_ROUTE$
+$NAMESPACE_IMPORT$
 
-$ROUTE_COMPONENTS$
+$ROUTE_DEFINITION$

@@ -6,13 +6,18 @@ use Illuminate\Console\Command;
 use Ajustatech\Core\Commands\Helpers\CommandHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Str;
 
 class MakeModuleCommand extends Command
 {
     protected $signature = 'make:module {name}';
     protected $description = "Create a new module with necessary files and directories";
     protected $helper;
+    protected $name;
+    protected $path;
+    protected $lowClassName;
+    protected $className;
+    protected $namespace;
+    protected $kebabClassName;
 
     public function __construct(CommandHelper $helper)
     {
@@ -24,57 +29,42 @@ class MakeModuleCommand extends Command
 
     public function handle()
     {
-        $name = $this->argument('name');
-        $moduleName = $this->helper->getClassName($name);
-        $basePath = $this->helper->getBasePath();
-        $modulePath = "modules/Ajustatech/{$moduleName}";
-        $this->helper->getNamespaceFromPath($modulePath);
+        $this->name = $this->argument('name');
 
-        // "modules/Ajustatech/Core/src/Tests/"
-        $lowModuleName = Str::lower($name);
-        $this->helper->addContents(["MODULO_TEST_PATH" => "{$modulePath}/src/Tests/"]);
-        $this->helper->addContents(["LOW_CLASS_NAME" => $lowModuleName]);
+        $this->className = $this->helper->getClassName($this->name);
+        $this->path = "modules/Ajustatech/{$this->className}";
 
-        $this->helper->createDirectoryStructure($basePath, [
-            "{$modulePath}/src/Commands",
-            "{$modulePath}/src/Database/Factories",
-            "{$modulePath}/src/Database/Migrations",
-            "{$modulePath}/src/Database/Models",
-            "{$modulePath}/src/Database/Seeders",
-            "{$modulePath}/src/Livewire",
-            "{$modulePath}/src/Menu",
-            "{$modulePath}/src/Providers",
-            "{$modulePath}/src/Routes",
-            "{$modulePath}/src/Tests/Unit",
-            "{$modulePath}/src/Tests/Feature/{$moduleName}",
-            "{$modulePath}/src/Views/livewire",
+        $this->namespace = $this->helper->getNamespaceFromPath($this->path);
+        $this->kebabClassName = $this->helper->getKebabClassName($this->name);
+        $this->lowClassName = $this->helper->getLowClassName($this->name);
+        
+        $this->helper->addContents(["MODULO_TEST_PATH" => "{$this->path}/src/Tests/"]);
+        $this->helper->addContents(["LOW_CLASS_NAME" => $this->lowClassName]);
 
+        $this->helper->createDirectoryStructure([
+            "{$this->path}/src/Commands",
+            "{$this->path}/src/Database/Factories",
+            "{$this->path}/src/Database/Migrations",
+            "{$this->path}/src/Database/Models",
+            "{$this->path}/src/Database/Seeders",
+            "{$this->path}/src/Livewire",
+            "{$this->path}/src/Menu",
+            "{$this->path}/src/Providers",
+            "{$this->path}/src/Routes",
+            "{$this->path}/src/Tests/Unit",
+            "{$this->path}/src/Tests/Feature/{$this->className}",
+            "{$this->path}/src/Views/livewire",
         ]);
 
-        $timestamp = $this->genarateMigrationTimestamp();
-
-        $this->helper->createStubFiles($basePath, $moduleName, [
-            // 'command.stub' => "{$modulePath}/src/Commands/Seed{$moduleName}Command.php",
-            // 'factory.stub' => "{$modulePath}/src/Database/Factories/{$moduleName}Factory.php",
-            // 'migration.stub' => "{$modulePath}/src/Database/Migrations/{$timestamp}_create_{$lowModuleName}_table.php",
-            // 'model.stub' => "{$modulePath}/src/Database/Models/{$moduleName}.php",
-            // 'seeder.stub' => "{$modulePath}/src/Database/Seeders/{$moduleName}Seeder.php",
-            // 'routes-component.stub' => "{$modulePath}/src/Routes/web.php",
-            // 'test-component.stub' => "{$modulePath}/src/Tests/Feature/CustomerTest.php",
-            ['module-composer.stub' => "{$modulePath}/composer.json"]
-
+        $this->helper->createStubFiles([
+            ['module-composer.stub' => "{$this->path}/composer.json"]
         ]);
 
         Artisan::call('make:livewire-component', [
-            'name' => "{$moduleName}",
-            'path' => "{$modulePath}/src"
+            'name' => "{$this->className}",
+            'path' => "{$this->path}/src"
         ]);
 
-        $this->info("Module {$moduleName} created successfully.");
-    }
-
-    private function genarateMigrationTimestamp(): string
-    {
-        return Carbon::now()->format('Y_m_d_His');
+        $this->info("Module {$this->className} created successfully.");
     }
 }

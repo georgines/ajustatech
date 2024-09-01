@@ -6,6 +6,10 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Artisan;
 use Ajustatech\Core\Commands\MakeModuleCommand;
 use Ajustatech\Core\Commands\MakeLivewireComponentCommand;
+use Ajustatech\Core\Commands\MakeModuleMenuCommand;
+use Ajustatech\Core\Commands\MakeModuleModelCommand;
+use Ajustatech\Core\Commands\MakeModuleRoutesCommand;
+use Ajustatech\Core\Commands\MakeModuleProviderCommand;
 
 class CommandServiceProvider extends ServiceProvider
 {
@@ -14,7 +18,11 @@ class CommandServiceProvider extends ServiceProvider
     {
         $this->commands([
             MakeModuleCommand::class,
-            MakeLivewireComponentCommand::class
+            MakeLivewireComponentCommand::class,
+            MakeModuleMenuCommand::class,
+            MakeModuleModelCommand::class,
+            MakeModuleRoutesCommand::class,
+            MakeModuleProviderCommand::class,
         ]);
 
     }
