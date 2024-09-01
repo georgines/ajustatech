@@ -15,6 +15,7 @@ class CommandHelper
     protected $basePath = '';
     protected $pathToConfigFile = "modules/Ajustatech/Core/src/config/commands.php";
     protected $newContents = [];
+    protected $className;
 
     public function __construct()
     {
@@ -46,36 +47,44 @@ class CommandHelper
         return $this->basePath;
     }
 
-    public function createDirectoryStructure($basePath, array $directories): void
+    public function createDirectoryStructure(array $directories): void
     {
         foreach ($directories as $directory) {
-            $this->makeDirectory("{$basePath}/{$directory}");
+            $this->makeDirectory("{$this->basePath}/{$directory}");
         }
     }
 
-    public function createStubFiles($basePath, $className, array $stubs): void
+    protected function makeDirectory($path): void
+    {
+        if (!$this->files->isDirectory($path)) {
+            $this->files->makeDirectory($path, 0777, true, true);
+        }
+    }
+
+    public function createStubFiles(array $stubs): void
     {
         foreach ($stubs as $stubArray) {
             foreach ($stubArray as $stub => $file) {
-                $this->createFileFromStub($basePath, $className, $stub, $file);
+                $this->createFileFromStub($stub, $file);
             }
         }
     }
 
-    public function createFileFromStub($basePath, $className, $stub, $file): void
+    protected function createFileFromStub($stub, $file): void
     {
         $stubPath = $this->getStubPath($stub);
-        $filePath = "{$basePath}/{$file}";
+        $filePath = "{$this->basePath}/{$file}";
 
         $directory = dirname($filePath);
         $this->makeDirectory($directory);
 
         $contents = [
-            'CLASS_NAME' => $className,
+            'CLASS_NAME' => $this->className,
             'NAMESPACE' => $this->namespace,
             "PSR4_NAMESPACE" => $this->getPsr4Namespace(),
-            'KABAB_CASE_NAME' => $this->getKebabCaseName($className),
-            'SNAKE_CASE_NAME' => $this->getSnakeCaseName($className),
+            'KABAB_CASE_NAME' => $this->getKebabCaseName($this->className),
+            'SNAKE_CASE_NAME' => $this->getSnakeCaseName($this->className),
+            'LOW_CLASS_NAME' => $this->getLowCaseName($this->className),
             'VENDOR' => $this->config['vendor'],
             'LICENSE' => $this->config['license'],
             'AUTHOR_NAME' => $this->config['author']['name'],
@@ -88,9 +97,9 @@ class CommandHelper
         $contents = $this->getStubContents($stubPath, $contents);
 
 
-        if (!$this->files->exists($filePath)) {
-            $this->files->put($filePath, $contents);
-        }
+        // if (!$this->files->exists($filePath)) {
+        $this->files->put($filePath, $contents);
+        // }
     }
 
     public function addContents($array)
@@ -117,12 +126,7 @@ class CommandHelper
         return $contents;
     }
 
-    protected function makeDirectory($path): void
-    {
-        if (!$this->files->isDirectory($path)) {
-            $this->files->makeDirectory($path, 0777, true, true);
-        }
-    }
+
 
     public function getSingularClassName($name): string
     {
@@ -136,6 +140,19 @@ class CommandHelper
             ->replace(['-', '_'], ' ')
             ->title()
             ->replace(' ', '');
+        $this->className = $name;
+        return $this->className;
+    }
+
+    public function getLowClassName($name): string
+    {
+        $name = $this->getLowCaseName($name);
+        return $name;
+    }
+
+    public function getKebabClassName($name): string
+    {
+        $name = $this->getKebabCaseName($name);
         return $name;
     }
 
@@ -148,6 +165,12 @@ class CommandHelper
     public function getSnakeCaseName($name): string
     {
         $name = Str::of($name)->ascii()->replace('/[^a-zA-Z0-9]/', '')->snake();
+        return $name;
+    }
+
+    public function getLowCaseName($name): string
+    {
+        $name = Str::lower($name);
         return $name;
     }
 
@@ -209,21 +232,22 @@ class CommandHelper
         return Carbon::now()->format('Y_m_d_His');
     }
 
-    public function ddcreateStubFiles($basePath, $className, array $stubs): void
+    public function ddcreateStubFiles(array $stubs): void
     {
         $output = []; // Inicializa um array para coletar as saídas
 
         foreach ($stubs as $stubArray) {
             foreach ($stubArray as $stub => $file) {
                 $stubPath = $this->getStubPath($stub);
-                $filePath = "{$basePath}/{$file}";
+                $filePath = "{$this->basePath}/{$file}";
 
                 $contents = [
-                    'CLASS_NAME' => $className,
+                    'CLASS_NAME' => $this->className,
                     'NAMESPACE' => $this->namespace,
                     "PSR4_NAMESPACE" => $this->getPsr4Namespace(),
-                    'KABAB_CASE_NAME' => $this->getKebabCaseName($className),
-                    'SNAKE_CASE_NAME' => $this->getSnakeCaseName($className),
+                    'KABAB_CASE_NAME' => $this->getKebabCaseName($this->className),
+                    'SNAKE_CASE_NAME' => $this->getSnakeCaseName($this->className),
+                    'LOW_CLASS_NAME' => $this->getLowCaseName($this->className),
                     'VENDOR' => $this->config['vendor'],
                     'LICENSE' => $this->config['license'],
                     'AUTHOR_NAME' => $this->config['author']['name'],

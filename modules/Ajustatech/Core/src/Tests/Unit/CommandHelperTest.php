@@ -52,6 +52,8 @@ class CommandHelperTest extends TestCase
         $dirs = ['dir1', 'dir2', 'dir3'];
         $expects = ['/test/base/path/dir1', '/test/base/path/dir2', '/test/base/path/dir3'];
 
+        $this->commandHelper->setBasePath("/test/base/path");
+
         $this->filesystem
             ->method('isDirectory')
             ->willReturn(false);
@@ -69,16 +71,19 @@ class CommandHelperTest extends TestCase
                 $this->assertTrue($force);
             });
 
-        $this->commandHelper->createDirectoryStructure('/test/base/path', $dirs);
+        $this->commandHelper->createDirectoryStructure($dirs);
     }
 
     public function test_create_file_from_stub()
     {
         $this->setProtectedProperty($this->commandHelper, "namespace", "TestOrg");
-        $className = "TestClass";
+        $this->setProtectedProperty($this->commandHelper, "className", "TestClass");
+      
         $basePath = "/test/base/path";
         $fileName = "testFile.php";
         $stubName = 'testStub';
+
+        $this->commandHelper->setBasePath($basePath);
 
         $stubContent = 'This is a stub file with $CLASS_NAME$ and $NAMESPACE$.';
         $expectedContent = 'This is a stub file with TestClass and TestOrg.';
@@ -91,7 +96,7 @@ class CommandHelperTest extends TestCase
             ->with("{$basePath}/{$fileName}", $expectedContent);
 
         $method = $this->getProtectedMethod($this->commandHelper, 'createFileFromStub');
-        $method->invokeArgs($this->commandHelper, [$basePath, $className, $stubName, $fileName]);
+        $method->invokeArgs($this->commandHelper, [$stubName, $fileName]);
     }
 
     public function test_get_singular_class_name()
@@ -147,8 +152,12 @@ class CommandHelperTest extends TestCase
     public function test_create_multiple_files_from_stubs()
     {
         $this->setProtectedProperty($this->commandHelper, "namespace", "TestOrg");
-        $className = "TestClass";
-        $basePath = "/test/base/path";
+        $this->setProtectedProperty($this->commandHelper, "className", "TestClass");
+
+        $basePath = "/test/base/path";       
+    
+        $this->commandHelper->setBasePath($basePath);
+        
 
         // Definindo os stubs e os nomes dos arquivos esperados
         $stubs = [
@@ -186,7 +195,7 @@ class CommandHelperTest extends TestCase
             });
 
         // Invocando o método createStubFiles com o novo formato de stubs
-        $this->commandHelper->createStubFiles($basePath, $className, $stubs);
+        $this->commandHelper->createStubFiles($stubs);
     }
 
 
