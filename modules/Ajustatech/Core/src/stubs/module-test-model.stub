@@ -1,3 +1,5 @@
+<?php
+
 namespace $NAMESPACE$\Tests\Feature;
 
 
@@ -12,7 +14,7 @@ class $CLASS_NAME$Test extends TestCase
 
 	public function test_can_create_$KABAB_CASE_NAME$()
 	{
-		$LOW_CLASS_NAME$ =  $CLASS_NAME$::factory()->create();
+		$$LOW_CLASS_NAME$ =  $CLASS_NAME$::factory()->create();
 		$this->assertDatabaseHas('$LOW_CLASS_NAME$', [
 			
 		]);
