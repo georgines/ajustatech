@@ -24,10 +24,6 @@ class MakeModuleCommand extends Command
     protected $managementComponentName;
     protected $managementKebabComponentName;
     protected $timestamp;
-    protected $routeNamespaceImport;
-    protected $routeDefinition;
-    protected $providerNamespaceImport;
-    protected $componentRegister;
 
     public function __construct(CommandHelper $helper)
     {
@@ -52,11 +48,11 @@ class MakeModuleCommand extends Command
 
     protected function initializeProperties()
     {
-        $this->name = $this->argument('name');    
+        $this->name = $this->argument('name');
 
-        $this->className = $this->helper->getClassName($this->name);        
-        $this->path = "modules/Ajustatech/{$this->className}/src";      
-        
+        $this->className = $this->helper->getClassName($this->name);
+        $this->path = "modules/Ajustatech/{$this->className}/src";
+
         $this->namespace = $this->helper->getNamespaceFromPath($this->path);
         $this->kebabClassName = $this->helper->getKebabClassName($this->name);
         $this->lowClassName = $this->helper->getLowClassName($this->name);
@@ -67,7 +63,7 @@ class MakeModuleCommand extends Command
         $this->timestamp = $this->helper->generateMigrationTimestamp();
     }
 
-    protected function generateUseNamespaces()
+    protected function generateUseNamespaces(): string
     {
         $namespaceList = [
             ['name' => "{$this->namespace}\Livewire\\{$this->showComponentName}"],
@@ -76,10 +72,11 @@ class MakeModuleCommand extends Command
         ];
 
         $useTemplate = "use {name};";
-        $this->providerNamespaceImport = $this->helper->generateDynamicString($namespaceList, $useTemplate);
+        $providerNamespaceImport = $this->helper->generateDynamicString($namespaceList, $useTemplate);
+        return $providerNamespaceImport;
     }
 
-    protected function generateComponentRegistration()
+    protected function generateComponentRegistration(): string
     {
         $components = [
             [
@@ -93,21 +90,23 @@ class MakeModuleCommand extends Command
         ];
 
         $template = "\t\tLivewire::component('{name}', {class});";
-        $registredComponents = $this->helper->generateDynamicString($components, $template);
+        $componentRegister = $this->helper->generateDynamicString($components, $template);
 
-        $this->componentRegister = $this->helper->addContents(['REGISTRED_COMPONENTS' => $registredComponents]);
+        $this->helper->addContents(['REGISTRED_COMPONENTS' => $componentRegister]);
+
+        return $componentRegister;
     }
 
     protected function callMakeModuleProviderCommand()
     {
-        $this->generateUseNamespaces();
-        $this->generateComponentRegistration();
+        $providerNamespaceImport = $this->generateUseNamespaces();
+        $componentRegister = $this->generateComponentRegistration();
 
         Artisan::call('make:module-provider', [
             'name' => $this->name,
             'path' => $this->path,
-            'namespace-import' => $this->providerNamespaceImport,
-            'component-register' => $this->componentRegister
+            'namespace-import' => $providerNamespaceImport,
+            'component-register' => $componentRegister
         ]);
     }
 
@@ -119,7 +118,7 @@ class MakeModuleCommand extends Command
         ]);
     }
 
-    protected function generateRouteNamespaces()
+    protected function generateRouteNamespaces(): string
     {
         $routeNamespaceList = [
             ['name' => "{$this->namespace}\Livewire\\{$this->showComponentName}"],
@@ -127,7 +126,8 @@ class MakeModuleCommand extends Command
         ];
 
         $routeTemplate = "use {name};";
-        $this->routeNamespaceImport = $this->helper->generateDynamicString($routeNamespaceList, $routeTemplate);
+        $routeNamespaceImport = $this->helper->generateDynamicString($routeNamespaceList, $routeTemplate);
+        return $routeNamespaceImport;
     }
 
     protected function generateRoutes()
@@ -151,19 +151,20 @@ class MakeModuleCommand extends Command
         ];
 
         $template = "Route::get('{uri}', {action})->name('{name}');";
-        $this->routeDefinition = $this->helper->generateDynamicString($routes, $template);
+        $routeDefinition = $this->helper->generateDynamicString($routes, $template);
+        return $routeDefinition;
     }
 
     protected function callMakeModuleRoutesCommand()
     {
-        $this->generateRouteNamespaces();
-        $this->generateRoutes();
+        $routeNamespaceImport = $this->generateRouteNamespaces();
+        $routeDefinition = $this->generateRoutes();
 
         Artisan::call('make:module-routes', [
             'name' => $this->name,
             'path' => $this->path,
-            'namespace-import' => $this->routeNamespaceImport,
-            'route-definition' => $this->routeDefinition,
+            'namespace-import' => $routeNamespaceImport,
+            'route-definition' => $routeDefinition,
         ]);
     }
 
