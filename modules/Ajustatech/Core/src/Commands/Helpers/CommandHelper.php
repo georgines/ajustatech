@@ -97,9 +97,9 @@ class CommandHelper
         $contents = $this->getStubContents($stubPath, $contents);
 
 
-        // if (!$this->files->exists($filePath)) {
+        if (!$this->files->exists($filePath)) {
         $this->files->put($filePath, $contents);
-        // }
+        }
     }
 
     public function addContents($array)
@@ -234,7 +234,7 @@ class CommandHelper
 
     public function ddcreateStubFiles(array $stubs): void
     {
-        $output = []; // Inicializa um array para coletar as saídas
+        $output = [];
 
         foreach ($stubs as $stubArray) {
             foreach ($stubArray as $stub => $file) {
