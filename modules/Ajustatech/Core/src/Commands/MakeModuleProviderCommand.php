@@ -39,6 +39,8 @@ class MakeModuleProviderCommand extends Command
     {
         $this->name = $this->argument('name');
         $this->path = $this->argument('path');
+        
+        $this->helper->getNamespaceFromPath($this->path);
         $this->namespaceImport = $this->argument('namespace-import');
         $this->componentRegister = $this->argument('component-register');
         $this->className = $this->helper->getClassName($this->name);

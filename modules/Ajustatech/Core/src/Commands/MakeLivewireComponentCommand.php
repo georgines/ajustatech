@@ -11,7 +11,7 @@ class MakeLivewireComponentCommand extends Command
     protected $signature = 'make:livewire-component {name} {path}';
     protected $description = 'Create a new Livewire 3 component in a specified path';
     protected $helper;
-    
+
     protected $name;
     protected $path;
     protected $basePath;
@@ -40,12 +40,12 @@ class MakeLivewireComponentCommand extends Command
     public function handle()
     {
         $this->initializeProperties();
-
         $this->callMakeModuleProviderCommand();
         $this->callMakeModuleMenuCommand();
         $this->callMakeModuleRoutesCommand();
         $this->callMakeModuleModelCommand();
-        $this->createTestAndLivewireStubs();
+        $this->callMakeModuleLivewireComponentCommand();
+        $this->callMakeModuleComposerCommand();
 
         $this->info("Livewire component {$this->className} created successfully.");
     }
@@ -54,6 +54,8 @@ class MakeLivewireComponentCommand extends Command
     {
         $this->name = $this->argument('name');
         $this->path = $this->argument('path');
+
+        $this->path = $this->path . "/src";
 
         $this->namespace = $this->helper->getNamespaceFromPath($this->path);
         $this->className = $this->helper->getClassName($this->name);
@@ -174,32 +176,19 @@ class MakeLivewireComponentCommand extends Command
         ]);
     }
 
-    protected function createTestAndLivewireStubs()
+    protected function callMakeModuleLivewireComponentCommand()
     {
-        $this->helper->addContents([
-            "KABAB_CASE_NAME" => $this->showKebabComponentName,
-            "COMPONENT_NAME" => $this->showComponentName
+        Artisan::call('make:module-livewire-component', [
+            'name' => $this->name,
+            'path' => $this->path,
         ]);
+    }
 
-        $stubs = [
-            ['module-test-component.stub' => "{$this->path}/Tests/Feature/{$this->className}/{$this->showComponentName}Test.php"],
-            ['module-livewire-component.stub' => "{$this->path}/Livewire/{$this->showComponentName}.php"],
-            ['module-livewire-view.stub' => "{$this->path}/Views/livewire/{$this->showKebabComponentName}.blade.php"]
-        ];
-
-        $this->helper->createStubFiles($stubs);
-
-        $this->helper->addContents([
-            "KABAB_CASE_NAME" => $this->managementKebabComponentName,
-            "COMPONENT_NAME" => $this->managementComponentName
+    protected function callMakeModuleComposerCommand()
+    {
+        Artisan::call('make:module-composer', [
+            'name' => $this->name,
+            'path' => $this->path,
         ]);
-
-        $stubs = [
-            ['module-test-component.stub' => "{$this->path}/Tests/Feature/{$this->className}/{$this->managementComponentName}Test.php"],
-            ['module-livewire-component.stub' => "{$this->path}/Livewire/{$this->managementComponentName}.php"],
-            ['module-livewire-view.stub' => "{$this->path}/Views/livewire/{$this->managementKebabComponentName}.blade.php"],
-        ];
-
-        $this->helper->createStubFiles($stubs);
     }
 }
