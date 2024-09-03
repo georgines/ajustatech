@@ -42,6 +42,7 @@ class MakeModuleCommand extends Command
         $this->callMakeModuleModelCommand();
         $this->callMakeModuleLivewireComponentCommand();
         $this->callMakeModuleComposerCommand();
+        $this->createDirectoriesWithGitkeep();
 
         $this->info("Module {$this->className} created successfully.");
     }
@@ -155,7 +156,7 @@ class MakeModuleCommand extends Command
         return $routeDefinition;
     }
 
-    protected function callMakeModuleRoutesCommand()
+    protected function callMakeModuleRoutesCommand(): void
     {
         $routeNamespaceImport = $this->generateRouteNamespaces();
         $routeDefinition = $this->generateRoutes();
@@ -168,7 +169,7 @@ class MakeModuleCommand extends Command
         ]);
     }
 
-    protected function callMakeModuleModelCommand()
+    protected function callMakeModuleModelCommand(): void
     {
         Artisan::call('make:module-model', [
             'name' => $this->name,
@@ -176,7 +177,7 @@ class MakeModuleCommand extends Command
         ]);
     }
 
-    protected function callMakeModuleLivewireComponentCommand()
+    protected function callMakeModuleLivewireComponentCommand(): void
     {
         Artisan::call('make:module-livewire-route-components', [
             'name' => $this->name,
@@ -184,11 +185,20 @@ class MakeModuleCommand extends Command
         ]);
     }
 
-    protected function callMakeModuleComposerCommand()
+    protected function callMakeModuleComposerCommand(): void
     {
         Artisan::call('make:module-composer', [
             'name' => $this->name,
             'path' => $this->path,
         ]);
+    }
+
+    protected function createDirectoriesWithGitkeep(): void
+    {
+        $stubs = [
+            ['gitkeep.stub' => "{$this->path}/Tests/Unit/.gitkeep"],
+            ['gitkeep.stub' => "{$this->path}/Tests/Feature/.gitkeep"]
+        ];
+        $this->helper->createStubFiles($stubs);
     }
 }
