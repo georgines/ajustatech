@@ -10,6 +10,8 @@ use Ajustatech\Core\Commands\MakeModuleMenuCommand;
 use Ajustatech\Core\Commands\MakeModuleModelCommand;
 use Ajustatech\Core\Commands\MakeModuleRoutesCommand;
 use Ajustatech\Core\Commands\MakeModuleProviderCommand;
+use Ajustatech\Core\Commands\MakeModuleLivewireComponentCommand;
+use Ajustatech\Core\Commands\MakeModuleComposerCommand;
 
 class CommandServiceProvider extends ServiceProvider
 {
@@ -23,11 +25,12 @@ class CommandServiceProvider extends ServiceProvider
             MakeModuleModelCommand::class,
             MakeModuleRoutesCommand::class,
             MakeModuleProviderCommand::class,
+            MakeModuleLivewireComponentCommand::class,
+            MakeModuleComposerCommand::class,
         ]);
-
     }
 
-    public function boot():void
+    public function boot(): void
     {
         Artisan::command('dev',  function () {
             Artisan::call("clear-compiled ");
