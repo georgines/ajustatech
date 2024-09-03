@@ -178,7 +178,7 @@ class MakeLivewireComponentCommand extends Command
 
     protected function callMakeModuleLivewireComponentCommand()
     {
-        Artisan::call('make:module-livewire-component', [
+        Artisan::call('make:module-livewire-route-components', [
             'name' => $this->name,
             'path' => $this->path,
         ]);

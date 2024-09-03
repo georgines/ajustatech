@@ -7,8 +7,8 @@ use Ajustatech\Core\Commands\Helpers\CommandHelper;
 
 class MakeModuleLivewireComponentCommand extends Command
 {
-    protected $signature = 'make:module-livewire-component {name} {path}';
-    protected $description = 'Generate Livewire components for the specified module component';
+    protected $signature = 'make:module-livewire-route-components {name} {path}';
+    protected $description = 'Generate Livewire routes components for the specified module component';
 
     protected $helper;
     protected $name;
@@ -31,7 +31,7 @@ class MakeModuleLivewireComponentCommand extends Command
     {
         $this->initializeProperties();
         $this->createLivewireStubs();
-        $this->info("Livewire components for module {$this->name} created successfully.");
+        $this->info("Livewire route components for module {$this->name} created successfully.");
     }
 
     protected function initializeProperties()
