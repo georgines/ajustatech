@@ -3,9 +3,11 @@
 namespace $NAMESPACE$\Livewire;
 
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('core::layouts.app')]
+#[Title('component_title')]
 class $CLASS_NAME$ extends Component
 {
     public function render()
