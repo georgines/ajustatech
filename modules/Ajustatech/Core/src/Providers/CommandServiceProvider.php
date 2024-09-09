@@ -15,8 +15,11 @@ use Ajustatech\Core\Commands\MakeModuleComposerCommand;
 class CommandServiceProvider extends ServiceProvider
 {
 
-    public function register(): void
+    public function register(): void {}
+
+    public function boot(): void
     {
+
         $this->commands([
             MakeModuleCommand::class,
             MakeModuleMenuCommand::class,
@@ -26,10 +29,7 @@ class CommandServiceProvider extends ServiceProvider
             MakeModuleLivewireComponentCommand::class,
             MakeModuleComposerCommand::class,
         ]);
-    }
-
-    public function boot(): void
-    {
+        
         Artisan::command('dev',  function () {
             Artisan::call("clear-compiled ");
             Artisan::call("cache:clear  ");

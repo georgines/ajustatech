@@ -13,19 +13,19 @@ class ViewServiceProvider extends ServiceProvider
     public function register(): void {}
 
     public function boot(): void
-    {
-        $menuManager = app(MenuManagerInterface::class);
+    {        
+        $menuManager = app(MenuManagerInterface::class);     
 
         $verticalMenuRouterResolver = app(MenuRouteResolverInterface::class);
-        $horizontalMenuRouterResolver = app(MenuRouteResolverInterface::class);
+        $horizontalMenuRouterResolver = app(MenuRouteResolverInterface::class);      
 
         $verticalMenu = $verticalMenuRouterResolver->resolveRoutes($menuManager->getVerticalMenus());
         $horizontalMenu = $horizontalMenuRouterResolver->resolveRoutes($menuManager->getHorizontalMenus());
-        $menuData = [$verticalMenu, $horizontalMenu];
 
+        $menuData = [$verticalMenu, $horizontalMenu];
         View::share('menuData', $menuData);
 
         Log::info('ViewServiceProvider: menuData');
-        Log::debug('menuData:', $menuData);
+        Log::debug('menuData:', $menuData);        
     }
 }

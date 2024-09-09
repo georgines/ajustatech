@@ -4,6 +4,7 @@ namespace Ajustatech\Core\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Ajustatech\Customer\Providers\CustomerServiceProvider;
+use Ajustatech\Financial\Providers\FinancialServiceProvider;
 
 class CoreServiceProvider extends ServiceProvider
 {
@@ -11,14 +12,16 @@ class CoreServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        $this->loadViewsFrom("$this->path/Views", "core");
         $this->app->register(CommandServiceProvider::class);
         $this->app->register(MenuServiceProvider::class);
         $this->app->register(CustomerServiceProvider::class);
-        $this->app->register(ViewServiceProvider::class);
+        $this->app->register(FinancialServiceProvider::class);
+        $this->app->register(ViewServiceProvider::class);        
     }
 
     public function boot(): void
     {
+        $this->loadViewsFrom("$this->path/Views", "core");
+        
     }
 }

@@ -19,13 +19,5 @@
             "Ajustatech\\Core\\Tests\\": "modules/Ajustatech/Core/src/Tests/"
         }
     },
-    "extra": {
-        "laravel": {
-            "providers": [
-                "Ajustatech\\Core\\Providers\\CoreServiceProvider"
-            ],
-            "aliases": {}
-        }
-    },
     "minimum-stability": "dev"
 }

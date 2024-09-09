@@ -9,54 +9,53 @@ class MenuRouteResolver implements MenuRouteResolverInterface
 {
     public function resolveRoutes(stdClass $menu): stdClass
     {
-        if ($this->hasMenu($menu)) {
-            $menu->menu = array_map([$this, 'resolveMenuItem'], $menu->menu);
-        } else {
-            $menu = $this->resolveUrlForMenuItem($menu);
+        // Verifica se o JSON contém o campo 'menu' e o processa
+        if (isset($menu->menu)) {
+            $menu->menu = $this->processMenu($menu->menu);
+        }
+
+        // Retorna o objeto JSON com o menu processado
+        return $menu;
+    }
+
+    protected function processMenu(array $menu): array
+    {
+        $queue = $menu;  // Usamos uma fila para processar itens de menu e submenus iterativamente
+
+        foreach ($queue as &$menuItem) {
+            $this->processMenuItem($menuItem);
+
+            // Se o item tiver submenu, adicionamos os submenus à fila para processar posteriormente
+            if (isset($menuItem->submenu) && is_array($menuItem->submenu)) {
+                foreach ($menuItem->submenu as &$submenuItem) {
+                    $this->processMenuItem($submenuItem);
+                }
+            }
         }
 
         return $menu;
     }
 
-    private function resolveMenuItem($item): stdClass
+    protected function processMenuItem(stdClass &$menuItem): void
     {
-        if ($this->hasSubmenu($item)) {
-            $item->submenu = array_map([$this, 'resolveMenuItem'], $item->submenu); // Resolve submenus recursivamente
-        } else {
-            $item = $this->resolveUrlForMenuItem($item);
+        // Verifica se é um menuHeader (não precisa de alteração)
+        if (isset($menuItem->menuHeader)) {
+            return;
         }
 
-        return $item;
-    }
-
-    private function resolveUrlForMenuItem(stdClass $menuItem): stdClass
-    {
-        if ($this->hasSlug($menuItem)) {
-            if ($this->routeExists($menuItem->slug)) {
-                $menuItem->url = url()->route($menuItem->slug, [], false); // Gera URL relativa com base no slug
-            }
+        // Verifica se o item tem URL e slug para criar uma URL relativa
+        if (isset($menuItem->url) && isset($menuItem->slug)) {
+            $this->createRelativeUrl($menuItem);
         }
-
-        return $menuItem;
     }
 
-    private function hasMenu(stdClass $menu): bool
+    protected function createRelativeUrl(stdClass &$menuItem): void
     {
-        return isset($menu->menu) && is_array($menu->menu);
-    }
+        Route::getRoutes()->refreshNameLookups();
+                
+        if (Route::has($menuItem->slug)) {
+            $menuItem->url = url()->route($menuItem->slug, [], false); // Passando o slug corretamente
 
-    private function hasSubmenu($item): bool
-    {
-        return isset($item->submenu) && is_array($item->submenu);
-    }
-
-    private function hasSlug(stdClass $menuItem): bool
-    {
-        return isset($menuItem->slug);
-    }
-
-    private function routeExists(string $slug): bool
-    {
-        return Route::has($slug);
+        }
     }
 }
