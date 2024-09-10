@@ -1,3 +1,7 @@
+<x-slot name='page_title'>
+    {{$title}}
+</x-slot>
+
 <section>
     @php
         use Ajustatech\Core\Enums\Status;

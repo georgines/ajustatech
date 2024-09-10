@@ -5,7 +5,6 @@ namespace Ajustatech\Customer\Livewire;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\Attributes\On;
-use Livewire\Attributes\Title;
 use Ajustatech\Customer\Database\Models\Customer;
 use Livewire\Attributes\Locked;
 use Ajustatech\Core\Rules\CnpjValidation;
@@ -18,8 +17,10 @@ class CustomerManagement extends Component
 {
     use SwitchAlertDispatch;
 
+
+
     #[Locked]
-    public $title = 'Cadastrar Cliente';
+    public $title = '';
 
     #[Locked]
     public $mode = 'create';
@@ -45,6 +46,7 @@ class CustomerManagement extends Component
 
     public function mount(Customer $customer)
     {
+        $this->title = trans('customer::messages.title');
 
         if ($customer->id) {
             $this->mode = 'edit';
@@ -157,7 +159,6 @@ class CustomerManagement extends Component
         ]);
     }
 
-    #[Title('clientes')]
     public function render()
     {
         return view('customer::livewire.customer-management');

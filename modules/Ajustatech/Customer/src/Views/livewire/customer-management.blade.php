@@ -1,3 +1,7 @@
+<x-slot name='page_title'>
+    {{ $title }}
+</x-slot>
+
 <section>
     <div class="row">
         <div class="col">

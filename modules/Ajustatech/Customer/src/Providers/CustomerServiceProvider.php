@@ -15,14 +15,16 @@ class CustomerServiceProvider extends ServiceProvider
 
     public function register()
     {
-        $this->loadRoutesFrom("$this->path/Routes/web.php");
-        $this->loadViewsFrom("$this->path/Views", "customer");
-        $this->loadMigrationsFrom("$this->path/Database/migrations");
-        $this->loadCommands();
+
     }
 
     public function boot()
     {
+        $this->loadRoutesFrom("$this->path/Routes/web.php");
+        $this->loadViewsFrom("$this->path/Views", "customer");
+        $this->loadMigrationsFrom("$this->path/Database/migrations");
+        $this->loadTranslationsFrom("$this->path/Lang", "customer");
+        $this->loadCommands();
         $this->initializeMenus();
         $this->initializeLivewireComponents();
     }

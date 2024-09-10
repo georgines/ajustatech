@@ -6,7 +6,6 @@ use Ajustatech\Core\Traits\SwitchAlertDispatch;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\Attributes\On;
-use Livewire\Attributes\Title;
 use Ajustatech\Customer\Database\Models\Customer;
 use Ajustatech\Core\Enums\Status;
 
@@ -15,6 +14,7 @@ class ShowCustomer extends Component
 {
     use SwitchAlertDispatch;
 
+    public $title = '';
     public $customers = [];
 	public $search = '';
 	public $activeonly = true;
@@ -23,6 +23,7 @@ class ShowCustomer extends Component
 
 	public function mount()
 	{
+        $this->title = trans('customer::messages.title');
 		$this->customers = collect([]);
 		$this->searchCustomer($this->search, $this->activeonly, $this->limiteperpage);
 	}
@@ -72,7 +73,6 @@ class ShowCustomer extends Component
 		}
 	}
 
-	#[Title('clientes')]
     public function render()
     {
         $pageConfigs = ['myLayout' => 'vertical'];
