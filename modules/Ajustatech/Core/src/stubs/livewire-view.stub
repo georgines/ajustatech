@@ -1,3 +1,7 @@
+<x-slot name="page_title">
+    {{$title}}
+</x-slot>
+
 <div>
     <!-- Livewire component $KABAB_CASE_NAME$ -->
 </div>

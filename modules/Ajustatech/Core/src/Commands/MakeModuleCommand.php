@@ -43,6 +43,7 @@ class MakeModuleCommand extends Command
         $this->callMakeModuleLivewireComponentCommand();
         $this->callMakeModuleComposerCommand();
         $this->createDirectoriesWithGitkeep();
+        $this->makeLangFiles();
 
         $this->info("Module {$this->className} created successfully.");
     }
@@ -198,6 +199,15 @@ class MakeModuleCommand extends Command
         $stubs = [
             ['gitkeep.stub' => "{$this->path}/Tests/Unit/.gitkeep"],
             ['gitkeep.stub' => "{$this->path}/Tests/Feature/.gitkeep"]
+        ];
+        $this->helper->createStubFiles($stubs);
+    }
+
+    protected function makeLangFiles(): void
+    {
+        $stubs = [
+            ['module-lang-en.stub' => "{$this->path}/Lang/en/messages.php"],
+            ['module-lang-pt-br.stub' => "{$this->path}/Lang/pt-BR/messages.php"]
         ];
         $this->helper->createStubFiles($stubs);
     }

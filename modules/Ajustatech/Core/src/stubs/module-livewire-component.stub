@@ -3,13 +3,18 @@
 namespace $NAMESPACE$\Livewire;
 
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('core::layouts.app')]
-#[Title('component_title')]
 class $COMPONENT_NAME$ extends Component
 {
+    public $title;
+
+    public function mount()
+    {
+        $this->title = trans('$LOW_CLASS_NAME$::messages.title');
+    }
+
     public function render()
     {
         return view('$LOW_CLASS_NAME$::livewire.$KABAB_CASE_NAME$');

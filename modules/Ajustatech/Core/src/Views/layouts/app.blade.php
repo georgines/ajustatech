@@ -17,7 +17,9 @@
     @endisset
 @endsection
 
-@section('title', $title)
+@section('title')
+   {{$page_title}}
+@endsection
 
 
 @section('content')
