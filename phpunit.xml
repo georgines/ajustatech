@@ -9,11 +9,13 @@
             <directory>tests/Unit</directory>
             <directory>modules/Ajustatech/Core/src/Tests/Unit</directory>
             <directory>modules/Ajustatech/Customer/src/Tests/Unit</directory>
+            <directory>modules/Ajustatech/Financial/src/Tests/Unit</directory>
         </testsuite>
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
             <directory>modules/Ajustatech/Core/src/Tests/Feature</directory>
             <directory>modules/Ajustatech/Customer/src/Tests/Feature</directory>
+            <directory>modules/Ajustatech/Financial/src/Tests/Feature</directory>
         </testsuite>
     </testsuites>
     <source>

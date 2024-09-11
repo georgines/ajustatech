@@ -1,0 +1,16 @@
+{
+	"menu": [
+		{
+			"name": "Finanças",
+			"icon": "menu-icon tf-icons ti ti-pig-money",
+			"slug": "financial",
+			"submenu": [
+				{
+					"url": "",
+					"name": "Caixas Gerenciais",
+					"slug": "financial-show"
+				}
+			]
+		}
+	]
+}

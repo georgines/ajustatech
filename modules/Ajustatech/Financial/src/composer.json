@@ -1,0 +1,21 @@
+{
+    "name": "georgines/financial",
+    "description": "Module Financial",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Georgines Bezerra Pereira",
+            "email": "geoginae.p2@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Ajustatech\\Financial\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ajustatech\\Financial\\Tests\\": "modules/Ajustatech/Financial/src/Tests/"
+        }
+    }
+}
