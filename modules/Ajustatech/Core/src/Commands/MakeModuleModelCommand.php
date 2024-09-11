@@ -17,6 +17,7 @@ class MakeModuleModelCommand extends Command
     protected $lowClassName;
     protected $className;
     protected $timestamp;
+    protected $pluralTable;
     protected $namespace;
     protected $basePath;
     protected $kebabClassName;
@@ -39,6 +40,11 @@ class MakeModuleModelCommand extends Command
         $this->lowClassName = $this->helper->getLowClassName($this->name);
         $this->kebabClassName = $this->helper->getKebabClassName($this->name);
         $this->timestamp = $this->helper->generateMigrationTimestamp();
+        $this->pluralTable = Str::plural($this->lowClassName);
+
+        $this->helper->addContents([
+            'PLURAL_TABLE' => $this->pluralTable
+        ]);
 
         $this->generateModelAndMigrationStubs();
 

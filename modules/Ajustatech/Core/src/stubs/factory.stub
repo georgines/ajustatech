@@ -12,7 +12,7 @@ class $CLASS_NAME$Factory extends Factory
 	public function definition(): array
 	{
         return [
-
+            'id' => $this->faker->uuid(),
         ];
 	}
 }

@@ -8,7 +8,7 @@ return new class extends Migration
 {
 	public function up(): void
 	{
-		Schema::create('$LOW_CLASS_NAME$', function (Blueprint $table) {
+		Schema::create('$PLURAL_TABLE$', function (Blueprint $table) {
 			$table->uuid('id')->primary();
 			$table->timestamps();
 		});
@@ -16,6 +16,6 @@ return new class extends Migration
 
 	public function down(): void
 	{
-		Schema::dropIfExists('$LOW_CLASS_NAME$');
+		Schema::dropIfExists('$PLURAL_TABLE$');
 	}
 };
