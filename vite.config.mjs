@@ -80,7 +80,10 @@ export default defineConfig({
         ...FontsScssFiles,
         'modules/Ajustatech/UI/resources/assets/scss/cupom.scss'
       ],
-      refresh: true
+      refresh: [
+        'modules/Ajustatech/**/src/Views/**/*.blade.php',
+        'modules/Ajustatech/**/src/Livewire/*.php'
+      ]
     }),
     html(),
     libsWindowAssignment()
