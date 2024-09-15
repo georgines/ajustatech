@@ -77,6 +77,39 @@ class CommandHelper
         }
     }
 
+    public function findAndDeleteFileIfExists($directory, $pattern)
+    {
+        $fileName = $this->findFileByPattern($directory, $pattern);
+
+        if ($fileName) {
+            $this->deleteFile($directory, $fileName);
+        }
+    }
+
+    public function findFileByPattern($directory, $pattern)
+    {
+        if (!$this->files->exists($directory)) {
+            return null;
+        }
+
+        $files = $this->files->files($directory);
+        foreach ($files as $file) {
+            if (strpos($file->getFilename(), $pattern) !== false) {
+                return $file->getFilename();
+            }
+        }
+        return null;
+    }
+
+    public function deleteFile($directory, $fileName)
+    {
+        $filePath = "{$directory}/{$fileName}";
+
+        if ($this->files->exists($filePath)) {
+            $this->files->delete($filePath);
+        }
+    }
+
     protected function createFileFromStub($stub, $file, bool $forcedFileOverwrite = false): void
     {
         $stubPath = $this->getStubPath($stub);
@@ -170,7 +203,6 @@ class CommandHelper
     public function getLowCaseName($name): string
     {
         return Str::lower($name);
-
     }
 
     public function getFolderName($path): string
