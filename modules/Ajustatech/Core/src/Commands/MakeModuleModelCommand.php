@@ -22,6 +22,8 @@ class MakeModuleModelCommand extends BaseCommand
     protected $basePath;
     protected $kebabClassName;
     protected $filesystem;
+    protected $migrationDirectory;
+    protected $migrationFileNamePattern;
 
     public function __construct(CommandHelper $helper, Filesystem $filesystem)
     {
@@ -53,6 +55,8 @@ class MakeModuleModelCommand extends BaseCommand
         $this->kebabClassName = $this->helper->getKebabClassName($this->name);
         $this->timestamp = $this->helper->generateMigrationTimestamp();
         $this->pluralTable = Str::plural($this->helper->getSnakeCaseName($this->className));
+        $this->migrationDirectory = "{$this->path}/Database/Migrations";
+        $this->migrationFileNamePattern = "_create_{$this->pluralTable}_table.php";
 
         $this->helper->addContents([
             'PLURAL_TABLE' => $this->pluralTable
@@ -61,47 +65,27 @@ class MakeModuleModelCommand extends BaseCommand
 
     protected function generateModelAndMigrationStubs()
     {
-        $migrationFileNamePattern = "_create_{$this->pluralTable}_table.php";
-        $migrationDirectory = "{$this->path}/Database/Migrations";
-        $existingMigration = $this->getExistingMigration($migrationDirectory, $migrationFileNamePattern);
+        $this->handleExistingMigrationFile();
+        $stubs = $this->getStubFiles();
 
-        if ($existingMigration) {
-            $this->deleteMigrationFile($migrationDirectory, $existingMigration);
-        }
+        $this->helper->createStubFiles($stubs);
+    }
 
-        $stubs = [
+    protected function handleExistingMigrationFile()
+    {
+        $this->helper->findAndDeleteFileIfExists($this->migrationDirectory, $this->migrationFileNamePattern);
+    }
+
+    protected function getStubFiles()
+    {
+        return [
             ['module-factory.stub' => "{$this->path}/Database/Factories/{$this->className}Factory.php"],
-            ['module-migration.stub' => "{$migrationDirectory}/{$this->timestamp}{$migrationFileNamePattern}"],
+            ['module-migration.stub' => "{$this->migrationDirectory}/{$this->timestamp}{$this->migrationFileNamePattern}"],
             ['module-model.stub' => "{$this->path}/Database/Models/{$this->className}.php"],
             ['module-seeder.stub' => "{$this->path}/Database/Seeders/{$this->className}Seeder.php"],
             ['module-test-model.stub' => "{$this->path}/Tests/Feature/{$this->className}Test.php"],
             ['module-command.stub' => "{$this->path}/Commands/Seed{$this->className}Command.php"]
         ];
-        $this->helper->createStubFiles($stubs);
-    }
-
-    protected function getExistingMigration($migrationDirectory, $pattern)
-    {
-        if (!$this->filesystem->exists($migrationDirectory)) {
-            return null;
-        }
-
-        $files = $this->filesystem->files($migrationDirectory);
-        foreach ($files as $file) {
-            if (strpos($file->getFilename(), $pattern) !== false) {
-                return $file->getFilename();
-            }
-        }
-        return null;
-    }
-
-    protected function deleteMigrationFile($migrationDirectory, $fileName)
-    {
-        $filePath = "{$migrationDirectory}/{$fileName}";
-
-        if ($this->filesystem->exists($filePath)) {
-            $this->filesystem->delete($filePath);
-        }
     }
 
     protected function showInstructions()
