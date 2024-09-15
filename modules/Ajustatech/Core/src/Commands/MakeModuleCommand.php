@@ -235,7 +235,7 @@ class MakeModuleCommand extends BaseCommand
 
     protected function addForceOption(array $parameters): array
     {
-        $optionalParam =  $this->force ? ['--force' => ''] : [];
+        $optionalParam =  $this->force ? ['--force' => true] : [];
         return array_merge($parameters, $optionalParam);
     }
 }
