@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 class SeedCustomerCommand extends Command
 {
 
-    protected $signature = 'db:seed-customer';
+    protected $signature = 'module:seed-customer';
 
     protected $description = 'Seeds the database with customer data';
 
