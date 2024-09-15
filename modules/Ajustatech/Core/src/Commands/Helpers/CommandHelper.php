@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Pluralizer;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Str;
+use Illuminate\Support\Stringable;
 
 class CommandHelper
 {
@@ -67,7 +68,6 @@ class CommandHelper
         }
     }
 
-    // Modificação no método para incluir a verificação de sobrescrita forçada
     public function createStubFiles(array $stubs, bool $forced = false): void
     {
         foreach ($stubs as $stubArray) {
@@ -102,7 +102,6 @@ class CommandHelper
         $contents = array_merge($contents, $this->newContents);
         $contents = $this->getStubContents($stubPath, $contents);
 
-        // Aqui a verificação para sobrescrever o arquivo se o modo de sobrescrita estiver ativado ou se o parâmetro forçar estiver true
         if (!$this->files->exists($filePath) || $forcedFileOverwrite || $this->forceOverwrite) {
             $this->files->put($filePath, $contents);
         }
@@ -132,12 +131,12 @@ class CommandHelper
         return $contents;
     }
 
-    public function getSingularClassName($name): string
+    public function getSingularClassName($name): Stringable
     {
-        return ucwords(Pluralizer::singular($name));
+        return Str::of(ucwords(Pluralizer::singular($name)));
     }
 
-    public function getClassName($name): string
+    public function getClassName($name): Stringable
     {
         $name = $this->getKebabCaseName($name);
         $name = Str::of($name)
@@ -145,37 +144,33 @@ class CommandHelper
             ->title()
             ->replace(' ', '');
         $this->className = $name;
-        return $this->className;
+        return Str::of($this->className);
     }
 
     public function getLowClassName($name): string
     {
-        $name = $this->getLowCaseName($name);
-        return $name;
+        return $this->getLowCaseName($name);
     }
 
     public function getKebabClassName($name): string
     {
-        $name = $this->getKebabCaseName($name);
-        return $name;
+        return $this->getKebabCaseName($name);
     }
 
     public function getKebabCaseName($name): string
     {
-        $name = Str::of($name)->ascii()->replace('/[^a-zA-Z0-9]/', '')->kebab();
-        return $name;
+        return Str::of($name)->ascii()->replace('/[^a-zA-Z0-9]/', '')->kebab();
     }
 
     public function getSnakeCaseName($name): string
     {
-        $name = Str::of($name)->ascii()->replace('/[^a-zA-Z0-9]/', '')->snake();
-        return $name;
+        return Str::of($name)->ascii()->replace('/[^a-zA-Z0-9]/', '')->snake();
     }
 
     public function getLowCaseName($name): string
     {
-        $name = Str::lower($name);
-        return $name;
+        return Str::lower($name);
+
     }
 
     public function getFolderName($path): string
@@ -213,6 +208,14 @@ class CommandHelper
         $namespaceParts = array_map('ucfirst', $parts);
         $this->namespace = implode('\\', $namespaceParts);
         return $this->namespace;
+    }
+
+    public function getModuleNameFromPath(string $modulePath): Stringable
+    {
+        $cleanedPath = trim($modulePath, '/');
+        $modulePart = Str::beforeLast($cleanedPath, '/src');
+        $moduleName =  Str::afterLast($modulePart ?: $cleanedPath, '/');
+        return Str::of($moduleName);
     }
 
     private function getRelativePath($path): string

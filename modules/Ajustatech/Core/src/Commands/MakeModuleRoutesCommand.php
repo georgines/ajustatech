@@ -2,9 +2,7 @@
 
 namespace Ajustatech\Core\Commands;
 
-use Illuminate\Console\Command;
 use Ajustatech\Core\Commands\Helpers\CommandHelper;
-use Illuminate\Support\Str;
 
 class MakeModuleRoutesCommand extends BaseCommand
 {

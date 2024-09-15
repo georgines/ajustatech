@@ -12,11 +12,11 @@ class $CLASS_NAME$ extends Component
 
     public function mount()
     {
-        $this->title = trans('$KABAB_CASE_NAME$::messages.title');
+        $this->title = trans('$KABAB_MODULE_NAME$::messages.title');
     }
 
     public function render()
     {
-        return view('$KABAB_CASE_NAME$::livewire.$KABAB_CASE_NAME$');
+        return view('$KABAB_MODULE_NAME$::livewire.$KABAB_CASE_NAME$');
     }
 }

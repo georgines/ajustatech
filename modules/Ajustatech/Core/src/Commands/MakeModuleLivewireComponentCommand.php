@@ -2,7 +2,6 @@
 
 namespace Ajustatech\Core\Commands;
 
-use Illuminate\Console\Command;
 use Ajustatech\Core\Commands\Helpers\CommandHelper;
 
 class MakeModuleLivewireComponentCommand extends BaseCommand
@@ -13,6 +12,7 @@ class MakeModuleLivewireComponentCommand extends BaseCommand
     protected $helper;
     protected $name;
     protected $path;
+    protected $kebabModuleName;
     protected $className;
     protected $namespace;
     protected $showComponentName;
@@ -46,6 +46,7 @@ class MakeModuleLivewireComponentCommand extends BaseCommand
 
         $this->className = $this->helper->getClassName($this->name);
         $this->namespace = $this->helper->getNamespaceFromPath($this->path);
+        $this->kebabModuleName = $this->helper->getModuleNameFromPath($this->path)->kebab();
         $this->showComponentName = "Show" . $this->className;
         $this->showKebabComponentName = $this->helper->getKebabCaseName($this->showComponentName);
         $this->managementComponentName = $this->className . "Management";
@@ -58,7 +59,8 @@ class MakeModuleLivewireComponentCommand extends BaseCommand
     {
         $this->helper->addContents([
             "KABAB_CASE_NAME" => $this->showKebabComponentName,
-            "COMPONENT_NAME" => $this->showComponentName
+            "COMPONENT_NAME" => $this->showComponentName,
+            "KABAB_MODULE_NAME"=> $this->kebabModuleName
         ]);
 
         $stubs = [
@@ -71,7 +73,8 @@ class MakeModuleLivewireComponentCommand extends BaseCommand
 
         $this->helper->addContents([
             "KABAB_CASE_NAME" => $this->managementKebabComponentName,
-            "COMPONENT_NAME" => $this->managementComponentName
+            "COMPONENT_NAME" => $this->managementComponentName,
+            "KABAB_MODULE_NAME"=> $this->kebabModuleName
         ]);
 
         $stubs = [

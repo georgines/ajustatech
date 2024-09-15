@@ -78,7 +78,7 @@ class CommandHelperTest extends TestCase
     {
         $this->setProtectedProperty($this->commandHelper, "namespace", "TestOrg");
         $this->setProtectedProperty($this->commandHelper, "className", "TestClass");
-      
+
         $basePath = "/test/base/path";
         $fileName = "testFile.php";
         $stubName = 'testStub';
@@ -154,12 +154,12 @@ class CommandHelperTest extends TestCase
         $this->setProtectedProperty($this->commandHelper, "namespace", "TestOrg");
         $this->setProtectedProperty($this->commandHelper, "className", "TestClass");
 
-        $basePath = "/test/base/path";       
-    
-        $this->commandHelper->setBasePath($basePath);
-        
+        $basePath = "/test/base/path";
 
-        // Definindo os stubs e os nomes dos arquivos esperados
+        $this->commandHelper->setBasePath($basePath);
+
+
+
         $stubs = [
             ['testStub1.stub' => "output/testFile1.php"],
             ['testStub1.stub' => "output/testFile2.php"],
@@ -177,7 +177,7 @@ class CommandHelperTest extends TestCase
             "{$basePath}/output/testFile3.php" => 'Stub content for TestClass in file 3.',
         ];
 
-        // Mockando o comportamento do Filesystem
+
         $this->filesystem->method('get')
             ->willReturnCallback(function ($stubPath) use ($stubContents) {
                 return $stubContents[basename($stubPath)];
@@ -194,12 +194,73 @@ class CommandHelperTest extends TestCase
                 $this->assertEquals($expectedContents[$filePath], $content);
             });
 
-        // Invocando o método createStubFiles com o novo formato de stubs
+      
         $this->commandHelper->createStubFiles($stubs);
     }
 
+    public function test_create_directory_if_not_exists()
+    {
+        $filesystem = $this->createMock(Filesystem::class);
+        $this->setProtectedProperty($this->commandHelper, 'files', $filesystem);
 
-    // Métodos utilitários para acessar métodos e propriedades protegidos/privados
+        $filesystem->expects($this->once())
+            ->method('isDirectory')
+            ->with('/base/newdir')
+            ->willReturn(false);
+
+        $filesystem->expects($this->once())
+            ->method('makeDirectory')
+            ->with('/base/newdir', 0777, true, true);
+
+        $this->commandHelper->setBasePath('/base');
+        $this->commandHelper->createDirectoryStructure(['newdir']);
+    }
+
+    public function test_create_stub_files_with_forced_overwrite()
+    {
+        $this->setProtectedProperty($this->commandHelper, "namespace", "TestOrg");
+        $this->setProtectedProperty($this->commandHelper, "className", "TestClass");
+
+        $basePath = "/test/base/path";
+
+        $this->commandHelper->setBasePath($basePath);
+
+        $stubs = [
+            ['testStub1.stub' => "output/testFile1.php"],
+            ['testStub2.stub' => "output/testFile2.php"],
+        ];
+
+        $stubContents = [
+            'testStub1.stub' => 'Stub content for $CLASS_NAME$ and $NAMESPACE$.',
+            'testStub2.stub' => 'Another stub content for $CLASS_NAME$ and $NAMESPACE$.',
+        ];
+
+        $expectedContents = [
+            "{$basePath}/output/testFile1.php" => 'Stub content for TestClass and TestOrg.',
+            "{$basePath}/output/testFile2.php" => 'Another stub content for TestClass and TestOrg.',
+        ];
+
+        $this->filesystem->method('get')
+            ->willReturnCallback(function ($stubPath) use ($stubContents) {
+                return $stubContents[basename($stubPath)];
+            });
+
+        $this->filesystem->expects($this->exactly(count($stubs)))
+            ->method('exists')
+            ->willReturn(true);
+
+        $matcher = $this->exactly(count($stubs));
+
+        $this->filesystem->expects($matcher)
+            ->method('put')
+            ->willReturnCallback(function ($filePath, $content) use ($expectedContents, $matcher) {
+                $count = $matcher->numberOfInvocations() - 1;
+                $this->assertEquals($expectedContents[$filePath], $content, "Conteúdo não corresponde para o arquivo {$filePath}");
+            });
+
+        $this->commandHelper->createStubFiles($stubs, true);
+    }
+
     protected function getProtectedProperty($object, $property)
     {
         $reflection = new ReflectionClass($object);

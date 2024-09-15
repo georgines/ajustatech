@@ -2,7 +2,6 @@
 
 namespace Ajustatech\Core\Commands;
 
-use Illuminate\Console\Command;
 use Ajustatech\Core\Commands\Helpers\CommandHelper;
 
 class MakeModuleComposerCommand extends BaseCommand
