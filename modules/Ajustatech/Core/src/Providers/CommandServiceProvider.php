@@ -7,7 +7,6 @@ use Ajustatech\Core\Commands\DevMigrateCommand;
 use Ajustatech\Core\Commands\DevModuleSeedCommand;
 use Ajustatech\Core\Commands\DevSeedCommand;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Artisan;
 use Ajustatech\Core\Commands\MakeModuleCommand;
 use Ajustatech\Core\Commands\MakeModuleMenuCommand;
 use Ajustatech\Core\Commands\MakeModuleModelCommand;
@@ -15,7 +14,7 @@ use Ajustatech\Core\Commands\MakeModuleRoutesCommand;
 use Ajustatech\Core\Commands\MakeModuleProviderCommand;
 use Ajustatech\Core\Commands\MakeModuleLivewireComponentCommand;
 use Ajustatech\Core\Commands\MakeModuleComposerCommand;
-use Illuminate\Console\Events\ArtisanStarting;
+
 
 class CommandServiceProvider extends ServiceProvider
 {
