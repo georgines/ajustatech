@@ -52,7 +52,7 @@ class MakeModuleComposerCommand extends BaseCommand
         ]);
 
         $stubs = [
-            ['module-composer.stub' => "{$this->path}/composer.json"]
+            ['module-composer.stub' => "{$this->path}/../composer.json"]
         ];
 
         $this->helper->createStubFiles($stubs);
