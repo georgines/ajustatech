@@ -18,8 +18,8 @@ class MakeModuleModelCommand extends BaseCommand
     protected $className;
     protected $timestamp;
     protected $pluralTable;
+    protected $moduloName;
     protected $namespace;
-    protected $basePath;
     protected $kebabClassName;
     protected $filesystem;
     protected $migrationDirectory;
@@ -45,6 +45,8 @@ class MakeModuleModelCommand extends BaseCommand
     {
         $this->name = $this->argument('name');
         $this->path = $this->argument('path');
+
+        $this->moduloName = $this->helper->getModuleNameFromPath($this->path);
 
         $force = $this->option('force') ? true : false;
         $this->helper->setForceOverwrite($force);
@@ -90,6 +92,54 @@ class MakeModuleModelCommand extends BaseCommand
 
     protected function showInstructions()
     {
-        $this->info("🔥 Model and migration stubs for module {$this->name} created successfully at {$this->path}.");
+        $this->line('');
+        $this->commandRegistrationInstructions();
+        $this->migrateCommandInstructions();
+        $this->seedCommandInstructions();
+        $this->line('');
+        $this->info("🔥 Model and migration stubs for the module '{$this->name}' have been successfully created at {$this->path}.");
+    }
+
+    protected function migrateCommandInstructions()
+    {
+        $this->line('');
+        $this->displayMessage("🛠️ To run development migrations, use the following command:", 'yellow');
+        $this->line('');
+        $this->displayMessage("php artisan dev:migrate", 'magenta');
+        $this->line('');
+        $this->displayMessage("This will execute the migrations in the development environment.", 'blue');
+    }
+
+    protected function seedCommandInstructions()
+    {
+        $this->line('');
+        $this->displayMessage("🛠️ To run development seeds, use the following command:", 'yellow');
+        $this->line('');
+        $this->displayMessage("php artisan dev:seed", 'magenta');
+        $this->line('');
+        $this->displayMessage("This will execute the seeders for the development environment.", 'blue');
+    }
+
+    protected function commandRegistrationInstructions()
+    {
+        $this->line('');
+        $this->displayMessage("📝 To register your commands in the CommandServiceProvider:", 'yellow');
+        $this->line('');
+        $this->displayMessage("1. Open the `{$this->moduloName}ServiceProvider.php` file in the \"{$this->path}/Providers\" directory.", 'blue');
+        $this->displayMessage("2. Add the following `use` statement at the top of the file:", "blue");
+        $this->line('');
+        $this->displayMessage("use {$this->namespace}\\Commands\\Seed{$this->className}Command;", 'magenta');
+        $this->line('');
+        $this->displayMessage("3. In the `loadCommands()` method, add the following line to register your command:", 'blue');
+        $this->displayMessage("4. The `loadCommands()` method should look like this:", 'blue');
+        $this->line('');
+        $this->displayMessage("private function loadCommands()", 'blue');
+        $this->displayMessage("{", 'blue');
+        $this->displayMessage("\t\$this->commands([", 'blue');
+        $this->displayMessage("\t\t// Other commands", 'blue');
+        $this->displayMessage("\t\tSeed{$this->className}Command::class,", 'magenta');
+        $this->displayMessage("\t]);", 'blue');
+        $this->displayMessage("}", 'blue');
+        $this->line('');
     }
 }
