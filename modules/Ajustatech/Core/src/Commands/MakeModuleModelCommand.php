@@ -121,7 +121,7 @@ class MakeModuleModelCommand extends BaseCommand
 
     protected function commandRegistrationInstructions()
     {
-        $this->displayMessage("📝 To register your commands in the CommandServiceProvider:", 'yellow');
+        $this->displayMessage("📝 To register your commands in the {$this->moduloName}ServiceProvider.php:", 'yellow');
         $this->line('');
         $this->displayMessage("1. Open the `{$this->moduloName}ServiceProvider.php` file in the \"{$this->path}/Providers\" directory.", 'blue');
         $this->displayMessage("2. Add the following `use` statement at the top of the file:", "blue");
