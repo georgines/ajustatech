@@ -6,7 +6,7 @@ use Illuminate\Console\Command;
 use Ajustatech\Core\Commands\Helpers\CommandHelper;
 use Illuminate\Support\Str;
 
-class MakeModuleModelCommand extends Command
+class MakeModuleModelCommand extends BaseCommand
 {
     protected $signature = 'make:module-model {name} {path} {--f|force}';
     protected $description = 'Generate the model and migration stubs for the specified module component';

@@ -5,7 +5,7 @@ namespace Ajustatech\Core\Commands;
 use Illuminate\Console\Command;
 use Ajustatech\Core\Commands\Helpers\CommandHelper;
 
-class MakeModuleProviderCommand extends Command
+class MakeModuleProviderCommand extends BaseCommand
 {
     protected $signature = 'make:module-provider {name} {path} {namespace-import} {component-register} {--f|force}';
     protected $description = 'Generate provider stubs for the specified module component';

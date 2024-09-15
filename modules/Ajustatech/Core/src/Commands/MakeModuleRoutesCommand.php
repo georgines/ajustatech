@@ -6,7 +6,7 @@ use Illuminate\Console\Command;
 use Ajustatech\Core\Commands\Helpers\CommandHelper;
 use Illuminate\Support\Str;
 
-class MakeModuleRoutesCommand extends Command
+class MakeModuleRoutesCommand extends BaseCommand
 {
     protected $signature = 'make:module-routes {name} {path} {namespace-import} {route-definition} {--f|force}';
     protected $description = 'Generate route stubs for the specified module component';

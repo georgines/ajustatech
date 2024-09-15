@@ -6,7 +6,7 @@ use Illuminate\Console\Command;
 use Ajustatech\Core\Commands\Helpers\CommandHelper;
 use Illuminate\Support\Facades\Artisan;
 
-class MakeModuleCommand extends Command
+class MakeModuleCommand extends BaseCommand
 {
     protected $signature = 'make:module {name} {--f|force}';
     protected $description = "Create a new module with necessary files and directories";

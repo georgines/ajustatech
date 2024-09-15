@@ -5,7 +5,7 @@ namespace Ajustatech\Core\Commands;
 use Illuminate\Console\Command;
 use Ajustatech\Core\Commands\Helpers\CommandHelper;
 
-class MakeModuleLivewireComponentCommand extends Command
+class MakeModuleLivewireComponentCommand extends BaseCommand
 {
     protected $signature = 'make:module-livewire-route-components {name} {path} {--f|force}';
     protected $description = 'Generate Livewire routes components for the specified module component';
@@ -32,7 +32,7 @@ class MakeModuleLivewireComponentCommand extends Command
     {
         $this->initializeProperties();
         $this->createLivewireStubs();
-        $this->info("Livewire route components for module {$this->name} created successfully.");
+        $this->showComponentInstructions();
     }
 
     protected function initializeProperties()
@@ -81,5 +81,26 @@ class MakeModuleLivewireComponentCommand extends Command
         ];
 
         $this->helper->createStubFiles($stubs);
+    }
+
+    protected function showComponentInstructions()
+    {
+        $this->info("🔥 Livewire route components for module {$this->name} created successfully.");
+        $this->line('');
+        $components = [
+            ['Alias' => $this->showKebabComponentName, 'Class' => $this->showComponentName],
+            ['Alias' => $this->managementKebabComponentName, 'Class' => $this->managementComponentName],
+        ];
+
+        $this->displayMessage('You can register the following Livewire components in your service provider:', 'yellow');
+
+        $this->table(
+            ['Alias', 'Class'],
+            $components
+        );
+        $this->line('');
+        $this->displayMessage("Livewire::component('{$this->showKebabComponentName}', {$this->showComponentName}::class);",  'magenta');
+        $this->displayMessage("Livewire::component('{$this->managementKebabComponentName}', {$this->managementComponentName}::class);", 'magenta');
+        $this->line('');
     }
 }

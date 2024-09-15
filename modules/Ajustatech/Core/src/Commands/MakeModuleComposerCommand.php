@@ -5,7 +5,7 @@ namespace Ajustatech\Core\Commands;
 use Illuminate\Console\Command;
 use Ajustatech\Core\Commands\Helpers\CommandHelper;
 
-class MakeModuleComposerCommand extends Command
+class MakeModuleComposerCommand extends BaseCommand
 {
     protected $signature = 'make:module-composer {name} {path} {--f|force}';
     protected $description = 'Generate composer file for the specified module';

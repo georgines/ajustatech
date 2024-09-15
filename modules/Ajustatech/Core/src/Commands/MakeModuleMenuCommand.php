@@ -5,7 +5,7 @@ namespace Ajustatech\Core\Commands;
 use Illuminate\Console\Command;
 use Ajustatech\Core\Commands\Helpers\CommandHelper;
 
-class MakeModuleMenuCommand extends Command
+class MakeModuleMenuCommand extends BaseCommand
 {
     protected $signature = 'make:module-menu {name} {path} {--f|force}';
     protected $description = 'Generate menu stubs for the specified module component';
