@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 class MakeModuleRoutesCommand extends Command
 {
-    protected $signature = 'make:module-routes {name} {path} {namespace-import} {route-definition} {--force|-f}';
+    protected $signature = 'make:module-routes {name} {path} {namespace-import} {route-definition} {--f|force}';
     protected $description = 'Generate route stubs for the specified module component';
 
     protected $helper;

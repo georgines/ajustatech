@@ -7,7 +7,7 @@ use Ajustatech\Core\Commands\Helpers\CommandHelper;
 
 class MakeModuleMenuCommand extends Command
 {
-    protected $signature = 'make:module-menu {name} {path} {--force|-f}';
+    protected $signature = 'make:module-menu {name} {path} {--f|force}';
     protected $description = 'Generate menu stubs for the specified module component';
 
     protected $helper;

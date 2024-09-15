@@ -7,7 +7,7 @@ use Ajustatech\Core\Commands\Helpers\CommandHelper;
 
 class MakeModuleComposerCommand extends Command
 {
-    protected $signature = 'make:module-composer {name} {path} {--force|-f}';
+    protected $signature = 'make:module-composer {name} {path} {--f|force}';
     protected $description = 'Generate composer file for the specified module';
 
     protected $helper;

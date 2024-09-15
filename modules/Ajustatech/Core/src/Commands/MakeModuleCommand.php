@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Artisan;
 
 class MakeModuleCommand extends Command
 {
-    protected $signature = 'make:module {name} {--force|-f}';
+    protected $signature = 'make:module {name} {--f|force}';
     protected $description = "Create a new module with necessary files and directories";
     protected $helper;
 

@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 class MakeModuleModelCommand extends Command
 {
-    protected $signature = 'make:module-model {name} {path} {--force|-f}';
+    protected $signature = 'make:module-model {name} {path} {--f|force}';
     protected $description = 'Generate the model and migration stubs for the specified module component';
 
     protected $helper;
