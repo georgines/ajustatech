@@ -11,9 +11,6 @@ class DevSeedCommand extends BaseCommand
 
     public function handle()
     {
-
-            Artisan::call('module:seed', [], $this->getOutput());
-
-        $this->info("");
+        Artisan::call('module:seed', [], $this->getOutput());
     }
 }

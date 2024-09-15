@@ -96,33 +96,31 @@ class MakeModuleModelCommand extends BaseCommand
         $this->commandRegistrationInstructions();
         $this->migrateCommandInstructions();
         $this->seedCommandInstructions();
-        $this->line('');
         $this->info("🔥 Model and migration stubs for the module '{$this->name}' have been successfully created at {$this->path}.");
     }
 
     protected function migrateCommandInstructions()
     {
-        $this->line('');
         $this->displayMessage("🛠️ To run development migrations, use the following command:", 'yellow');
         $this->line('');
         $this->displayMessage("php artisan dev:migrate", 'magenta');
         $this->line('');
         $this->displayMessage("This will execute the migrations in the development environment.", 'blue');
+        $this->line('');
     }
 
     protected function seedCommandInstructions()
     {
-        $this->line('');
         $this->displayMessage("🛠️ To run development seeds, use the following command:", 'yellow');
         $this->line('');
         $this->displayMessage("php artisan dev:seed", 'magenta');
         $this->line('');
         $this->displayMessage("This will execute the seeders for the development environment.", 'blue');
+        $this->line('');
     }
 
     protected function commandRegistrationInstructions()
     {
-        $this->line('');
         $this->displayMessage("📝 To register your commands in the CommandServiceProvider:", 'yellow');
         $this->line('');
         $this->displayMessage("1. Open the `{$this->moduloName}ServiceProvider.php` file in the \"{$this->path}/Providers\" directory.", 'blue');

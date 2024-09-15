@@ -89,15 +89,14 @@ class MakeModuleLivewireComponentCommand extends BaseCommand
 
     protected function showInstructions()
     {
-        $this->info("🔥 Livewire route components for module {$this->name} created successfully.");
+        $this->line('');
         $this->componentInstructions();
         $this->routesInstructions();
-        $this->line('');
+        $this->info("🔥 Livewire route components for module {$this->name} created successfully.");
     }
 
     protected function componentInstructions()
     {
-        $this->line('');
         $components = [
             ['Alias' => $this->showKebabComponentName, 'Class' => $this->showComponentName],
             ['Alias' => $this->managementKebabComponentName, 'Class' => $this->managementComponentName],
@@ -112,11 +111,11 @@ class MakeModuleLivewireComponentCommand extends BaseCommand
         $this->line('');
         $this->displayMessage("Livewire::component('{$this->showKebabComponentName}', {$this->showComponentName}::class);",  'magenta');
         $this->displayMessage("Livewire::component('{$this->managementKebabComponentName}', {$this->managementComponentName}::class);", 'magenta');
+        $this->line('');
     }
 
     protected function routesInstructions()
     {
-        $this->line('');
         $this->displayMessage("📚 You can register the following routes in your routes file:", 'yellow');
         $this->line('');
 
@@ -128,5 +127,6 @@ class MakeModuleLivewireComponentCommand extends BaseCommand
         $this->displayMessage("Route::get('/uri', {$this->showComponentName}::class)->name('{$this->kebabClassName}-show');", 'magenta');
         $this->displayMessage("Route::get('/uri/cadastro', {$this->managementComponentName}::class)->name('{$this->kebabClassName}-create');", 'magenta');
         $this->displayMessage("Route::get('/uri/{id}/editar', {$this->managementComponentName}::class)->name('{$this->kebabClassName}-edit');", 'magenta');
+        $this->line('');
     }
 }

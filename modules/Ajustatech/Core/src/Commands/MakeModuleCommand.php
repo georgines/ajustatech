@@ -240,19 +240,17 @@ class MakeModuleCommand extends BaseCommand
 
     protected function showInstructions()
     {
-        $this->info("🔥 Module {$this->className} created successfully.");
-
+        $this->line('');
         $this->checkList();
         $this->serviceProviderRegisterInstructions();
         $this->composerInstructions();
         $this->testRegisterInstructions();
         $this->migrateCommandInstructions();
-        $this->line('');
+        $this->info("🔥 Module {$this->className} created successfully.");
     }
 
     protected function checkList()
     {
-        $this->line('');
         $this->displayMessage("📋 Checklist to finalize your module setup:", 'yellow');
         $this->line('');
         $this->displayMessage("✅ 1. Register the service provider in the CoreServiceProvider.", 'blue');
@@ -266,7 +264,6 @@ class MakeModuleCommand extends BaseCommand
 
     protected function composerInstructions()
     {
-        $this->line('');
         $this->displayMessage("📦 To register the module in composer.json, follow the steps below:", 'yellow');
         $this->line('');
         $this->displayMessage("1. Open your composer.json file.", 'blue');
@@ -279,7 +276,6 @@ class MakeModuleCommand extends BaseCommand
 
     protected function serviceProviderRegisterInstructions()
     {
-        $this->line('');
         $this->displayMessage("🔧 To register the module's service provider in CoreServiceProvider:", 'yellow');
         $this->line('');
         $this->displayMessage("1. Open `CoreServiceProvider.php` in the `modules/Ajustatech/Core/src/Providers` directory.", 'blue');
@@ -295,7 +291,6 @@ class MakeModuleCommand extends BaseCommand
 
     protected function testRegisterInstructions()
     {
-        $this->line('');
         $this->displayMessage("🧪 To register the test directories in phpunit.xml:", 'yellow');
         $this->line('');
         $this->displayMessage("1. Open your `phpunit.xml` file.", 'blue');
@@ -307,7 +302,6 @@ class MakeModuleCommand extends BaseCommand
 
     protected function migrateCommandInstructions()
     {
-        $this->line('');
         $this->displayMessage("🛠️ To run development migrations, use the following command:", 'yellow');
         $this->line('');
         $this->displayMessage("php artisan dev:migrate", 'magenta');
