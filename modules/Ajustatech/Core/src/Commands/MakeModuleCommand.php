@@ -268,7 +268,7 @@ class MakeModuleCommand extends BaseCommand
         $this->line('');
         $this->displayMessage("1. Open your composer.json file.", 'blue');
         $this->displayMessage("2. Under the 'autoload' section, add the following line:", 'blue');
-        $this->displayMessage("\t\"{$this->helper->getPsr4NamespaceFromPath($this->path)}\": \"{$this->path}\"", 'magenta');
+        $this->displayMessage("\"{$this->helper->getPsr4NamespaceFromPath($this->path)}\": \"{$this->path}\"", 'magenta');
         $this->line('');
         $this->displayMessage("3. Run `composer dumpautoload` to update the autoloader.", 'green');
         $this->line('');
@@ -280,10 +280,10 @@ class MakeModuleCommand extends BaseCommand
         $this->line('');
         $this->displayMessage("1. Open `CoreServiceProvider.php` in the `modules/Ajustatech/Core/src/Providers` directory.", 'blue');
         $this->displayMessage("2. At the top of the file, add the following line:", 'blue');
-        $this->displayMessage("\tuse {$this->namespace}\\Providers\\{$this->className}ServiceProvider;", 'magenta');
+        $this->displayMessage("use {$this->namespace}\\Providers\\{$this->className}ServiceProvider;", 'magenta');
         $this->line('');
         $this->displayMessage("3. In the `register()` method, place the following line **between the penultimate and the last provider**:", 'blue');
-        $this->displayMessage("\t\$this->app->register({$this->className}ServiceProvider::class);", 'magenta');
+        $this->displayMessage("\$this->app->register({$this->className}ServiceProvider::class);", 'magenta');
         $this->line('');
         $this->displayMessage("4. Ensure that the last provider remains `ViewServiceProvider`.", 'blue');
         $this->line('');
@@ -295,8 +295,8 @@ class MakeModuleCommand extends BaseCommand
         $this->line('');
         $this->displayMessage("1. Open your `phpunit.xml` file.", 'blue');
         $this->displayMessage("2. Add the following lines in the `<testsuite>` section:", 'blue');
-        $this->displayMessage("\t<directory>{$this->path}/Tests/Unit</directory>", 'magenta');
-        $this->displayMessage("\t<directory>{$this->path}/Tests/Feature</directory>", 'magenta');
+        $this->displayMessage("<directory>{$this->path}/Tests/Unit</directory>", 'magenta');
+        $this->displayMessage("<directory>{$this->path}/Tests/Feature</directory>", 'magenta');
         $this->line('');
     }
 
