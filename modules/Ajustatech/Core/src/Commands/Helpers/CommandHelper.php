@@ -14,7 +14,7 @@ class CommandHelper
     protected $config;
     protected $namespace;
     protected $basePath = '';
-    protected $modulePath = "modules/Ajustatech";
+    protected $corePath = "modules/Ajustatech";
     protected $newContents = [];
     protected $className;
     protected $forceOverwrite = false;
@@ -32,7 +32,7 @@ class CommandHelper
 
     public function loadConfig(): void
     {
-        $path = $this->getBasePath() . $this->modulePath . "/Core/src/config/commands.php";
+        $path = $this->getBasePath() . $this->corePath . "/Core/src/config/commands.php";
 
         if ($this->files->exists($path)) {
             $this->config =  $this->files->getRequire($path);
@@ -56,7 +56,7 @@ class CommandHelper
 
     public function getCorePath(): string
     {
-        return $this->modulePath;
+        return $this->corePath;
     }
 
     public function createDirectoryStructure(array $directories): void
