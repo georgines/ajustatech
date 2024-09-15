@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 class SeedFinancialCommand extends Command
 {
 
-    protected $signature = 'db:seed-financial';
+    protected $signature = 'module:seed-financial';
 
     protected $description = 'Seeds the database with financial data';
 
