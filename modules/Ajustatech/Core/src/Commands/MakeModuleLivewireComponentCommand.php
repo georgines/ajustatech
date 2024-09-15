@@ -53,8 +53,6 @@ class MakeModuleLivewireComponentCommand extends BaseCommand
         $this->managementKebabComponentName = $this->helper->getKebabCaseName($this->managementComponentName);
     }
 
-
-
     protected function createLivewireStubs()
     {
         $this->helper->addContents([

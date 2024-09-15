@@ -28,7 +28,7 @@ class MakeModuleComposerCommand extends BaseCommand
     {
         $this->initializeProperties();
         $this->createLivewireStubs();
-        $this->info("Composer for module {$this->name} created successfully.");
+        $this->showComponentInstructions();
     }
 
     protected function initializeProperties()
@@ -44,11 +44,8 @@ class MakeModuleComposerCommand extends BaseCommand
         $this->lowClassName = $this->helper->getLowClassName($this->className);
     }
 
-
-
     protected function createLivewireStubs()
     {
-
         $this->helper->addContents([
             "MODULO_TEST_PATH" => "{$this->path}/Tests/",
             "LOW_CLASS_NAME" => $this->lowClassName
@@ -59,5 +56,10 @@ class MakeModuleComposerCommand extends BaseCommand
         ];
 
         $this->helper->createStubFiles($stubs);
+    }
+
+    protected function showComponentInstructions()
+    {
+        $this->info("🔥 Composer for module {$this->name} created successfully.");
     }
 }

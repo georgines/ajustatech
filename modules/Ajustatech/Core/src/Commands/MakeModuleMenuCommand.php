@@ -44,8 +44,7 @@ class MakeModuleMenuCommand extends BaseCommand
         $this->timestamp = $this->helper->generateMigrationTimestamp();
 
         $this->generateMenuStubs();
-
-        $this->info("Menu stubs for module {$this->name} created successfully at {$this->path}.");
+        $this->showComponentInstructions();
     }
 
     protected function generateMenuStubs()
@@ -61,5 +60,10 @@ class MakeModuleMenuCommand extends BaseCommand
         ];
 
         $this->helper->createStubFiles($stub);
+    }
+
+    protected function showComponentInstructions()
+    {
+        $this->info("🔥 Menu stubs for module {$this->name} created successfully at {$this->path}.");
     }
 }

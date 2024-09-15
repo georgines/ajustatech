@@ -44,8 +44,7 @@ class MakeModuleCommand extends BaseCommand
         $this->callMakeModuleComposerCommand();
         $this->createDirectoriesWithGitkeep();
         $this->makeLangFiles();
-
-        $this->info("Module {$this->className} created successfully.");
+        $this->showComponentInstructions();
     }
 
     protected function initializeProperties()
@@ -237,5 +236,10 @@ class MakeModuleCommand extends BaseCommand
     {
         $optionalParam =  $this->force ? ['--force' => true] : [];
         return array_merge($parameters, $optionalParam);
+    }
+
+    protected function showComponentInstructions()
+    {
+        $this->info("🔥 Module {$this->className} created successfully.");
     }
 }

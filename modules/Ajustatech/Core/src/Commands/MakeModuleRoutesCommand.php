@@ -33,8 +33,7 @@ class MakeModuleRoutesCommand extends BaseCommand
     {
         $this->initializeProperties();
         $this->generateRoutes();
-
-        $this->info("Routes for module {$this->className} created successfully.");
+        $this->showComponentInstructions();
     }
 
     protected function initializeProperties()
@@ -52,7 +51,6 @@ class MakeModuleRoutesCommand extends BaseCommand
         $this->className = $this->helper->getClassName($this->name);
     }
 
-
     protected function generateRoutes()
     {
         $this->helper->addContents([
@@ -63,5 +61,10 @@ class MakeModuleRoutesCommand extends BaseCommand
         $this->helper->createStubFiles([
             ['module-routes.stub' => "{$this->path}/Routes/web.php"]
         ]);
+    }
+
+    protected function showComponentInstructions()
+    {
+        $this->info("🔥 Routes for module {$this->className} created successfully.");
     }
 }
