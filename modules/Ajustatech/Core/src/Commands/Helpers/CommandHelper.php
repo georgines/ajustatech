@@ -54,7 +54,7 @@ class CommandHelper
         return $this->basePath;
     }
 
-    public function getModulePath(): string
+    public function getCorePath(): string
     {
         return $this->modulePath;
     }
