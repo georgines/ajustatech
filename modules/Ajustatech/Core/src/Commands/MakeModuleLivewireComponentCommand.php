@@ -3,6 +3,7 @@
 namespace Ajustatech\Core\Commands;
 
 use Ajustatech\Core\Commands\Helpers\CommandHelper;
+use Illuminate\Support\Str;
 
 class MakeModuleLivewireComponentCommand extends BaseCommand
 {
@@ -14,6 +15,7 @@ class MakeModuleLivewireComponentCommand extends BaseCommand
     protected $path;
     protected $kebabModuleName;
     protected $className;
+    protected $kebabClassName;
     protected $namespace;
     protected $showComponentName;
     protected $showKebabComponentName;
@@ -32,7 +34,7 @@ class MakeModuleLivewireComponentCommand extends BaseCommand
     {
         $this->initializeProperties();
         $this->createLivewireStubs();
-        $this->showComponentInstructions();
+        $this->showInstructions();
     }
 
     protected function initializeProperties()
@@ -45,6 +47,7 @@ class MakeModuleLivewireComponentCommand extends BaseCommand
         $this->helper->setForceOverwrite($force);
 
         $this->className = $this->helper->getClassName($this->name);
+        $this->kebabClassName = $this->helper->getClassName($this->name)->kebab();
         $this->namespace = $this->helper->getNamespaceFromPath($this->path);
         $this->kebabModuleName = $this->helper->getModuleNameFromPath($this->path)->kebab();
         $this->showComponentName = "Show" . $this->className;
@@ -58,7 +61,7 @@ class MakeModuleLivewireComponentCommand extends BaseCommand
         $this->helper->addContents([
             "KABAB_CASE_NAME" => $this->showKebabComponentName,
             "COMPONENT_NAME" => $this->showComponentName,
-            "KABAB_MODULE_NAME"=> $this->kebabModuleName
+            "KABAB_MODULE_NAME" => $this->kebabModuleName
         ]);
 
         $stubs = [
@@ -72,7 +75,7 @@ class MakeModuleLivewireComponentCommand extends BaseCommand
         $this->helper->addContents([
             "KABAB_CASE_NAME" => $this->managementKebabComponentName,
             "COMPONENT_NAME" => $this->managementComponentName,
-            "KABAB_MODULE_NAME"=> $this->kebabModuleName
+            "KABAB_MODULE_NAME" => $this->kebabModuleName
         ]);
 
         $stubs = [
@@ -84,9 +87,15 @@ class MakeModuleLivewireComponentCommand extends BaseCommand
         $this->helper->createStubFiles($stubs);
     }
 
-    protected function showComponentInstructions()
+    protected function showInstructions()
     {
         $this->info("🔥 Livewire route components for module {$this->name} created successfully.");
+        $this->componentInstructions();
+        $this->routesInstructions();
+    }
+
+    protected function componentInstructions()
+    {
         $this->line('');
         $components = [
             ['Alias' => $this->showKebabComponentName, 'Class' => $this->showComponentName],
@@ -102,6 +111,21 @@ class MakeModuleLivewireComponentCommand extends BaseCommand
         $this->line('');
         $this->displayMessage("Livewire::component('{$this->showKebabComponentName}', {$this->showComponentName}::class);",  'magenta');
         $this->displayMessage("Livewire::component('{$this->managementKebabComponentName}', {$this->managementComponentName}::class);", 'magenta');
+    }
+
+    protected function routesInstructions()
+    {
         $this->line('');
+        $this->displayMessage("📚 You can register the following routes in your routes file:", 'yellow');
+        $this->line('');
+
+        $this->displayMessage("use Illuminate\Support\Facades\Route;", 'blue');
+        $this->displayMessage("use {$this->namespace}\\Livewire\\{$this->showComponentName};", 'blue');
+        $this->displayMessage("use {$this->namespace}\\Livewire\\{$this->managementComponentName};", 'blue');
+        $this->line('');
+
+        $this->displayMessage("Route::get('/uri', {$this->showComponentName}::class)->name('{$this->kebabClassName}-show');", 'magenta');
+        $this->displayMessage("Route::get('/uri/cadastro', {$this->managementComponentName}::class)->name('{$this->kebabClassName}-create');", 'magenta');
+        $this->displayMessage("Route::get('/uri/{id}/editar', {$this->managementComponentName}::class)->name('{$this->kebabClassName}-edit');", 'magenta');
     }
 }

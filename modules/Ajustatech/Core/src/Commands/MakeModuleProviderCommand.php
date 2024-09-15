@@ -31,7 +31,7 @@ class MakeModuleProviderCommand extends BaseCommand
         $this->initializeProperties();
 
         $this->createProviderStub();
-        $this->showComponentInstructions();
+        $this->showInstructions();
     }
 
     protected function initializeProperties()
@@ -65,7 +65,7 @@ class MakeModuleProviderCommand extends BaseCommand
         $this->helper->createStubFiles($stubs);
     }
 
-    protected function showComponentInstructions()
+    protected function showInstructions()
     {
         $this->info("🔥 Provider for module {$this->className} created successfully.");
     }

@@ -49,7 +49,7 @@ class MakeModuleModelCommand extends BaseCommand
         ]);
 
         $this->generateModelAndMigrationStubs();
-        $this->showComponentInstructions();
+        $this->showInstructions();
     }
 
     protected function generateModelAndMigrationStubs()
@@ -65,7 +65,7 @@ class MakeModuleModelCommand extends BaseCommand
         $this->helper->createStubFiles($stubs);
     }
 
-    protected function showComponentInstructions()
+    protected function showInstructions()
     {
         $this->info("🔥 Model and migration stubs for module {$this->name} created successfully at {$this->path}.");
     }

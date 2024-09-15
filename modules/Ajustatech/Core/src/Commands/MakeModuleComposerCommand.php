@@ -28,7 +28,7 @@ class MakeModuleComposerCommand extends BaseCommand
     {
         $this->initializeProperties();
         $this->createLivewireStubs();
-        $this->showComponentInstructions();
+        $this->showInstructions();
     }
 
     protected function initializeProperties()
@@ -58,7 +58,7 @@ class MakeModuleComposerCommand extends BaseCommand
         $this->helper->createStubFiles($stubs);
     }
 
-    protected function showComponentInstructions()
+    protected function showInstructions()
     {
         $this->info("🔥 Composer for module {$this->name} created successfully.");
     }

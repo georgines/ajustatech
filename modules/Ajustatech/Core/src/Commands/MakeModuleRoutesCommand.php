@@ -33,7 +33,7 @@ class MakeModuleRoutesCommand extends BaseCommand
     {
         $this->initializeProperties();
         $this->generateRoutes();
-        $this->showComponentInstructions();
+        $this->showInstructions();
     }
 
     protected function initializeProperties()
@@ -63,7 +63,7 @@ class MakeModuleRoutesCommand extends BaseCommand
         ]);
     }
 
-    protected function showComponentInstructions()
+    protected function showInstructions()
     {
         $this->info("🔥 Routes for module {$this->className} created successfully.");
     }
