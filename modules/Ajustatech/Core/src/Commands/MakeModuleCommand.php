@@ -246,6 +246,7 @@ class MakeModuleCommand extends BaseCommand
         $this->serviceProviderRegisterInstructions();
         $this->composerInstructions();
         $this->testRegisterInstructions();
+        $this->migrateCommandInstructions();
         $this->line('');
     }
 
@@ -259,6 +260,7 @@ class MakeModuleCommand extends BaseCommand
         $this->displayMessage("✅ 3. Register the Livewire components in the service provider.", 'blue');
         $this->displayMessage("✅ 4. Define your routes in the module's route file.", 'blue');
         $this->displayMessage("✅ 5. Make sure to create any necessary language files.", 'blue');
+        $this->displayMessage("✅ 6. Run the development migrations using the following command:", 'blue');
         $this->line('');
     }
 
@@ -300,6 +302,17 @@ class MakeModuleCommand extends BaseCommand
         $this->displayMessage("2. Add the following lines in the `<testsuite>` section:", 'blue');
         $this->displayMessage("\t<directory>{$this->path}/Tests/Unit</directory>", 'magenta');
         $this->displayMessage("\t<directory>{$this->path}/Tests/Feature</directory>", 'magenta');
+        $this->line('');
+    }
+
+    protected function migrateCommandInstructions()
+    {
+        $this->line('');
+        $this->displayMessage("🛠️ To run development migrations, use the following command:", 'yellow');
+        $this->line('');
+        $this->displayMessage("php artisan dev:migrate", 'magenta');
+        $this->line('');
+        $this->displayMessage("This will run the migrations for the development environment.", 'blue');
         $this->line('');
     }
 }
