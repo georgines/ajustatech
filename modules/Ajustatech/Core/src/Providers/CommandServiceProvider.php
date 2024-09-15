@@ -2,6 +2,10 @@
 
 namespace Ajustatech\Core\Providers;
 
+use Ajustatech\Core\Commands\DevClearCachesCommand;
+use Ajustatech\Core\Commands\DevMigrateCommand;
+use Ajustatech\Core\Commands\DevModuleSeedCommand;
+use Ajustatech\Core\Commands\DevSeedCommand;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Artisan;
 use Ajustatech\Core\Commands\MakeModuleCommand;
@@ -11,6 +15,7 @@ use Ajustatech\Core\Commands\MakeModuleRoutesCommand;
 use Ajustatech\Core\Commands\MakeModuleProviderCommand;
 use Ajustatech\Core\Commands\MakeModuleLivewireComponentCommand;
 use Ajustatech\Core\Commands\MakeModuleComposerCommand;
+use Illuminate\Console\Events\ArtisanStarting;
 
 class CommandServiceProvider extends ServiceProvider
 {
@@ -21,6 +26,10 @@ class CommandServiceProvider extends ServiceProvider
     {
 
         $this->commands([
+            DevClearCachesCommand::class,
+            DevMigrateCommand::class,
+            DevModuleSeedCommand::class,
+            DevSeedCommand::class,
             MakeModuleCommand::class,
             MakeModuleMenuCommand::class,
             MakeModuleModelCommand::class,
@@ -29,15 +38,5 @@ class CommandServiceProvider extends ServiceProvider
             MakeModuleLivewireComponentCommand::class,
             MakeModuleComposerCommand::class,
         ]);
-        
-        Artisan::command('dev',  function () {
-            Artisan::call("clear-compiled ");
-            Artisan::call("cache:clear  ");
-            Artisan::call("config:clear");
-            Artisan::call("queue:clear");
-            Artisan::call("schedule:clear-cache");
-            Artisan::call("view:clear");
-            $this->info("all application caches have been cleared");
-        })->purpose('limpar todos caches');
     }
 }
