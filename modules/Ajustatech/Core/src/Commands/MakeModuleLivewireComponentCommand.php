@@ -7,7 +7,7 @@ use Ajustatech\Core\Commands\Helpers\CommandHelper;
 
 class MakeModuleLivewireComponentCommand extends Command
 {
-    protected $signature = 'make:module-livewire-route-components {name} {path}';
+    protected $signature = 'make:module-livewire-route-components {name} {path} {--force|-f}';
     protected $description = 'Generate Livewire routes components for the specified module component';
 
     protected $helper;
@@ -39,6 +39,10 @@ class MakeModuleLivewireComponentCommand extends Command
     {
         $this->name = $this->argument('name');
         $this->path = $this->argument('path');
+
+
+        $force = $this->option('force') ? true : false;
+        $this->helper->setForceOverwrite($force);
 
         $this->className = $this->helper->getClassName($this->name);
         $this->namespace = $this->helper->getNamespaceFromPath($this->path);

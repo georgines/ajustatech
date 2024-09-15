@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 class MakeModuleRoutesCommand extends Command
 {
-    protected $signature = 'make:module-routes {name} {path} {namespace-import} {route-definition}';
+    protected $signature = 'make:module-routes {name} {path} {namespace-import} {route-definition} {--force|-f}';
     protected $description = 'Generate route stubs for the specified module component';
 
     protected $helper;
@@ -43,13 +43,17 @@ class MakeModuleRoutesCommand extends Command
     {
         $this->name = $this->argument('name');
         $this->path = $this->argument('path');
+
+        $force = $this->option('force') ? true : false;
+        $this->helper->setForceOverwrite($force);
+
         $this->namespaceImport = $this->argument('namespace-import');
         $this->routeDefinition = $this->argument('route-definition');
 
         $this->namespace = $this->helper->getNamespaceFromPath($this->path);
-        $this->className = $this->helper->getClassName($this->name); 
+        $this->className = $this->helper->getClassName($this->name);
     }
-    
+
 
     protected function generateRoutes()
     {

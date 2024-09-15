@@ -16,11 +16,17 @@ class CommandHelper
     protected $pathToConfigFile = "modules/Ajustatech/Core/src/config/commands.php";
     protected $newContents = [];
     protected $className;
+    protected $forceOverwrite = false;
 
     public function __construct()
     {
         $this->files = new Filesystem;
         $this->loadConfig();
+    }
+
+    public function setForceOverwrite(bool $force): void
+    {
+        $this->forceOverwrite = $force;
     }
 
     public function loadConfig(): void
@@ -61,16 +67,17 @@ class CommandHelper
         }
     }
 
-    public function createStubFiles(array $stubs): void
+    // Modificação no método para incluir a verificação de sobrescrita forçada
+    public function createStubFiles(array $stubs, bool $forced = false): void
     {
         foreach ($stubs as $stubArray) {
             foreach ($stubArray as $stub => $file) {
-                $this->createFileFromStub($stub, $file);
+                $this->createFileFromStub($stub, $file, $forced);
             }
         }
     }
 
-    protected function createFileFromStub($stub, $file): void
+    protected function createFileFromStub($stub, $file, bool $forcedFileOverwrite = false): void
     {
         $stubPath = $this->getStubPath($stub);
         $filePath = "{$this->basePath}/{$file}";
@@ -93,12 +100,11 @@ class CommandHelper
         ];
 
         $contents = array_merge($contents, $this->newContents);
-
         $contents = $this->getStubContents($stubPath, $contents);
 
-
-        if (!$this->files->exists($filePath)) {
-        $this->files->put($filePath, $contents);
+        // Aqui a verificação para sobrescrever o arquivo se o modo de sobrescrita estiver ativado ou se o parâmetro forçar estiver true
+        if (!$this->files->exists($filePath) || $forcedFileOverwrite || $this->forceOverwrite) {
+            $this->files->put($filePath, $contents);
         }
     }
 
@@ -125,8 +131,6 @@ class CommandHelper
         }
         return $contents;
     }
-
-
 
     public function getSingularClassName($name): string
     {

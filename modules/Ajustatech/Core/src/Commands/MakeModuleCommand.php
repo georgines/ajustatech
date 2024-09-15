@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Artisan;
 
 class MakeModuleCommand extends Command
 {
-    protected $signature = 'make:module {name}';
+    protected $signature = 'make:module {name} {--force|-f}';
     protected $description = "Create a new module with necessary files and directories";
     protected $helper;
 
@@ -24,6 +24,7 @@ class MakeModuleCommand extends Command
     protected $managementComponentName;
     protected $managementKebabComponentName;
     protected $timestamp;
+    protected $force;
 
     public function __construct(CommandHelper $helper)
     {
@@ -51,6 +52,9 @@ class MakeModuleCommand extends Command
     protected function initializeProperties()
     {
         $this->name = $this->argument('name');
+
+        $this->force = $this->option('force') ? true : false;
+        $this->helper->setForceOverwrite($this->force);
 
         $this->className = $this->helper->getClassName($this->name);
         $this->path = "modules/Ajustatech/{$this->className}/src";
@@ -104,20 +108,26 @@ class MakeModuleCommand extends Command
         $providerNamespaceImport = $this->generateUseNamespaces();
         $componentRegister = $this->generateComponentRegistration();
 
-        Artisan::call('make:module-provider', [
+        $parameters = [
             'name' => $this->name,
             'path' => $this->path,
             'namespace-import' => $providerNamespaceImport,
             'component-register' => $componentRegister
-        ]);
+        ];
+
+        $parameters = $this->addForceOption($parameters);
+        Artisan::call('make:module-provider', $parameters);
     }
 
     protected function callMakeModuleMenuCommand()
     {
-        Artisan::call('make:module-menu', [
+        $parameters = [
             'name' => $this->name,
             'path' => $this->path
-        ]);
+        ];
+
+        $parameters = $this->addForceOption($parameters);
+        Artisan::call('make:module-menu', $parameters);
     }
 
     protected function generateRouteNamespaces(): string
@@ -162,36 +172,48 @@ class MakeModuleCommand extends Command
         $routeNamespaceImport = $this->generateRouteNamespaces();
         $routeDefinition = $this->generateRoutes();
 
-        Artisan::call('make:module-routes', [
+        $parameters = [
             'name' => $this->name,
             'path' => $this->path,
             'namespace-import' => $routeNamespaceImport,
             'route-definition' => $routeDefinition,
-        ]);
+        ];
+
+        $parameters = $this->addForceOption($parameters);
+        Artisan::call('make:module-routes', $parameters);
     }
 
     protected function callMakeModuleModelCommand(): void
     {
-        Artisan::call('make:module-model', [
+        $parameters = [
             'name' => $this->name,
             'path' => $this->path
-        ]);
+        ];
+
+        $parameters = $this->addForceOption($parameters);
+        Artisan::call('make:module-model', $parameters);
     }
 
     protected function callMakeModuleLivewireComponentCommand(): void
     {
-        Artisan::call('make:module-livewire-route-components', [
+        $parameters = [
             'name' => $this->name,
             'path' => $this->path,
-        ]);
+        ];
+
+        $parameters = $this->addForceOption($parameters);
+        Artisan::call('make:module-livewire-route-components', $parameters);
     }
 
     protected function callMakeModuleComposerCommand(): void
     {
-        Artisan::call('make:module-composer', [
+        $parameters = [
             'name' => $this->name,
             'path' => $this->path,
-        ]);
+        ];
+
+        $parameters = $this->addForceOption($parameters);
+        Artisan::call('make:module-composer', $parameters);
     }
 
     protected function createDirectoriesWithGitkeep(): void
@@ -210,5 +232,11 @@ class MakeModuleCommand extends Command
             ['module-lang-pt-br.stub' => "{$this->path}/Lang/pt-BR/messages.php"]
         ];
         $this->helper->createStubFiles($stubs);
+    }
+
+    protected function addForceOption(array $parameters): array
+    {
+        $optionalParam =  $this->force ? ['--force' => ''] : [];
+        return array_merge($parameters, $optionalParam);
     }
 }

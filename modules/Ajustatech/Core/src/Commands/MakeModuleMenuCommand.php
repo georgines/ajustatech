@@ -7,7 +7,7 @@ use Ajustatech\Core\Commands\Helpers\CommandHelper;
 
 class MakeModuleMenuCommand extends Command
 {
-    protected $signature = 'make:module-menu {name} {path}';
+    protected $signature = 'make:module-menu {name} {path} {--force|-f}';
     protected $description = 'Generate menu stubs for the specified module component';
 
     protected $helper;
@@ -30,7 +30,10 @@ class MakeModuleMenuCommand extends Command
     public function handle()
     {
         $this->name = $this->argument('name');
-        $this->path = $this->argument('path');       
+        $this->path = $this->argument('path');
+
+        $force = $this->option('force') ? true : false;
+        $this->helper->setForceOverwrite($force);
 
         $this->namespace = $this->helper->getNamespaceFromPath($this->path);
         $this->className = $this->helper->getClassName($this->name);

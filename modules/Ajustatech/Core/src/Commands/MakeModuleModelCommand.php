@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 class MakeModuleModelCommand extends Command
 {
-    protected $signature = 'make:module-model {name} {path}';
+    protected $signature = 'make:module-model {name} {path} {--force|-f}';
     protected $description = 'Generate the model and migration stubs for the specified module component';
 
     protected $helper;
@@ -34,6 +34,9 @@ class MakeModuleModelCommand extends Command
     {
         $this->name = $this->argument('name');
         $this->path = $this->argument('path');
+
+        $force = $this->option('force') ? true : false;
+        $this->helper->setForceOverwrite($force);
 
         $this->namespace = $this->helper->getNamespaceFromPath($this->path);
         $this->className = $this->helper->getClassName($this->name);

@@ -7,7 +7,7 @@ use Ajustatech\Core\Commands\Helpers\CommandHelper;
 
 class MakeModuleProviderCommand extends Command
 {
-    protected $signature = 'make:module-provider {name} {path} {namespace-import} {component-register}';
+    protected $signature = 'make:module-provider {name} {path} {namespace-import} {component-register} {--force| -f}';
     protected $description = 'Generate provider stubs for the specified module component';
 
     protected $helper;
@@ -39,7 +39,10 @@ class MakeModuleProviderCommand extends Command
     {
         $this->name = $this->argument('name');
         $this->path = $this->argument('path');
-        
+
+        $force = $this->option('force') ? true : false;
+        $this->helper->setForceOverwrite($force);
+
         $this->helper->getNamespaceFromPath($this->path);
         $this->namespaceImport = $this->argument('namespace-import');
         $this->componentRegister = $this->argument('component-register');

@@ -7,7 +7,7 @@ use Ajustatech\Core\Commands\Helpers\CommandHelper;
 
 class MakeModuleComposerCommand extends Command
 {
-    protected $signature = 'make:module-composer {name} {path}';
+    protected $signature = 'make:module-composer {name} {path} {--force|-f}';
     protected $description = 'Generate composer file for the specified module';
 
     protected $helper;
@@ -36,6 +36,9 @@ class MakeModuleComposerCommand extends Command
     {
         $this->name = $this->argument('name');
         $this->path = $this->argument('path');
+
+        $force = $this->option('force') ? true : false;
+        $this->helper->setForceOverwrite($force);
 
         $this->className = $this->helper->getClassName($this->name);
         $this->namespace = $this->helper->getNamespaceFromPath($this->path);
