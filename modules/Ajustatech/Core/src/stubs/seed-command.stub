@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 class Seed$CLASS_NAME$Command extends Command
 {
 
-    protected $signature = 'db:seed-$KABAB_CASE_NAME$';
+    protected $signature = 'module:seed-$KABAB_CASE_NAME$';
 
     protected $description = 'Seeds the database with $KABAB_CASE_NAME$ data';
 
