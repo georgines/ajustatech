@@ -92,6 +92,7 @@ class MakeModuleLivewireComponentCommand extends BaseCommand
         $this->info("🔥 Livewire route components for module {$this->name} created successfully.");
         $this->componentInstructions();
         $this->routesInstructions();
+        $this->line('');
     }
 
     protected function componentInstructions()
