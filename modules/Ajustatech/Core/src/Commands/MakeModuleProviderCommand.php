@@ -12,6 +12,7 @@ class MakeModuleProviderCommand extends BaseCommand
     protected $helper;
     protected $name;
     protected $path;
+    protected $kebabModuleName;
     protected $className;
     protected $namespaceImport;
     protected $componentRegister;
@@ -39,6 +40,8 @@ class MakeModuleProviderCommand extends BaseCommand
         $this->name = $this->argument('name');
         $this->path = $this->argument('path');
 
+        $this->kebabModuleName = $this->helper->getModuleNameFromPath($this->path)->kebab();
+
         $force = $this->option('force') ? true : false;
         $this->helper->setForceOverwrite($force);
 
@@ -53,6 +56,7 @@ class MakeModuleProviderCommand extends BaseCommand
         $this->helper->addContents([
             'REGISTRED_COMPONENTS' => $this->componentRegister,
             'NAMESPACE_IMPORT' => $this->namespaceImport,
+            "KABAB_MODULE_NAME" => $this->kebabModuleName
         ]);
 
         $stubs = [

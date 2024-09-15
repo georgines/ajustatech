@@ -12,6 +12,7 @@ class MakeModuleMenuCommand extends BaseCommand
     protected $helper;
     protected $name;
     protected $path;
+    protected $kebabModuleName;
     protected $namespace;
     protected $className;
     protected $lowClassName;
@@ -31,6 +32,8 @@ class MakeModuleMenuCommand extends BaseCommand
         $this->name = $this->argument('name');
         $this->path = $this->argument('path');
 
+        $this->kebabModuleName = $this->helper->getModuleNameFromPath($this->path)->kebab();
+
         $force = $this->option('force') ? true : false;
         $this->helper->setForceOverwrite($force);
 
@@ -47,7 +50,10 @@ class MakeModuleMenuCommand extends BaseCommand
 
     protected function generateMenuStubs()
     {
-        $this->helper->addContents(["LOW_CLASS_NAME" => $this->lowClassName]);
+        $this->helper->addContents([
+            "LOW_CLASS_NAME" => $this->lowClassName,
+            "KABAB_MODULE_NAME" => $this->kebabModuleName
+        ]);
 
         $stub =  [
             ['module-menu.stub' => "{$this->path}/Menu/horizontalMenu.json"],

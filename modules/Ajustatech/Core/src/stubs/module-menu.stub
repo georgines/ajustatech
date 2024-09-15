@@ -3,7 +3,7 @@
 		{
 			"name": "Nome_categoria",
 			"icon": "menu-icon tf-icons ti ti-users",
-			"slug": "$KABAB_CASE_NAME$",
+			"slug": "$KABAB_MODULE_NAME$",
 			"submenu": [
 				{
 					"url": "",

@@ -20,9 +20,9 @@ class $CLASS_NAME$ServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->loadRoutesFrom("$this->path/Routes/web.php");
-        $this->loadViewsFrom("$this->path/Views", "$KABAB_CASE_NAME$");
+        $this->loadViewsFrom("$this->path/Views", "$KABAB_MODULE_NAME$");
         $this->loadMigrationsFrom("$this->path/Database/migrations");
-        $this->loadTranslationsFrom("$this->path/Lang", "$KABAB_CASE_NAME$");
+        $this->loadTranslationsFrom("$this->path/Lang", "$KABAB_MODULE_NAME$");
         $this->loadCommands();
         $this->initializeMenus();
         $this->initializeLivewireComponents();
