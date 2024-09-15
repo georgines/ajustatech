@@ -11,10 +11,7 @@ class DevMigrateCommand extends BaseCommand
 
     public function handle()
     {
-
-        Artisan::call("migrate:rollback", [], $this->getOutput());
-        Artisan::call("migrate", [], $this->getOutput());
-
+        Artisan::call("migrate:fresh", [], $this->getOutput());
         $this->info("🔥 Migrations completed successfully!");
     }
 }
