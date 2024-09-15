@@ -40,7 +40,7 @@ class MakeModuleModelCommand extends Command
         $this->lowClassName = $this->helper->getLowClassName($this->name);
         $this->kebabClassName = $this->helper->getKebabClassName($this->name);
         $this->timestamp = $this->helper->generateMigrationTimestamp();
-        $this->pluralTable = Str::plural($this->lowClassName);
+        $this->pluralTable = Str::plural($this->helper->getSnakeCaseName($this->className));
 
         $this->helper->addContents([
             'PLURAL_TABLE' => $this->pluralTable
@@ -55,7 +55,7 @@ class MakeModuleModelCommand extends Command
     {
         $stubs = [
             ['module-factory.stub' => "{$this->path}/Database/Factories/{$this->className}Factory.php"],
-            ['module-migration.stub' => "{$this->path}/Database/Migrations/{$this->timestamp}_create_{$this->lowClassName}_table.php"],
+            ['module-migration.stub' => "{$this->path}/Database/Migrations/{$this->timestamp}_create_{$this->pluralTable}_table.php"],
             ['module-model.stub' => "{$this->path}/Database/Models/{$this->className}.php"],
             ['module-seeder.stub' => "{$this->path}/Database/Seeders/{$this->className}Seeder.php"],
             ['module-test-model.stub' => "{$this->path}/Tests/Feature/{$this->className}Test.php"],

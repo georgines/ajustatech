@@ -12,11 +12,11 @@ class $CLASS_NAME$Test extends TestCase
 	use RefreshDatabase;
 
 
-	public function test_can_create_$KABAB_CASE_NAME$()
+	public function test_can_create_$SNAKE_CASE_NAME$()
 	{
-		$$LOW_CLASS_NAME$ =  $CLASS_NAME$::factory()->create();
+		$$SNAKE_CASE_NAME$ =  $CLASS_NAME$::factory()->create();
 		$this->assertDatabaseHas('$PLURAL_TABLE$', [
-            'id' => $$LOW_CLASS_NAME$->id,
+            'id' => $$SNAKE_CASE_NAME$->id,
 		]);
 	}
 }
