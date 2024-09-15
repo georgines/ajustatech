@@ -185,6 +185,11 @@ class CommandHelper
         return Str::of($this->namespace)->replace("\\", "\\\\") . "\\\\";
     }
 
+    public function getPsr4NamespaceFromPath($path): string
+    {
+        return Str::of($this->getNamespaceFromPath($path))->replace("\\", "\\\\") . "\\\\";
+    }
+
     public function getNamespaceFromPath($path): string
     {
         $parts = explode('/', $this->getRelativePath($path));
