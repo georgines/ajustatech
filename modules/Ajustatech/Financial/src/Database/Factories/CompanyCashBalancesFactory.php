@@ -2,12 +2,12 @@
 
 namespace Ajustatech\Financial\Database\Factories;
 
-use Ajustatech\Financial\Database\Models\Financial;
+use Ajustatech\Financial\Database\Models\CompanyCashBalances;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class FinancialFactory extends Factory
+class CompanyCashBalancesFactory extends Factory
 {
-    protected $model = Financial::class;
+    protected $model = CompanyCashBalances::class;
 
 	public function definition(): array
 	{

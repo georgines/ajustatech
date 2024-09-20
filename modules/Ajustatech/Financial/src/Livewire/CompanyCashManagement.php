@@ -6,7 +6,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 #[Layout('core::layouts.app')]
-class FinancialManagement extends Component
+class CompanyCashManagement extends Component
 {
     public $title;
 
@@ -17,6 +17,6 @@ class FinancialManagement extends Component
 
     public function render()
     {
-        return view('financial::livewire.financial-management');
+        return view('financial::livewire.company-cash-management');
     }
 }

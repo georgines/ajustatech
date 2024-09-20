@@ -1,9 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Ajustatech\Financial\Livewire\ShowFinancial;
-use Ajustatech\Financial\Livewire\FinancialManagement;
+use Ajustatech\Financial\Livewire\ShowCompanyCash;
+use Ajustatech\Financial\Livewire\CompanyCashManagement;
 
-Route::get('/financial', ShowFinancial::class)->name('financial-show');
-Route::get('/financial/cadastro', FinancialManagement::class)->name('financial-create');
-Route::get('/financial/{financial}/editar', FinancialManagement::class)->name('financial-edit');
+Route::get('/caixas-gerenciais', ShowCompanyCash::class)->name('companycash-show');
+Route::get('/caixas-gerenciais/cadastro', CompanyCashManagement::class)->name('companycash-create');
+Route::get('/caixa-gerenciais/{companycash}/editar', CompanyCashManagement::class)->name('companycash-edit');

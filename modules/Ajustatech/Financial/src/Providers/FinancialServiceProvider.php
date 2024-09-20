@@ -5,9 +5,13 @@ namespace Ajustatech\Financial\Providers;
 use Livewire\Livewire;
 use Illuminate\Support\ServiceProvider;
 use Ajustatech\Core\Helpers\MenuManagerInterface;
-use Ajustatech\Financial\Livewire\ShowFinancial;
-use Ajustatech\Financial\Livewire\FinancialManagement;
-use Ajustatech\Financial\Commands\SeedFinancialCommand;
+use Ajustatech\Financial\Livewire\ShowCompanyCash;
+use Ajustatech\Financial\Livewire\CompanyCashManagement;
+use Ajustatech\Financial\Commands\SeedCompanyCashCommand;
+use Ajustatech\Financial\Commands\SeedCompanyCashBalancesCommand;
+use Ajustatech\Financial\Commands\SeedCompanyCashTransactionsCommand;
+use Ajustatech\Financial\Services\CompanyCashServiceInterface;
+use Ajustatech\Financial\Services\CompanyCashService;
 
 class FinancialServiceProvider extends ServiceProvider
 {
@@ -16,7 +20,7 @@ class FinancialServiceProvider extends ServiceProvider
 
     public function register()
     {
-
+        $this->app->bind(CompanyCashServiceInterface::class, CompanyCashService::class);
     }
 
     public function boot()
@@ -42,13 +46,16 @@ class FinancialServiceProvider extends ServiceProvider
 
     private function initializeLivewireComponents()
     {
-		Livewire::component('show-financial', ShowFinancial::class);
-		Livewire::component('financial-management', FinancialManagement::class);
+        Livewire::component('show-company-cash', ShowCompanyCash::class);
+        Livewire::component('company-cash-management', CompanyCashManagement::class);
     }
 
-    private function loadCommands(){
+    private function loadCommands()
+    {
         $this->commands([
-            SeedFinancialCommand::class
+            SeedCompanyCashTransactionsCommand::class,
+            SeedCompanyCashBalancesCommand::class,
+            SeedCompanyCashCommand::class,
         ]);
     }
 }

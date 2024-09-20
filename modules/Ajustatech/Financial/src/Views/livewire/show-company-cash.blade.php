@@ -3,5 +3,5 @@
 </x-slot>
 
 <div>
-    <!-- Livewire component financial-management -->
+    <!-- Livewire component show-company-cash -->
 </div>
