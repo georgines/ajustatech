@@ -37,49 +37,105 @@ class CompanyCash extends Model
         return $this->hasMany(CompanyCashTransactions::class);
     }
 
-    public function registerTransaction($amount, $is_inflow, $description = null, $hash = null)
+    public function createNew(array $attributes = [])
     {
-        $newHash = $hash ?: $this->newHash();
-        return $this->transactions()->create([
-            'amount' => $amount,
-            'description' => $description,
-            'hash' => $newHash,
-            'category',
-            'is_inflow' => $is_inflow
-        ]);
+        $data = collect($attributes);
+        if ($data->isEmpty()) {
+            return null;
+        }
+
+        $cash = $this->create($attributes);
+
+        $amount = $data->has('amount') ? $data->get('amount') : 0;
+        $description = $data->has('balance_description') ? $data->get('balance_description') : 0;
+
+        $balance = $cash->initializeBalance($amount);
+
+        if ($balance) {
+            $cash->registerInflow($amount, $description);
+        }
+
+        return $cash;
     }
 
     public function calculateBalance()
     {
-        $transactions = $this->cash->transactions;
+        $transactions = $this->transactions;
         $balance = $transactions->sum(function ($transactions) {
             return $transactions->is_inflow ? $transactions->amount : -$transactions->amount;
         });
         return $balance;
     }
 
+    public function getAllTransactions($startDate, $endDate)
+    {
+        return $this->transactions()->whereBetween('created_at', [$startDate, $endDate])->get();
+    }
+
+    public function generateReport($startDate, $endDate)
+    {
+        $transactions = $this->getAllTransactions($startDate, $endDate);
+
+        if ($transactions->isEmpty()) {
+            return null;
+        }
+
+        $totalInflows = $transactions->where('is_inflow', true)->sum('amount');
+        $totalOutflows = $transactions->where('is_inflow', false)->sum('amount');
+
+        return [
+            'total_inflows' => $totalInflows,
+            'total_outflows' => $totalOutflows,
+            'net_balance' => $totalInflows - $totalOutflows,
+            'all_transaction' => $transactions,
+        ];
+    }
+
+    public function initializeBalance($amount)
+    {
+        return $this->balances()->create([
+            'balance' => $amount,
+            'total_inflows' => 0,
+            'total_outflows' => 0
+        ]);
+    }
+
     public function registerInflow($amount, $description = null, $hash = null)
     {
-        return $this->registerTransaction($amount, true, $description, $hash);
+        $result = $this->registerTransaction($amount, true, $description, $hash);
+        return collect($result);
     }
 
     public function registerOutflow($amount, $description = null, $hash = null)
     {
-        return $this->registerTransaction($amount, false, $description, $hash);
+        $result = $this->registerTransaction($amount, false, $description, $hash);
+        return collect($result);
     }
 
-    function revertTransaction($id)
+    function applyRetroactiveTransaction($transactionId, $newAmount)
     {
-        $transaction = $this->transactions()->find($id);
-        if ($transaction) {
-            $this->registerTransaction(
-                $transaction->amount,
-                !$transaction->is_inflow,
-                $transaction->description,
-                $this->newHash()
-            );
+        $transaction = $this->transactions()->find($transactionId);
+
+        if (!$transaction) {
+            return null;
         }
-        return null;
+
+        $previousAmount = $transaction->amount;
+        $transaction->amount = $newAmount;
+        $transaction->update();
+
+        $diference = $newAmount - $previousAmount;
+        $balance = $this->updateCumulativeBalanceWithDifference($diference);
+
+        return [$transaction, $balance];
+    }
+
+    protected function updateCumulativeBalanceWithDifference($difference)
+    {
+        $balance = $this->findLatestBalance();
+        $balance->balance += $difference;
+        $balance->update();
+        return $balance;
     }
 
     public function trasfer($amount)
@@ -114,6 +170,7 @@ class CompanyCash extends Model
             ->put('destination_cash_id', $this->id);
     }
 
+
     public function confirmTransfer($transferData, string $customDescription = "")
     {
 
@@ -134,6 +191,44 @@ class CompanyCash extends Model
 
         $outflowResult = $this->registerOutflow($placeholders[':amount'], $description, $placeholders[':transferHash']);
         return collect($outflowResult);
+    }
+
+    protected function registerTransaction($amount, $is_inflow, $description = null, $hash = null)
+    {
+        $newHash = $hash ?: $this->newHash();
+        $transaction =  $this->transactions()->create([
+            'amount' => $amount,
+            'description' => $description,
+            'hash' => $newHash,
+            'category' => null,
+            'is_inflow' => $is_inflow
+        ]);
+
+        $balance = $this->updateCumulativeBalance($transaction);
+
+        return [$transaction, $balance];
+    }
+
+    protected function updateCumulativeBalance($transaction)
+    {
+        $data =  collect($transaction);
+
+        if ($data->isEmpty()) {
+            return null;
+        }
+
+        $is_inflow = $data->get('is_inflow');
+        $balance = $this->findLatestBalance();
+
+        $is_inflow ? $balance->total_inflows += 1 : $balance->total_outflows += 1;
+        $is_inflow ? $balance->balance += $transaction->amount : $balance->balance -= $transaction->amount;
+        $balance->update();
+        return $balance;
+    }
+
+    protected function findLatestBalance()
+    {
+        return $this->balances()->latest()->first();
     }
 
     protected function checkTransfer($transferData)

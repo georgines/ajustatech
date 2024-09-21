@@ -29,19 +29,24 @@ class CompanyCashTransactions extends Model
         return $this->belongsTo(CompanyCash::class);
     }
 
-    public function scopeByType($query, $isCredit)
+    public function scopeByType($query, $isInflow)
     {
-        return $query->where('is_credit', $isCredit);
+        return $query->where('is_inflow', $isInflow);
     }
 
-    public function scopeIsCredit($query)
+    public function scopeInFlow($query)
     {
-        return $query->where('is_credit', true);
+        return $query->where('is_inflow', true);
     }
 
-    public function scopeIsDebit($query)
+    public function scopeOutFlow($query)
     {
-        return $query->where('is_credit', false);
+        return $query->where('is_inflow', false);
+    }
+
+    public function scopeThisInterval($query, $startDate, $endDate)
+    {
+        return $query->whereBetween('created_at', [$startDate, $endDate]);
     }
 
     protected static function newFactory()

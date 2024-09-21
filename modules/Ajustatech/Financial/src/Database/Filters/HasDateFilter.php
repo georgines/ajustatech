@@ -23,4 +23,9 @@ trait HasDateFilter
     {
         return $query->whereDate('created_at', $date);
     }
+
+    public function scopeThisInterval($query, $startDate, $endDate)
+    {
+        return $query->whereBetween('created_at', [$startDate, $endDate]);
+    }
 }
