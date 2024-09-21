@@ -120,9 +120,9 @@ class CompanyCash extends Model
         return [$transaction, $balance];
     }
 
-    public function trasfer($amount)
+    public function transfer($amount)
     {
-        return $this->prepareTrasfer($amount);
+        return $this->prepareTransfer($amount);
     }
 
     public function receive($transferData, string $customDescription = "")
@@ -211,10 +211,10 @@ class CompanyCash extends Model
         return [self::TYPE_PHYSICAL, self::TYPE_ONLINE];
     }
 
-    protected function initializeCashBalanceAndInflow($cash, $attributes)
+    protected function initializeCashBalanceAndInflow($cash, array  $attributes)
     {
-        $amount = $attributes->has('amount') ? $attributes->get('amount') : 0;
-        $description = $attributes->has('balance_description') ? $attributes->get('balance_description') : 0;
+        $amount = isset($attributes['amount']) ? $attributes['amount'] : 0;
+        $description = isset($attributes['balance_description']) ? $attributes['balance_description'] : 0;
 
         $balance = $cash->initializeBalance($amount);
 
@@ -224,36 +224,12 @@ class CompanyCash extends Model
         return $cash;
     }
 
-    protected function updateCumulativeBalanceWithDifference($difference)
-    {
-        $balance = $this->findLatestBalance();
-        $balance->balance += $difference;
-        $balance->update();
-        return $balance;
-    }
-
-    protected function updateCumulativeBalance($transaction)
-    {
-        $data = $this->collectIfNotEmpty($transaction);
-        if (!$data) {
-            return null;
-        }
-
-        $is_inflow = $data->get('is_inflow');
-        $balance = $this->findLatestBalance();
-
-        $is_inflow ? $balance->total_inflows += 1 : $balance->total_outflows += 1;
-        $is_inflow ? $balance->balance += $transaction->amount : $balance->balance -= $transaction->amount;
-        $balance->update();
-        return $balance;
-    }
-
     protected function findLatestBalance()
     {
         return $this->balances()->latest()->first();
     }
 
-    protected function prepareTrasfer($amount)
+    protected function prepareTransfer($amount)
     {
         $this->currentHash = $this->newHash();
         return collect([
