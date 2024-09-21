@@ -45,13 +45,12 @@ class CompanyCash extends Model
 
     public function createNew(array $attributes = [])
     {
-        $data = $this->collectIfNotEmpty($attributes);
-        if (!$data) {
+        if (empty($attributes)) {
             return null;
         }
 
         $cash = $this->create($attributes);
-        return $this->initializeCashBalanceAndInflow($cash, $data);
+        return $this->initializeCashBalanceAndInflow($cash, $attributes);
     }
 
     public function initializeBalance($amount)
