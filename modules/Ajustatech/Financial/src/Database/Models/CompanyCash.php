@@ -182,7 +182,7 @@ class CompanyCash extends Model
         return $this->registerTransaction($amount, false, $description, $hash);
     }
 
-    public function registerTransaction($amount, $is_inflow, $description = null, $hash = null)
+    protected function registerTransaction($amount, $is_inflow, $description = null, $hash = null)
     {
         $newHash = $hash ?: $this->newHash();
         $transaction =  $this->transactions()->create([
