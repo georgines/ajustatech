@@ -13,6 +13,8 @@ class CompanyCash extends Model
 {
     const TYPE_PHYSICAL = 'physical';
     const TYPE_ONLINE = 'online';
+    const INFLOW_INCREMENT = 1;
+    const OUTFLOW_INCREMENT = 1;
 
     use HasFactory;
     use HasUuids;
@@ -91,10 +93,10 @@ class CompanyCash extends Model
         }
 
         if ($is_inflow) {
-            $this->currentBalance->total_inflows += 1;
+            $this->currentBalance->total_inflows += self::INFLOW_INCREMENT;
             $this->currentBalance->balance += $amount;
         } else {
-            $this->currentBalance->total_outflows += 1;
+            $this->currentBalance->total_outflows += self::OUTFLOW_INCREMENT;
             $this->currentBalance->balance -= $amount;
         }
 
@@ -226,7 +228,7 @@ class CompanyCash extends Model
 
     protected function findLatestBalance()
     {
-        return $this->balances()->latest()->first();
+        return $this->balances()->latest()->first() ?? null;
     }
 
     protected function prepareTransfer($amount)
