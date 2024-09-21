@@ -11,6 +11,10 @@ use Illuminate\Support\Str;
 
 class CompanyCash extends Model
 {
+
+    const TYPE_PHYSICAL = 'physical';
+    const TYPE_ONLINE = 'online';
+
     use HasFactory;
     use HasUuids;
 
@@ -45,50 +49,32 @@ class CompanyCash extends Model
         }
 
         $cash = $this->create($attributes);
+        return $this->initializeCashBalanceAndInflow($cash, $data);
+    }
 
-        $amount = $data->has('amount') ? $data->get('amount') : 0;
-        $description = $data->has('balance_description') ? $data->get('balance_description') : 0;
+    protected function initializeCashBalanceAndInflow($cash, $attributes)
+    {
+
+        $amount = $attributes->has('amount') ? $attributes->get('amount') : 0;
+        $description = $attributes->has('balance_description') ? $attributes->get('balance_description') : 0;
 
         $balance = $cash->initializeBalance($amount);
 
         if ($balance) {
             $cash->registerInflow($amount, $description);
         }
-
         return $cash;
     }
 
     public function calculateBalance()
     {
-        $transactions = $this->transactions;
-        $balance = $transactions->sum(function ($transactions) {
-            return $transactions->is_inflow ? $transactions->amount : -$transactions->amount;
-        });
+        $balance = $this->transactions()->selectRaw('SUM(CASE WHEN is_inflow = true THEN amount ELSE -amount END) as balance')->first()->balance;
         return $balance;
     }
 
     public function getAllTransactions($startDate, $endDate)
     {
         return $this->transactions()->whereBetween('created_at', [$startDate, $endDate])->get();
-    }
-
-    public function generateReport($startDate, $endDate)
-    {
-        $transactions = $this->getAllTransactions($startDate, $endDate);
-
-        if ($transactions->isEmpty()) {
-            return null;
-        }
-
-        $totalInflows = $transactions->where('is_inflow', true)->sum('amount');
-        $totalOutflows = $transactions->where('is_inflow', false)->sum('amount');
-
-        return [
-            'total_inflows' => $totalInflows,
-            'total_outflows' => $totalOutflows,
-            'net_balance' => $totalInflows - $totalOutflows,
-            'all_transaction' => $transactions,
-        ];
     }
 
     public function initializeBalance($amount)
@@ -98,18 +84,6 @@ class CompanyCash extends Model
             'total_inflows' => 0,
             'total_outflows' => 0
         ]);
-    }
-
-    public function registerInflow($amount, $description = null, $hash = null)
-    {
-        $result = $this->registerTransaction($amount, true, $description, $hash);
-        return collect($result);
-    }
-
-    public function registerOutflow($amount, $description = null, $hash = null)
-    {
-        $result = $this->registerTransaction($amount, false, $description, $hash);
-        return collect($result);
     }
 
     function applyRetroactiveTransaction($transactionId, $newAmount)
@@ -140,8 +114,18 @@ class CompanyCash extends Model
 
     public function trasfer($amount)
     {
+        return $this->prepareTrasfer($amount);
+    }
+
+    protected function prepareTrasfer($amount)
+    {
         $this->currentHash = $this->newHash();
-        return collect(['amount' => $amount, 'cash_name' => $this->cash_name, 'id' => $this->id, 'hash' => $this->currentHash]);
+        return collect([
+            'amount' => $amount,
+            'cash_name' => $this->cash_name,
+            'id' => $this->id,
+            'hash' => $this->currentHash
+        ]);
     }
 
     public function receive($transferData, string $customDescription = "")
@@ -193,7 +177,7 @@ class CompanyCash extends Model
         return collect($outflowResult);
     }
 
-    protected function registerTransaction($amount, $is_inflow, $description = null, $hash = null)
+    public function registerTransaction($amount, $is_inflow, $description = null, $hash = null)
     {
         $newHash = $hash ?: $this->newHash();
         $transaction =  $this->transactions()->create([
@@ -206,7 +190,7 @@ class CompanyCash extends Model
 
         $balance = $this->updateCumulativeBalance($transaction);
 
-        return [$transaction, $balance];
+        return collect([$transaction, $balance]);
     }
 
     protected function updateCumulativeBalance($transaction)
@@ -252,10 +236,7 @@ class CompanyCash extends Model
 
     public function availableCompanyCashsTypes(): array
     {
-        return [
-            'physical',
-            'online',
-        ];
+        return [self::TYPE_PHYSICAL, self::TYPE_ONLINE];
     }
 
     protected static function newFactory()
