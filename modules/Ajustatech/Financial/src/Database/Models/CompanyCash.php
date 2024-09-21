@@ -11,7 +11,6 @@ use Illuminate\Support\Str;
 
 class CompanyCash extends Model
 {
-
     const TYPE_PHYSICAL = 'physical';
     const TYPE_ONLINE = 'online';
 
@@ -43,38 +42,13 @@ class CompanyCash extends Model
 
     public function createNew(array $attributes = [])
     {
-        $data = collect($attributes);
-        if ($data->isEmpty()) {
+        $data = $this->collectIfNotEmpty($attributes);
+        if (!$data) {
             return null;
         }
 
         $cash = $this->create($attributes);
         return $this->initializeCashBalanceAndInflow($cash, $data);
-    }
-
-    protected function initializeCashBalanceAndInflow($cash, $attributes)
-    {
-
-        $amount = $attributes->has('amount') ? $attributes->get('amount') : 0;
-        $description = $attributes->has('balance_description') ? $attributes->get('balance_description') : 0;
-
-        $balance = $cash->initializeBalance($amount);
-
-        if ($balance) {
-            $cash->registerInflow($amount, $description);
-        }
-        return $cash;
-    }
-
-    public function calculateBalance()
-    {
-        $balance = $this->transactions()->selectRaw('SUM(CASE WHEN is_inflow = true THEN amount ELSE -amount END) as balance')->first()->balance;
-        return $balance;
-    }
-
-    public function getAllTransactions($startDate, $endDate)
-    {
-        return $this->transactions()->whereBetween('created_at', [$startDate, $endDate])->get();
     }
 
     public function initializeBalance($amount)
@@ -86,7 +60,7 @@ class CompanyCash extends Model
         ]);
     }
 
-    function applyRetroactiveTransaction($transactionId, $newAmount)
+    public function applyRetroactiveTransaction($transactionId, $newAmount)
     {
         $transaction = $this->transactions()->find($transactionId);
 
@@ -104,35 +78,15 @@ class CompanyCash extends Model
         return [$transaction, $balance];
     }
 
-    protected function updateCumulativeBalanceWithDifference($difference)
-    {
-        $balance = $this->findLatestBalance();
-        $balance->balance += $difference;
-        $balance->update();
-        return $balance;
-    }
-
     public function trasfer($amount)
     {
         return $this->prepareTrasfer($amount);
     }
 
-    protected function prepareTrasfer($amount)
-    {
-        $this->currentHash = $this->newHash();
-        return collect([
-            'amount' => $amount,
-            'cash_name' => $this->cash_name,
-            'id' => $this->id,
-            'hash' => $this->currentHash
-        ]);
-    }
-
     public function receive($transferData, string $customDescription = "")
     {
-        $data = collect($transferData);
-
-        if ($data->isEmpty()) {
+        $data = $this->collectIfNotEmpty($transferData);
+        if (!$data) {
             return null;
         }
 
@@ -154,10 +108,8 @@ class CompanyCash extends Model
             ->put('destination_cash_id', $this->id);
     }
 
-
     public function confirmTransfer($transferData, string $customDescription = "")
     {
-
         if (!$this->checkTransfer($transferData)) {
             return null;
         }
@@ -193,11 +145,47 @@ class CompanyCash extends Model
         return collect([$transaction, $balance]);
     }
 
+    public function calculateBalance()
+    {
+        $balance = $this->transactions()->selectRaw('SUM(CASE WHEN is_inflow = true THEN amount ELSE -amount END) as balance')->first()->balance;
+        return $balance;
+    }
+
+    public function getAllTransactions($startDate, $endDate)
+    {
+        return $this->transactions()->whereBetween('created_at', [$startDate, $endDate])->get();
+    }
+
+    public function availableCompanyCashsTypes(): array
+    {
+        return [self::TYPE_PHYSICAL, self::TYPE_ONLINE];
+    }
+
+    protected function initializeCashBalanceAndInflow($cash, $attributes)
+    {
+        $amount = $attributes->has('amount') ? $attributes->get('amount') : 0;
+        $description = $attributes->has('balance_description') ? $attributes->get('balance_description') : 0;
+
+        $balance = $cash->initializeBalance($amount);
+
+        if ($balance) {
+            $cash->registerInflow($amount, $description);
+        }
+        return $cash;
+    }
+
+    protected function updateCumulativeBalanceWithDifference($difference)
+    {
+        $balance = $this->findLatestBalance();
+        $balance->balance += $difference;
+        $balance->update();
+        return $balance;
+    }
+
     protected function updateCumulativeBalance($transaction)
     {
-        $data =  collect($transaction);
-
-        if ($data->isEmpty()) {
+        $data = $this->collectIfNotEmpty($transaction);
+        if (!$data) {
             return null;
         }
 
@@ -215,13 +203,30 @@ class CompanyCash extends Model
         return $this->balances()->latest()->first();
     }
 
+    protected function prepareTrasfer($amount)
+    {
+        $this->currentHash = $this->newHash();
+        return collect([
+            'amount' => $amount,
+            'cash_name' => $this->cash_name,
+            'id' => $this->id,
+            'hash' => $this->currentHash
+        ]);
+    }
+
     protected function checkTransfer($transferData)
     {
-        $data = collect($transferData);
-        if ($data->isEmpty()) {
+        $data = $this->collectIfNotEmpty($transferData);
+        if (!$data) {
             return false;
         }
         return $this->currentHash === $data->get('hash');
+    }
+
+    protected function collectIfNotEmpty($data)
+    {
+        $collection = collect($data);
+        return $collection->isEmpty() ? null : $collection;
     }
 
     protected function replacePlaceholders(string $descriptionTemplate, array $placeholders): string
@@ -232,11 +237,6 @@ class CompanyCash extends Model
     protected function newHash()
     {
         return Str::uuid()->toString();
-    }
-
-    public function availableCompanyCashsTypes(): array
-    {
-        return [self::TYPE_PHYSICAL, self::TYPE_ONLINE];
     }
 
     protected static function newFactory()
