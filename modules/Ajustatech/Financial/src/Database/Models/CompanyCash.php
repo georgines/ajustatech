@@ -178,6 +178,12 @@ class CompanyCash extends Model
         return  $this->registerOutflow($placeholders[':amount'], $description, $placeholders[':transferHash']);
     }
 
+    public function hasSufficientBalance($amount): bool    {
+
+        $currentBalance = $this->getBalance();
+        return $currentBalance && $currentBalance->balance >= $amount;
+    }
+
     public function registerInflow($amount, $description = null, $hash = null)
     {
         return $this->registerTransaction($amount, true, $description, $hash);
