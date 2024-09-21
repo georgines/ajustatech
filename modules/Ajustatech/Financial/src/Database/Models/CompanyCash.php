@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class CompanyCash extends Model
@@ -43,17 +44,23 @@ class CompanyCash extends Model
         return $this->hasMany(CompanyCashTransactions::class);
     }
 
-    public function createNew(array $attributes = [])
+    public static function createNew(array $attributes = [])
     {
         if (empty($attributes)) {
             return null;
         }
 
-        $cash = $this->create($attributes);
-        return $this->initializeCashBalanceAndInflow($cash, $attributes);
+        return DB::transaction(function () use ($attributes) {
+            $amount = isset($attributes['balance_amount']) ? $attributes['balance_amount'] : 0;
+            $balanceDescription = isset($description['balance_description']) ? $description['balance_description'] : '';
+            $cash = static::create($attributes);
+            $cash->initializeBalance($amount);
+            $cash->registerInflow($amount, $balanceDescription);
+            return $cash;
+        });
     }
 
-    public function initializeBalance($amount)
+    protected function initializeBalance($amount)
     {
         return $this->balances()->create([
             'balance' => $amount,
@@ -192,7 +199,7 @@ class CompanyCash extends Model
             'is_inflow' => $is_inflow
         ]);
 
-        $balance = $this->updateBalance()->withAmount($amount, $is_inflow);
+        $balance = $this->updateBalance()->withAmount($amount, $is_inflow) ?? "updatae";
         return collect([$transaction, $balance]);
     }
 
@@ -227,7 +234,7 @@ class CompanyCash extends Model
 
     protected function findLatestBalance()
     {
-        return $this->balances()->latest()->first() ?? null;
+        return $this->balances()->latest()->first();
     }
 
     protected function prepareTransfer($amount)

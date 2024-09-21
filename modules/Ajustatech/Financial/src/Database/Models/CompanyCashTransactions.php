@@ -15,7 +15,6 @@ class CompanyCashTransactions extends Model
     use HasDateFilter;
 
     protected $fillable = [
-        'company_cash_id',
         'company_cash_name',
         'amount',
         'description',

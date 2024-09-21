@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->string('agency')->nullable();
             $table->string('account')->nullable();
-            $table->boolean('is_online');
+            $table->boolean('is_online')->default(true);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
