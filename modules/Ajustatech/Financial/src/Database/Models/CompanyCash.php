@@ -125,8 +125,17 @@ class CompanyCash extends Model
 
         $description = $this->replacePlaceholders($customDescription, $placeholders);
 
-        $outflowResult = $this->registerOutflow($placeholders[':amount'], $description, $placeholders[':transferHash']);
-        return collect($outflowResult);
+        return  $this->registerOutflow($placeholders[':amount'], $description, $placeholders[':transferHash']);
+    }
+
+    public function registerInflow($amount, $description = null, $hash = null)
+    {
+        return $this->registerTransaction($amount, true, $description, $hash);
+    }
+
+    public function registerOutflow($amount, $description = null, $hash = null)
+    {
+        return $this->registerTransaction($amount, false, $description, $hash);
     }
 
     public function registerTransaction($amount, $is_inflow, $description = null, $hash = null)
@@ -220,7 +229,12 @@ class CompanyCash extends Model
         if (!$data) {
             return false;
         }
-        return $this->currentHash === $data->get('hash');
+        return $this->isValidHash($data->get('hash'));
+    }
+
+    protected function isValidHash($hash)
+    {
+        return $this->currentHash === $hash;
     }
 
     protected function collectIfNotEmpty($data)
