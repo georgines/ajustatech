@@ -29,6 +29,7 @@ class CompanyCash extends Model
     ];
 
     protected $currentHash;
+    protected $currentBalance;
 
     public function balances(): HasMany
     {
@@ -60,6 +61,47 @@ class CompanyCash extends Model
         ]);
     }
 
+    public function getBalance()
+    {
+        $this->currentBalance = $this->findLatestBalance();
+        return $this->currentBalance;
+    }
+
+    public function updateBalance()
+    {
+        $this->getBalance();
+        return $this;
+    }
+
+    public function withDifference($difference)
+    {
+        if (!$this->currentBalance) {
+            return null;
+        }
+
+        $this->currentBalance->balance += $difference;
+        $this->currentBalance->update();
+        return $this->currentBalance;
+    }
+
+    public function withAmount($amount, $is_inflow)
+    {
+        if (!$this->currentBalance) {
+            return null;
+        }
+
+        if ($is_inflow) {
+            $this->currentBalance->total_inflows += 1;
+            $this->currentBalance->balance += $amount;
+        } else {
+            $this->currentBalance->total_outflows += 1;
+            $this->currentBalance->balance -= $amount;
+        }
+
+        $this->currentBalance->update();
+        return $this->currentBalance;
+    }
+
     public function applyRetroactiveTransaction($transactionId, $newAmount)
     {
         $transaction = $this->transactions()->find($transactionId);
@@ -73,7 +115,7 @@ class CompanyCash extends Model
         $transaction->update();
 
         $diference = $newAmount - $previousAmount;
-        $balance = $this->updateCumulativeBalanceWithDifference($diference);
+        $balance = $this->updateBalance()->withDifference($diference);
 
         return [$transaction, $balance];
     }
@@ -149,8 +191,7 @@ class CompanyCash extends Model
             'is_inflow' => $is_inflow
         ]);
 
-        $balance = $this->updateCumulativeBalance($transaction);
-
+        $balance = $this->updateBalance()->withAmount($amount, $is_inflow);
         return collect([$transaction, $balance]);
     }
 
