@@ -140,22 +140,10 @@ class CompanyCash extends Model
             return null;
         }
 
-        $placeholders = [
-            ':amount' => $data->get('amount'),
-            ':originCashName' => $data->get('cash_name'),
-            ':originCashId' => $data->get('id'),
-            ':transferHash' => $data->get('hash'),
-            ':destinationCashName' => $this->cash_name,
-            ':destinationCashId' => $this->id
-        ];
-
-        $description = $this->replacePlaceholders($customDescription, $placeholders);
-
-        $inflowResult = $this->registerInflow($placeholders[':amount'], $description, $placeholders[':transferHash']);
-
-        return collect($inflowResult)
-            ->put('destination_cash_name', $this->cash_name)
-            ->put('destination_cash_id', $this->id);
+        $amount = $data->get('amount');
+        $hash= $data->get('hash');
+        $description = $this->replacePlaceholders($customDescription, [':transferHash'=>$hash]);
+        return  $this->registerInflow($amount, $description, $hash);
     }
 
     public function confirmTransfer($transferData, string $customDescription = "")
@@ -166,19 +154,15 @@ class CompanyCash extends Model
 
         $data = collect($transferData);
 
-        $placeholders = [
-            ':amount' => $data->get('amount'),
-            ':destinationCashName' => $data->get('destination_cash_name'),
-            ':destinationCashId' => $data->get('destination_cash_id'),
-            ':transferHash' => $data->get('hash')
-        ];
+        $amount = $data->get('amount');
+        $hash= $data->get('hash');
+        $description = $this->replacePlaceholders($customDescription, [':transferHash'=>$hash]);
 
-        $description = $this->replacePlaceholders($customDescription, $placeholders);
-
-        return  $this->registerOutflow($placeholders[':amount'], $description, $placeholders[':transferHash']);
+        return  $this->registerOutflow($amount, $description, $hash);
     }
 
-    public function hasSufficientBalance($amount): bool    {
+    public function hasSufficientBalance($amount): bool
+    {
 
         $currentBalance = $this->getBalance();
         return $currentBalance && $currentBalance->balance >= $amount;
@@ -205,8 +189,14 @@ class CompanyCash extends Model
             'is_inflow' => $is_inflow
         ]);
 
-        $balance = $this->updateBalance()->withAmount($amount, $is_inflow) ?? "updatae";
-        return collect([$transaction, $balance]);
+        $balance = $this->updateBalance()->withAmount($amount, $is_inflow);
+
+        return $transaction;
+    }
+
+    public function replacePlaceholders(string $descriptionTemplate, array $placeholders): string
+    {
+        return strtr($descriptionTemplate, $placeholders);
     }
 
     public function calculateBalance()
@@ -272,11 +262,6 @@ class CompanyCash extends Model
     {
         $collection = collect($data);
         return $collection->isEmpty() ? null : $collection;
-    }
-
-    protected function replacePlaceholders(string $descriptionTemplate, array $placeholders): string
-    {
-        return strtr($descriptionTemplate, $placeholders);
     }
 
     protected function newHash()
