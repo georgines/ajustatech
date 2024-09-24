@@ -142,11 +142,10 @@ class CompanyCash extends Model
 
         $amount = $data->get('amount');
         $hash= $data->get('hash');
-        $description = $this->replacePlaceholders($customDescription, [':transferHash'=>$hash]);
-        return  $this->registerInflow($amount, $description, $hash);
+        return  $this->registerInflow($amount, $customDescription, $hash);
     }
 
-    public function confirmTransfer($transferData, string $customDescription = "")
+    public function confirmTransfer($transferData,string $customDescription = "")
     {
         if (!$this->checkTransfer($transferData)) {
             return null;
@@ -156,9 +155,7 @@ class CompanyCash extends Model
 
         $amount = $data->get('amount');
         $hash= $data->get('hash');
-        $description = $this->replacePlaceholders($customDescription, [':transferHash'=>$hash]);
-
-        return  $this->registerOutflow($amount, $description, $hash);
+        return  $this->registerOutflow($amount, $customDescription, $hash);
     }
 
     public function hasSufficientBalance($amount): bool
@@ -194,18 +191,13 @@ class CompanyCash extends Model
         return $transaction;
     }
 
-    public function replacePlaceholders(string $descriptionTemplate, array $placeholders): string
-    {
-        return strtr($descriptionTemplate, $placeholders);
-    }
-
     public function calculateBalance()
     {
         $balance = $this->transactions()->selectRaw('SUM(CASE WHEN is_inflow = true THEN amount ELSE -amount END) as balance')->first()->balance;
         return $balance;
     }
 
-    public function getAllTransactions($startDate, $endDate)
+    public function getAllTransactionsBetween($startDate, $endDate)
     {
         return $this->transactions()->whereBetween('created_at', [$startDate, $endDate])->get();
     }

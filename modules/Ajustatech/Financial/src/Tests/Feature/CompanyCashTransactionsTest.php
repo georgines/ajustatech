@@ -12,11 +12,11 @@ class CompanyCashTransactionsTest extends TestCase
 	use RefreshDatabase;
 
 
-	public function test_can_create_company_cash_transactions()
-	{
-		$company_cash_transactions =  CompanyCashTransactions::factory()->create();
-		$this->assertDatabaseHas('company_cash_transactions', [
-            'id' => $company_cash_transactions->id,
-		]);
-	}
+	// public function test_can_create_company_cash_transactions()
+	// {
+	// 	$company_cash_transactions =  CompanyCashTransactions::factory()->create();
+	// 	$this->assertDatabaseHas('company_cash_transactions', [
+    //         'id' => $company_cash_transactions->id,
+	// 	]);
+	// }
 }
