@@ -54,16 +54,16 @@ class CompanyCash extends Model
             $amount = isset($attributes['balance_amount']) ? $attributes['balance_amount'] : 0;
             $balanceDescription = isset($description['balance_description']) ? $description['balance_description'] : '';
             $cash = static::create($attributes);
-            $cash->initializeBalance($amount);
+            $cash->initializeBalance();
             $cash->registerInflow($amount, $balanceDescription);
             return $cash;
         });
     }
 
-    protected function initializeBalance($amount)
+    protected function initializeBalance()
     {
         return $this->balances()->create([
-            'balance' => $amount,
+            'balance' => 0,
             'total_inflows' => 0,
             'total_outflows' => 0
         ]);
@@ -81,13 +81,21 @@ class CompanyCash extends Model
         return $this;
     }
 
-    public function withDifference($difference)
+    public function withDifference($difference, $is_inflow)
     {
         if (!$this->currentBalance) {
             return null;
         }
 
-        $this->currentBalance->balance += $difference;
+
+        if ($is_inflow) {
+            // Entrada de caixa
+            $this->currentBalance->balance += $difference;
+        } else {
+            // Saída de caixa
+            $this->currentBalance->balance -= $difference;
+        }
+
         $this->currentBalance->update();
         return $this->currentBalance;
     }
@@ -119,13 +127,14 @@ class CompanyCash extends Model
         }
 
         $previousAmount = $transaction->amount;
+        $is_inflow = $transaction->is_inflow;
         $transaction->amount = $newAmount;
         $transaction->update();
 
         $diference = $newAmount - $previousAmount;
-        $balance = $this->updateBalance()->withDifference($diference);
+        $balance = $this->updateBalance()->withDifference($diference, $is_inflow);
 
-        return [$transaction, $balance];
+        return $transaction;
     }
 
     public function transfer($amount)
@@ -141,11 +150,11 @@ class CompanyCash extends Model
         }
 
         $amount = $data->get('amount');
-        $hash= $data->get('hash');
+        $hash = $data->get('hash');
         return  $this->registerInflow($amount, $customDescription, $hash);
     }
 
-    public function confirmTransfer($transferData,string $customDescription = "")
+    public function confirmTransfer($transferData, string $customDescription = "")
     {
         if (!$this->checkTransfer($transferData)) {
             return null;
@@ -154,7 +163,7 @@ class CompanyCash extends Model
         $data = collect($transferData);
 
         $amount = $data->get('amount');
-        $hash= $data->get('hash');
+        $hash = $data->get('hash');
         return  $this->registerOutflow($amount, $customDescription, $hash);
     }
 

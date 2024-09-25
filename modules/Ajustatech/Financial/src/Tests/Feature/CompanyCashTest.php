@@ -56,7 +56,7 @@ class CompanyCashTest extends TestCase
             ":originCashId" => $chaseBank->id,
             ":destinationCashName" => $bankOfAmerica->cash_name,
             ":destinationCashId" => $bankOfAmerica->id,
-            ":transferHash"=> ""
+            ":transferHash" => ""
         ];
 
 
@@ -72,8 +72,6 @@ class CompanyCashTest extends TestCase
         $receipt_bankOfAmerica = $bankOfAmerica->receive($transferData, $description1);
         $receipt_chaseBank = $chaseBank->confirmTransfer($transferData, $description2);
 
-        dump($description1, $description2);
-
         $this->assertDatabaseHas('company_cash_transactions', [
             'company_cash_id' => $bankOfAmerica->id,
             'amount' => '10.00',
@@ -85,5 +83,240 @@ class CompanyCashTest extends TestCase
             'amount' => '10.00',
             'description' => $description2,
         ]);
+    }
+
+    public function test_can_create_new_account()
+    {
+        $accountData = [
+            "user_id" => Str::uuid()->toString(),
+            "user_name" => "Test User",
+            "cash_name" => "Test Bank",
+            "description" => "Test account description",
+            "balance_amount" => 150,
+            "is_online" => true,
+            "is_active" => true
+        ];
+
+        $newAccount = CompanyCash::createNew($accountData);
+
+        $this->assertDatabaseHas('company_cashes', [
+            'id' => $newAccount->id,
+            'cash_name' => 'Test Bank',
+        ]);
+
+        $this->assertDatabaseHas('company_cash_balances', [
+            'company_cash_id' => $newAccount->id,
+            'balance' => 150
+        ]);
+    }
+
+    public function test_can_update_balance_after_inflow_and_outflow()
+    {
+        $account = CompanyCash::createNew([
+            "user_id" => Str::uuid()->toString(),
+            "cash_name" => "Sample Bank",
+            "balance_amount" => 500
+        ]);
+
+
+        $account->registerInflow(200);
+
+        $this->assertDatabaseHas('company_cash_balances', [
+            'company_cash_id' => $account->id,
+            'balance' => 700
+        ]);
+
+
+        $account->registerOutflow(100);
+
+        $this->assertDatabaseHas('company_cash_balances', [
+            'company_cash_id' => $account->id,
+            'balance' => 600
+        ]);
+    }
+
+    public function test_has_sufficient_balance()
+    {
+        $account = CompanyCash::createNew([
+            "user_id" => Str::uuid()->toString(),
+            "cash_name" => "Test Bank",
+            "balance_amount" => 500
+        ]);
+
+        $this->assertTrue($account->hasSufficientBalance(400));
+        $this->assertFalse($account->hasSufficientBalance(600));
+    }
+
+    public function test_can_register_inflow()
+    {
+        $account = CompanyCash::createNew([
+            "user_id" => Str::uuid()->toString(),
+            "cash_name" => "Test Bank",
+            "balance_amount" => 500
+        ]);
+
+        $account->registerInflow(100, "Test inflow");
+
+        $this->assertDatabaseHas('company_cash_transactions', [
+            'company_cash_id' => $account->id,
+            'amount' => 100,
+            'description' => 'Test inflow',
+            'is_inflow' => true
+        ]);
+
+        $this->assertDatabaseHas('company_cash_balances', [
+            'company_cash_id' => $account->id,
+            'balance' => 600
+        ]);
+    }
+
+    public function test_can_register_outflow()
+    {
+        $account = CompanyCash::createNew([
+            "user_id" => Str::uuid()->toString(),
+            "cash_name" => "Test Bank",
+            "balance_amount" => 500
+        ]);
+
+        $account->registerOutflow(200, "Test outflow");
+
+        $this->assertDatabaseHas('company_cash_transactions', [
+            'company_cash_id' => $account->id,
+            'amount' => 200,
+            'description' => 'Test outflow',
+            'is_inflow' => false
+        ]);
+
+        $this->assertDatabaseHas('company_cash_balances', [
+            'company_cash_id' => $account->id,
+            'balance' => 300
+        ]);
+    }
+
+    public function test_can_apply_retroactive_inflow_transaction()
+    {
+        $account = CompanyCash::createNew([
+            "user_id" => Str::uuid()->toString(),
+            "user_name" => "Test User",
+            "cash_name" => "Test Bank",
+            "balance_amount" => 500,
+            "is_online" => true,
+            "is_active" => true
+        ]);
+
+        $transaction = $account->registerInflow(100, "Initial inflow");
+
+        $account->applyRetroactiveTransaction($transaction->id, 150);
+
+        $this->assertDatabaseHas('company_cash_transactions', [
+            'id' => $transaction->id,
+            'amount' => 150,
+            'is_inflow' => true
+        ]);
+
+        // dump(['esperado'=>$account->calculateBalance(), 'calculado'=>$account->getBalance()->balance]);
+
+        $this->assertDatabaseHas('company_cash_balances', [
+            'company_cash_id' => $account->id,
+            'balance' => 650
+        ]);
+    }
+
+    public function test_can_apply_retroactive_outflow_transaction()
+    {
+        $account = CompanyCash::createNew([
+            "user_id" => Str::uuid()->toString(),
+            "user_name" => "Test User",
+            "cash_name" => "Test Bank",
+            "balance_amount" => 150,
+            "is_online" => true,
+            "is_active" => true
+        ]);
+
+        $transaction = $account->registerOutflow(100, "Initial outflow");
+
+        $account->applyRetroactiveTransaction($transaction->id, 80);
+
+        $this->assertDatabaseHas('company_cash_transactions', [
+            'id' => $transaction->id,
+            'amount' => 80,
+            'is_inflow' => false
+        ]);
+
+        // dump(['esperado'=>$account->calculateBalance(), 'calculado'=>$account->getBalance()->balance]);
+
+        $this->assertDatabaseHas('company_cash_balances', [
+            'company_cash_id' => $account->id,
+            'balance' => 70
+        ]);
+    }
+
+    public function test_can_apply_retroactive_outflow_end_inflow_transaction()
+    {
+        $account = CompanyCash::createNew([
+            "user_id" => Str::uuid()->toString(),
+            "user_name" => "Test User",
+            "cash_name" => "Test Bank",
+            "balance_amount" => 500,
+            "is_online" => true,
+            "is_active" => true
+        ]);
+
+        $transaction = $account->registerOutflow(180, "Initial outflow");
+        $transaction2 = $account->registerInflow(300, "Initial intflow");
+        $transaction3 = $account->registerOutflow(150, "Initial outflow");
+        $transaction4 = $account->registerInflow(50, "Initial intflow");
+
+        $account->applyRetroactiveTransaction($transaction->id, 170);
+        $account->applyRetroactiveTransaction($transaction2->id, 299);
+        $account->applyRetroactiveTransaction($transaction3->id, 160);
+        $account->applyRetroactiveTransaction($transaction4->id, 60);
+
+        $this->assertDatabaseHas('company_cash_transactions', [
+            'id' => $transaction->id,
+            'amount' => 170,
+            'is_inflow' => false
+        ]);
+        $this->assertDatabaseHas('company_cash_transactions', [
+            'id' => $transaction2->id,
+            'amount' => 299,
+            'is_inflow' => true
+        ]);
+        $this->assertDatabaseHas('company_cash_transactions', [
+            'id' => $transaction3->id,
+            'amount' => 160,
+            'is_inflow' => false
+        ]);
+        $this->assertDatabaseHas('company_cash_transactions', [
+            'id' => $transaction4->id,
+            'amount' => 60,
+            'is_inflow' => true
+        ]);
+
+        $this->assertDatabaseHas('company_cash_balances', [
+            'company_cash_id' => $account->id,
+            'balance' => 529
+        ]);
+    }
+
+    public function test_can_calculate_balance()
+    {
+        $account = CompanyCash::createNew([
+            "user_id" => Str::uuid()->toString(),
+            "user_name" => "Test User",
+            "cash_name" => "Test Bank",
+            "balance_amount" => 1000,
+            "is_online" => true,
+            "is_active" => true
+        ]);
+
+        $account->registerInflow(200, "Test inflow");
+        $account->registerOutflow(100.5, "Test outflow");
+        $account->registerOutflow(50, "Test outflow");
+        $account->registerInflow(3.1, "Test outflow");
+
+        $balance = $account->calculateBalance();
+
+        $this->assertEquals(1052.6, $balance);
     }
 }
