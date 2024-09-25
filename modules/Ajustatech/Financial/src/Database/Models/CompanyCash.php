@@ -69,6 +69,17 @@ class CompanyCash extends Model
         ]);
     }
 
+    public static function getAllCashesWithBalances()
+    {
+        return self::query()
+            ->select('company_cashes.*', 'company_cash_balances.balance')
+            ->join('company_cash_balances', function ($join) {
+                $join->on('company_cashes.id', '=', 'company_cash_balances.company_cash_id')
+                    ->whereRaw('company_cash_balances.id = (SELECT MAX(id) FROM company_cash_balances WHERE company_cash_balances.company_cash_id = company_cashes.id)');
+            })
+            ->get();
+    }
+
     public function getBalance()
     {
         $this->currentBalance = $this->findLatestBalance();

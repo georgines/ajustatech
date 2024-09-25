@@ -47,6 +47,11 @@ class CompanyCashService implements CompanyCashServiceInterface
         return $this->cash;
     }
 
+    public static function getAllCompanyCashs()
+    {
+        return CompanyCash::getAllCashesWithBalances();
+    }
+
     public function getBalance()
     {
         return $this->cash->getBalance();

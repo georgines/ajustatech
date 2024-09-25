@@ -10,6 +10,8 @@ interface CompanyCashServiceInterface
 
     public function find(string $id);
 
+    public static function getAllCompanyCashs();
+
     public function getBalance();
 
     public function calculateBalance();

@@ -319,4 +319,43 @@ class CompanyCashTest extends TestCase
 
         $this->assertEquals(1052.6, $balance);
     }
+
+    public function test_can_get_all_cashes_with_balances()
+    {
+        $cash1 = CompanyCash::createNew([
+            "user_id" => Str::uuid()->toString(),
+            "user_name" => "User 1",
+            "cash_name" => "Cash 1",
+            "balance_amount" => 1000,
+            "balance_description" => "Initial balance",
+            "is_online" => true,
+            "is_active" => true
+        ]);
+
+        $cash2 = CompanyCash::createNew([
+            "user_id" => Str::uuid()->toString(),
+            "user_name" => "User 2",
+            "cash_name" => "Cash 2",
+            "balance_amount" => 2000,
+            "balance_description" => "Initial balance",
+            "is_online" => true,
+            "is_active" => true
+        ]);
+
+        $cashesWithBalances = CompanyCash::getAllCashesWithBalances();
+
+        $this->assertCount(2, $cashesWithBalances);
+        $this->assertEquals(1000, $cashesWithBalances[0]->balance);
+        $this->assertEquals(2000, $cashesWithBalances[1]->balance);
+
+        $this->assertDatabaseHas('company_cash_balances', [
+            'company_cash_id' => $cash1->id,
+            'balance' => 1000
+        ]);
+
+        $this->assertDatabaseHas('company_cash_balances', [
+            'company_cash_id' => $cash2->id,
+            'balance' => 2000
+        ]);
+    }
 }
