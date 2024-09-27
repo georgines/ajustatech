@@ -25,8 +25,9 @@
             <div class="card-header d-flex justify-content-between">
                 <div class="card-title m-0 me-2">
                     <h5 class="m-0 me-2">{{ trans('financial::messages.transactions') }}</h5>
-                    <small
-                        class="text-muted">{{ trans('financial::messages.total_transactions', ['count' => count($transactions)]) }}</small>
+                    {{-- <small
+                        class="text-muted">{{ trans('financial::messages.total_transactions', ['count' => count($transactions)]) }}
+                    </small> --}}
                 </div>
                 <div class="dropdown">
                     <button class="btn p-0" type="button" id="transactionID" data-bs-toggle="dropdown"
