@@ -32,5 +32,4 @@ interface CompanyCashServiceInterface
 
     public static function transferBetweenCompanyCashes($amount, string $origin_cash_id, string $destination_cash_id);
 
-    public function getAllTransactionsBetween($startDate, $endDate);
 }

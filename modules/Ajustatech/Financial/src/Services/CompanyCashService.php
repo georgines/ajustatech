@@ -132,11 +132,6 @@ class CompanyCashService implements CompanyCashServiceInterface
         return $originCompanyCashConfirmation;
     }
 
-    public function getAllTransactionsBetween($startDate, $endDate)
-    {
-        return $this->cash->getAllTransactionsBetween($startDate, $endDate);
-    }
-
     protected function ensureSufficientBalance(float $amount)
     {
         $balance = $this->cash->getBalance();

@@ -222,6 +222,15 @@ class CompanyCash extends Model
         return $this->transactions()->whereBetween('created_at', [$startDate, $endDate])->get();
     }
 
+    public function getRecentTransactions($limit = 10, $offset = 0)
+    {
+        return $this->transactions()
+            ->orderBy('created_at', 'desc')
+            ->skip($offset)
+            ->take($limit)
+            ->get();
+    }
+
     public function availableCompanyCashsTypes(): array
     {
         return [self::TYPE_PHYSICAL, self::TYPE_ONLINE];
