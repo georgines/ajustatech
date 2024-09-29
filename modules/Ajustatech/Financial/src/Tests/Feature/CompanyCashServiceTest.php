@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Ajustatech\Financial\Tests\Feature;
+namespace Ajustatech\Financial\Tests\Feature;
 
 use Ajustatech\Financial\Database\Models\CompanyCash;
 use Ajustatech\Financial\Exceptions\InsufficientBalanceException;
