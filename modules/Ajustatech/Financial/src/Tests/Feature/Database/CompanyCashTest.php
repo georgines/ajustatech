@@ -358,4 +358,33 @@ class CompanyCashTest extends TestCase
             'balance' => 2000
         ]);
     }
+
+    public function test_with_difference_applies_correct_balance_update()
+    {
+        $account = CompanyCash::createNew([
+            "user_id" => Str::uuid()->toString(),
+            "cash_name" => "Sample Bank",
+            "balance_amount" => 100
+        ]);
+
+        $account->updateBalance()->withDifference(50, true);
+        $this->assertDatabaseHas('company_cash_balances', [
+            'company_cash_id' => $account->id,
+            'balance' => 150
+        ]);
+
+        $account->updateBalance()->withDifference(30, false);
+        $this->assertDatabaseHas('company_cash_balances', [
+            'company_cash_id' => $account->id,
+            'balance' => 120
+        ]);
+    }
+
+    public function test_available_company_cash_types()
+    {
+        $account = new CompanyCash();
+        $types = $account->availableCompanyCashsTypes();
+
+        $this->assertEquals(['physical', 'online'], $types);
+    }
 }
