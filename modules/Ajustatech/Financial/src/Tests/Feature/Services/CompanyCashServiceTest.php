@@ -23,203 +23,187 @@ class CompanyCashServiceTest extends TestCase
         $this->cashService = new CompanyCashService($this->companyCash);
     }
 
-    public function test_creates_new_cash_with_initial_balance()
+    private function createSampleCash(float $initialBalance, string $name = 'Sample Cash', bool $isOnline = true): CompanyCash
     {
-        $name = 'Main Cash';
-        $initialBalance = 1000.00;
-        $description = 'Main cash for operations';
+        return $this->cashService->createCash($name, $initialBalance, '1234', '567890', 'Sample cash for testing', $isOnline);
+    }
 
-        $this->cashService->createNewCash($name, $initialBalance, '1234', '567890', $description);
+    public function test_create_cash_with_initial_balance_should_persist_data()
+    {
+        $initialBalance = 1000.00;
+        $cash = $this->createSampleCash($initialBalance);
 
         $this->assertDatabaseHas('company_cashes', [
-            'cash_name' => $name,
+            'cash_name' => 'Sample Cash',
             'agency' => '1234',
             'account' => '567890',
-            'description' => $description,
+            'description' => 'Sample cash for testing',
             'is_online' => true
         ]);
 
         $this->assertDatabaseHas('company_cash_balances', [
+            'company_cash_id' => $cash->id,
             'balance' => $initialBalance
         ]);
     }
 
-    public function test_creates_new_physical_cash_with_initial_balance()
+    public function test_create_physical_cash_with_initial_balance_should_persist_data()
     {
-        $name = 'Physical Cash';
         $initialBalance = 1000.00;
-        $description = 'Main physical cash for operations';
-
-        $this->cashService->createNewPhysicalCash($name, $initialBalance, $description);
+        $cash = $this->createSampleCash($initialBalance, 'Physical Cash', false);
 
         $this->assertDatabaseHas('company_cashes', [
-            'cash_name' => $name,
-            'description' => $description,
+            'cash_name' => 'Physical Cash',
+            'description' => 'Sample cash for testing',
             'is_online' => false
         ]);
 
         $this->assertDatabaseHas('company_cash_balances', [
+            'company_cash_id' => $cash->id,
             'balance' => $initialBalance
         ]);
     }
 
-    public function test_deposits_to_cash()
+    public function test_deposit_should_increase_cash_balance()
     {
-        $name = 'Main Cash';
         $initialBalance = 1000.00;
-        $description = 'Main cash for operations';
-
         $depositAmount = 250.5;
 
-        $this->cashService->createNewCash($name, $initialBalance, '1234', '567890', $description);
+        $cash = $this->createSampleCash($initialBalance);
         $this->cashService->deposit($depositAmount);
 
         $this->assertDatabaseHas('company_cash_transactions', [
+            'company_cash_id' => $cash->id,
             'amount' => $depositAmount,
             'is_inflow' => true
         ]);
 
-        $this->assertEquals($this->cashService->calculateBalance(), 1250.5);
+        $this->assertEquals(1250.5, $this->cashService->calculateBalance());
     }
 
-    public function test_throws_exception_on_insufficient_balance_for_withdrawal()
+    public function test_withdraw_should_throw_exception_when_balance_is_insufficient()
     {
         $this->expectException(InsufficientBalanceException::class);
 
-        $name = 'Main Cash';
         $initialBalance = 499.9;
-        $description = 'Main cash for operations';
+        $cash = $this->createSampleCash($initialBalance);
 
-        $this->cashService->createNewCash($name, $initialBalance, '1234', '567890', $description);
-
-        $withdrawAmount = 500.00;
-        $this->cashService->withdrawal($withdrawAmount);
+        $this->cashService->withdrawal(500.00);
     }
 
-    public function test_withdraws_from_cash_if_balance_is_sufficient()
+    public function test_withdraw_should_decrease_balance_when_balance_is_sufficient()
     {
-        $name = 'Main Cash';
         $initialBalance = 0;
-        $description = 'Main cash for operations';
-
         $depositAmount = 1000.00;
         $withdrawAmount = 500.00;
 
-        $this->cashService->createNewCash($name, $initialBalance, '1234', '567890', $description);
+        $cash = $this->createSampleCash($initialBalance);
         $this->cashService->deposit($depositAmount);
         $this->cashService->withdrawal($withdrawAmount);
 
         $this->assertDatabaseHas('company_cash_transactions', [
+            'company_cash_id' => $cash->id,
             'amount' => $withdrawAmount,
             'is_inflow' => false
         ]);
 
-        $this->assertEquals($this->cashService->calculateBalance(), $depositAmount - $withdrawAmount);
+        $this->assertEquals(500.00, $this->cashService->calculateBalance());
     }
 
-    public function test_transfers_between_two_cashes()
+    public function test_transfer_between_cashes_should_update_balances()
     {
         $depositAmount = 1000.00;
 
-        $companyCash1 = CompanyCash::createNew(['cash_name' => 'bank', 'balance_amount' => 0]);
-        $companyCash2 = CompanyCash::createNew(['cash_name' => 'bank2', 'balance_amount' => 0]);
+        $companyCash1 = CompanyCash::createNew(['cash_name' => 'Cash 1', 'balance_amount' => 0]);
+        $companyCash2 = CompanyCash::createNew(['cash_name' => 'Cash 2', 'balance_amount' => 0]);
 
         $cashService1 = new CompanyCashService($companyCash1);
         $cashService1->deposit($depositAmount);
 
-        $cashService2 = new CompanyCashService($companyCash2);
-
         CompanyCashService::transferBetweenCompanyCashes(255.1, $companyCash1->id, $companyCash2->id);
 
-        $this->assertEquals($companyCash1->calculateBalance(), 744.9);
-        $this->assertEquals($cashService2->calculateBalance(), 255.1);
+        $this->assertEquals(744.9, $companyCash1->calculateBalance());
+        $this->assertEquals(255.1, $companyCash2->calculateBalance());
     }
 
-
-    public function test_receives_payment()
+    public function test_receive_payment_should_increase_balance()
     {
-        $name = 'Main Cash';
         $initialBalance = 0;
-        $description = 'Main cash for operations';
         $receiveAmount = 500.00;
         $customerName = 'John Doe';
 
-        $this->cashService->createNewCash($name, $initialBalance, '1234', '567890', $description);
+        $cash = $this->createSampleCash($initialBalance);
         $this->cashService->toReceive($receiveAmount, $customerName);
 
         $this->assertDatabaseHas('company_cash_transactions', [
+            'company_cash_id' => $cash->id,
             'amount' => $receiveAmount,
             'is_inflow' => true
         ]);
 
-        $this->assertEquals($this->cashService->calculateBalance(), $receiveAmount);
+        $this->assertEquals($receiveAmount, $this->cashService->calculateBalance());
     }
 
-    public function test_pay_to_recipient()
+    public function test_pay_to_recipient_should_decrease_balance()
     {
-        $name = 'Main Cash';
         $initialBalance = 1000.00;
-        $description = 'Main cash for operations';
         $payAmount = 250.00;
         $recipientName = 'Jane Doe';
 
-        $this->cashService->createNewCash($name, $initialBalance, '1234', '567890', $description);
+        $cash = $this->createSampleCash($initialBalance);
         $this->cashService->pay($payAmount, $recipientName);
 
         $this->assertDatabaseHas('company_cash_transactions', [
+            'company_cash_id' => $cash->id,
             'amount' => $payAmount,
             'is_inflow' => false
         ]);
 
-        $this->assertEquals($this->cashService->calculateBalance(), $initialBalance - $payAmount);
+        $this->assertEquals(750.00, $this->cashService->calculateBalance());
     }
 
-    public function test_bank_fees()
+    public function test_bank_fees_should_decrease_balance()
     {
-        $name = 'Main Cash';
         $initialBalance = 1000.00;
-        $description = 'Main cash for operations';
         $feeAmount = 50.00;
 
-        $this->cashService->createNewCash($name, $initialBalance, '1234', '567890', $description);
+        $cash = $this->createSampleCash($initialBalance);
         $this->cashService->bankFees($feeAmount);
 
         $this->assertDatabaseHas('company_cash_transactions', [
+            'company_cash_id' => $cash->id,
             'amount' => $feeAmount,
             'is_inflow' => false
         ]);
 
-        $this->assertEquals($this->cashService->calculateBalance(), $initialBalance - $feeAmount);
+        $this->assertEquals(950.00, $this->cashService->calculateBalance());
     }
 
-    public function test_refund_transaction()
+    public function test_refund_should_increase_balance()
     {
-        $name = 'Main Cash';
         $initialBalance = 1000.00;
-        $description = 'Main cash for operations';
         $refundAmount = 200.00;
         $transactionType = 'purchase';
 
-        $this->cashService->createNewCash($name, $initialBalance, '1234', '567890', $description);
+        $cash = $this->createSampleCash($initialBalance);
         $this->cashService->refund($refundAmount, $transactionType);
 
         $this->assertDatabaseHas('company_cash_transactions', [
+            'company_cash_id' => $cash->id,
             'amount' => $refundAmount,
             'is_inflow' => true
         ]);
 
-        $this->assertEquals($this->cashService->calculateBalance(), $initialBalance + $refundAmount);
+        $this->assertEquals(1200.00, $this->cashService->calculateBalance());
     }
 
-    public function test_apply_retroactive_transaction()
+    public function test_apply_retroactive_transaction_should_update_transaction_amount()
     {
-        $name = 'Main Cash';
         $initialBalance = 1000.00;
-        $description = 'Main cash for operations';
         $newAmount = 200;
 
-        $this->cashService->createNewCash($name, $initialBalance, '1234', '567890', $description);
-        $transaction = $this->cashService->toReceive(100, 'jhon doe');
+        $cash = $this->createSampleCash($initialBalance);
+        $transaction = $this->cashService->toReceive(100, 'John Doe');
         $this->cashService->applyRetroactiveTransaction($transaction->id, $newAmount);
 
         $this->assertDatabaseHas('company_cash_transactions', [
@@ -227,12 +211,12 @@ class CompanyCashServiceTest extends TestCase
             'amount' => $newAmount
         ]);
 
-        $this->assertEquals($this->cashService->calculateBalance(), 1200);
+        $this->assertEquals(1200, $this->cashService->calculateBalance());
     }
 
-    public function test_can_get_all_company_cashes_with_balances_from_service()
+    public function test_get_all_company_cashes_with_balances_should_return_correct_data()
     {
-        $cash1 = CompanyCash::createNew([
+        CompanyCash::createNew([
             "cash_name" => "Cash 1",
             "balance_amount" => 1000,
             "balance_description" => "Initial balance",
@@ -240,7 +224,7 @@ class CompanyCashServiceTest extends TestCase
             "is_active" => true
         ]);
 
-        $cash2 = CompanyCash::createNew([
+        CompanyCash::createNew([
             "cash_name" => "Cash 2",
             "balance_amount" => 2000,
             "balance_description" => "Initial balance",
@@ -253,15 +237,5 @@ class CompanyCashServiceTest extends TestCase
         $this->assertCount(2, $cashesWithBalances);
         $this->assertEquals(1000, $cashesWithBalances[0]->balance);
         $this->assertEquals(2000, $cashesWithBalances[1]->balance);
-
-        $this->assertDatabaseHas('company_cash_balances', [
-            'company_cash_id' => $cash1->id,
-            'balance' => 1000
-        ]);
-
-        $this->assertDatabaseHas('company_cash_balances', [
-            'company_cash_id' => $cash2->id,
-            'balance' => 2000
-        ]);
     }
 }

@@ -16,7 +16,7 @@ class CompanyCashService implements CompanyCashServiceInterface
         $this->cash = $cash;
     }
 
-    public function createNewCash(string $name, float $initialBalance, ?string $agency = null, ?string $account = null, ?string $description = null, bool $isOnline = true)
+    public function createCash(string $name, float $initialBalance, ?string $agency = null, ?string $account = null, ?string $description = null, bool $isOnline = true)
     {
         $this->cash = CompanyCash::createNew([
             'cash_name' => $name,
@@ -31,9 +31,9 @@ class CompanyCashService implements CompanyCashServiceInterface
         return $this->cash;
     }
 
-    public function createNewPhysicalCash(string $name, float $initialBalance, ?string $description = null)
+    public function createPhysicalCash(string $name, float $initialBalance, ?string $description = null)
     {
-        return $this->createNewCash($name, $initialBalance, null, null, $description, false);
+        return $this->createCash($name, $initialBalance, null, null, $description, false);
     }
 
     private function getInitialDepositDescription(float $initialBalance): string
