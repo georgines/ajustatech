@@ -65,7 +65,7 @@ class MakeModuleLivewireComponentCommand extends BaseCommand
         ]);
 
         $stubs = [
-            ['module-test-component.stub' => "{$this->path}/Tests/Feature/{$this->className}/{$this->showComponentName}Test.php"],
+            ['module-test-component.stub' => "{$this->path}/Tests/Feature/Livewire/{$this->className}/{$this->showComponentName}Test.php"],
             ['module-livewire-component.stub' => "{$this->path}/Livewire/{$this->showComponentName}.php"],
             ['module-livewire-view.stub' => "{$this->path}/Views/livewire/{$this->showKebabComponentName}.blade.php"]
         ];
@@ -79,7 +79,7 @@ class MakeModuleLivewireComponentCommand extends BaseCommand
         ]);
 
         $stubs = [
-            ['module-test-component.stub' => "{$this->path}/Tests/Feature/{$this->className}/{$this->managementComponentName}Test.php"],
+            ['module-test-component.stub' => "{$this->path}/Tests/Feature/Livewire/{$this->className}/{$this->managementComponentName}Test.php"],
             ['module-livewire-component.stub' => "{$this->path}/Livewire/{$this->managementComponentName}.php"],
             ['module-livewire-view.stub' => "{$this->path}/Views/livewire/{$this->managementKebabComponentName}.blade.php"],
         ];

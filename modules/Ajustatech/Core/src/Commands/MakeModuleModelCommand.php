@@ -85,7 +85,7 @@ class MakeModuleModelCommand extends BaseCommand
             ['module-migration.stub' => "{$this->migrationDirectory}/{$this->timestamp}{$this->migrationFileNamePattern}"],
             ['module-model.stub' => "{$this->path}/Database/Models/{$this->className}.php"],
             ['module-seeder.stub' => "{$this->path}/Database/Seeders/{$this->className}Seeder.php"],
-            ['module-test-model.stub' => "{$this->path}/Tests/Feature/{$this->className}Test.php"],
+            ['module-test-model.stub' => "{$this->path}/Tests/Feature/Database/{$this->className}Test.php"],
             ['module-seed-command.stub' => "{$this->path}/Commands/Seed{$this->className}Command.php"]
         ];
     }
