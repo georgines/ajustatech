@@ -1,6 +1,6 @@
 <?php
 
-namespace Ajustatech\Financial\Tests\Feature\CompanyCashTransactions;
+namespace Ajustatech\Financial\Tests\Feature\Livewire\CompanyCashTransactions;
 
 use Ajustatech\Financial\Livewire\CompanyCashTransactionsManagement;
 use Ajustatech\Financial\Database\Models\CompanyCashTransactions;
