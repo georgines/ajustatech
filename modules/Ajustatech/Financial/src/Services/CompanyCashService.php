@@ -38,7 +38,7 @@ class CompanyCashService implements CompanyCashServiceInterface
 
     private function getInitialDepositDescription(float $initialBalance): string
     {
-        return trans('transactions.initial_deposit', ['amount' => $initialBalance]);
+        return trans('financial::transactions.initial_deposit', ['amount' => $initialBalance]);
     }
 
     public function find(string $id)
@@ -64,40 +64,40 @@ class CompanyCashService implements CompanyCashServiceInterface
 
     public function deposit(float $amount)
     {
-        $description = trans('transactions.deposit', ['amount' => $amount]);
+        $description = trans('financial::transactions.deposit', ['amount' => $amount]);
         return $this->cash->registerInflow($amount, $description);
     }
 
     public function withdrawal(float $amount)
     {
         $this->ensureSufficientBalance($amount);
-        $description = trans('transactions.withdrawal', ['amount' => $amount]);
+        $description = trans('financial::transactions.withdrawal', ['amount' => $amount]);
         return $this->cash->registerOutflow($amount, $description);
     }
 
     public function pay(float $amount, string $recipientName)
     {
         $this->ensureSufficientBalance($amount);
-        $description = trans('transactions.payment', ['amount' => $amount, 'recipient_name' => $recipientName]);
+        $description = trans('financial::transactions.payment', ['amount' => $amount, 'recipient_name' => $recipientName]);
         return $this->cash->registerOutflow($amount, $description);
     }
 
     public function toReceive(float $amount, string $customerName)
     {
-        $description = trans('transactions.receipt', ['amount' => $amount, 'payer_name' => $customerName]);
+        $description = trans('financial::transactions.receipt', ['amount' => $amount, 'payer_name' => $customerName]);
         return $this->cash->registerInflow($amount, $description);
     }
 
     public function bankFees(float $amount)
     {
         $this->ensureSufficientBalance($amount);
-        $description = trans('transactions.bank_fees', ['amount' => $amount]);
+        $description = trans('financial::transactions.bank_fees', ['amount' => $amount]);
         return $this->cash->registerOutflow($amount, $description);
     }
 
     public function refund(float $amount, string $transactionType)
     {
-        $description = trans('transactions.refund', ['amount' => $amount, 'transaction_type' => $transactionType]);
+        $description = trans('financial::transactions.refund', ['amount' => $amount, 'transaction_type' => $transactionType]);
         return $this->cash->registerInflow($amount, $description);
     }
 
@@ -113,14 +113,14 @@ class CompanyCashService implements CompanyCashServiceInterface
 
         $transferData = $originCompanyCash->transfer($amount);
 
-        $description1 = trans('transactions.transfer_received', [
+        $description1 = trans('financial::transactions.transfer_received', [
             'amount' => $amount,
             'originCashName' => $destinationCompanyCash->cash_name,
             'originCashId' => $destinationCompanyCash->id,
             'transferHash' => $transferData->get("hash")
         ]);
 
-        $description2 = trans('transactions.transfer_sent', [
+        $description2 = trans('financial::transactions.transfer_sent', [
             'amount' => $amount,
             'destinationCashName' => $originCompanyCash->cash_name,
             'destinationCashId' => $originCompanyCash->id,

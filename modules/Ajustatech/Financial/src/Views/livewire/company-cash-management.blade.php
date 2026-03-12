@@ -13,7 +13,7 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-12 col-md-6 mb-3 validation-error">
-                                <label class="form-label" for="name">Nome do Caixa</label>
+                                <label class="form-label" for="name">{{ trans('financial::messages.cash_name') }}</label>
                                 <div class="input-group input-group-merge">
                                     <span id="basic-icon-default-name" class="input-group-text @error('name') is-invalid-field @enderror">
                                         <i class="ti ti-briefcase"></i>
@@ -26,7 +26,7 @@
                             </div>
 
                             <div class="col-12 col-md-6 mb-3 validation-error">
-                                <label class="form-label" for="initialBalance">Saldo Inicial</label>
+                                <label class="form-label" for="initialBalance">{{ trans('financial::messages.initial_balance') }}</label>
                                 <div class="input-group input-group-merge">
                                     <span id="basic-icon-default-balance" class="input-group-text @error('initialBalance') is-invalid-field @enderror">
                                         <i class="ti ti-currency-dollar"></i>
@@ -41,13 +41,13 @@
 
                         <div class="form-check form-switch mb-3">
                             <input wire:model="isOnline" class="form-check-input" type="checkbox" id="isOnline">
-                            <label class="form-check-label" for="isOnline">Caixa Online</label>
+                            <label class="form-check-label" for="isOnline">{{ trans('financial::messages.cash_online') }}</label>
                         </div>
 
                         @if($isOnline)
                             <div class="row">
                                 <div class="col-12 col-md-6 mb-3 validation-error">
-                                    <label class="form-label" for="agency">Agência</label>
+                                    <label class="form-label" for="agency">{{ trans('financial::messages.agency') }}</label>
                                     <div class="input-group input-group-merge">
                                         <span id="basic-icon-default-agency" class="input-group-text @error('agency') is-invalid-field @enderror">
                                             <i class="ti ti-bank"></i>
@@ -60,7 +60,7 @@
                                 </div>
 
                                 <div class="col-12 col-md-6 mb-3 validation-error">
-                                    <label class="form-label" for="account">Conta</label>
+                                    <label class="form-label" for="account">{{ trans('financial::messages.account') }}</label>
                                     <div class="input-group input-group-merge">
                                         <span id="basic-icon-default-account" class="input-group-text @error('account') is-invalid-field @enderror">
                                             <i class="ti ti-credit-card"></i>
@@ -76,7 +76,7 @@
 
                         <div class="row">
                             <div class="col-12 mb-3 validation-error">
-                                <label class="form-label" for="description">Descrição</label>
+                                <label class="form-label" for="description">{{ trans('financial::messages.description') }}</label>
                                 <div class="input-group input-group-merge">
                                     <span id="basic-icon-default-description" class="input-group-text @error('description') is-invalid-field @enderror">
                                         <i class="ti ti-align-left"></i>
@@ -90,7 +90,7 @@
                         </div>
                     </div>
                     <div class="card-footer">
-                        <button type="submit" class="btn btn-primary me-sm-3 me-1">Salvar</button>
+                        <button type="submit" class="btn btn-primary me-sm-3 me-1">{{ trans('financial::messages.save') }}</button>
                         {{-- <a href="{{ route('company-cash-list') }}" class="btn btn-label-secondary">Cancelar</a> --}}
                     </div>
                 </form>

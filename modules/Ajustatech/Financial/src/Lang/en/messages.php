@@ -1,6 +1,32 @@
 <?php
 
 return [
-
     'title' => 'Financial',
+    'balance' => 'Total Balance',
+    'transactions' => 'Transactions',
+    'total_transactions' => 'Total of :count transactions made this month',
+    'last_7_days' => 'Last 7 days',
+    'last_28_days' => 'Last 28 days',
+    'last_month' => 'Last month',
+    'last_year' => 'Last year',
+    'custom_interval' => 'Custom interval',
+    'view_more' => 'View more',
+    'inflow' => 'Inflow',
+    'outflow' => 'Outflow',
+    'money_figure' => '$',
+    'money_inflow' => '+$:amount',
+    'money_outflow' => '-$:amount',
+    'company_cash_create_title' => 'Create Cash Account',
+    'company_cash_created_success' => 'Cash account created successfully.',
+    'company_cash_list_title' => 'Cash Accounts',
+    'company_cash_register' => 'Create',
+    'company_cash_details' => 'View details',
+    'cash_name' => 'Cash Name',
+    'initial_balance' => 'Initial Balance',
+    'cash_online' => 'Online Cash',
+    'agency' => 'Agency',
+    'account' => 'Account',
+    'description' => 'Description',
+    'save' => 'Save',
+    'balance_label' => 'Balance',
 ];

@@ -5,14 +5,14 @@
 <div>
     <div class="row mb-3">
         <div class="col-md">
-            <h5 class="pb-1">Caixas Gerenciais</h5>
+            <h5 class="pb-1">{{ trans('financial::messages.company_cash_list_title') }}</h5>
         </div>
     </div>
 
     <div class="row mb-5">
         <div class="col-md text-end">
             <a type="button" class="btn btn-primary d-none d-md-inline-block" href="{{ route('companycash-create') }}">
-                <span class="tf-icon ti ti-plus ti-xs me-1"></span>Cadastrar
+                <span class="tf-icon ti ti-plus ti-xs me-1"></span>{{ trans('financial::messages.company_cash_register') }}
             </a>
 
             <a type="button" class="btn btn-xl rounded-pill btn-icon btn-primary waves-effect waves-light d-md-none"
@@ -35,15 +35,15 @@
                             <p class="text-muted">{{ $cash['description'] }}</p>
                             <div class="row">
                                 <div class="col-12">
-                                    <p class="m-0"><strong>Agência:</strong> {{ $cash['agency'] }}</p>
-                                    <p class="m-0"><strong>Conta:</strong> {{ $cash['account'] }}</p>
-                                    <p class="mt-3 mb-0 fs-5"><strong>Saldo:</strong> {{ $cash['balance'] }}</p>
+                                    <p class="m-0"><strong>{{ trans('financial::messages.agency') }}:</strong> {{ $cash['agency'] }}</p>
+                                    <p class="m-0"><strong>{{ trans('financial::messages.account') }}:</strong> {{ $cash['account'] }}</p>
+                                    <p class="mt-3 mb-0 fs-5"><strong>{{ trans('financial::messages.balance_label') }}:</strong> {{ $cash['balance'] }}</p>
                                 </div>
                             </div>
                             <div class="d-flex justify-content-end mt-3">
                                 <a type="button" class="btn btn-primary"
                                     href="{{ route('company-cash-transactions-show', ['id' => $cash['id']]) }}">
-                                    ver detalhes
+                                    {{ trans('financial::messages.company_cash_details') }}
                                 </a>
                             </div>
                         </div>
