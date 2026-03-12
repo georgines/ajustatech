@@ -4,9 +4,9 @@ namespace Ajustatech\Financial\Services;
 
 interface CompanyCashServiceInterface
 {
-    public function createNewCash(string $name, float $initialBalance, ?string $agency = null, ?string $account = null, ?string $description = null, bool $isOnline = true);
+    public function createCash(string $name, float $initialBalance, ?string $agency = null, ?string $account = null, ?string $description = null, bool $isOnline = true);
 
-    public function createNewPhysicalCash(string $name, float $initialBalance, ?string $description = null);
+    public function createPhysicalCash(string $name, float $initialBalance, ?string $description = null);
 
     public function find(string $id);
 

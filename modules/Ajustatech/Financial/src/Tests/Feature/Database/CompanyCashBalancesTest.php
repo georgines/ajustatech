@@ -1,6 +1,6 @@
 <?php
 
-namespace Ajustatech\Financial\Tests\Feature;
+namespace Ajustatech\Financial\Tests\Feature\Database;
 
 
 use Ajustatech\Financial\Database\Models\CompanyCashBalances;
