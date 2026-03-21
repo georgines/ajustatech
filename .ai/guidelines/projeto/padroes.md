@@ -52,6 +52,8 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
 - Comandos `make:module-*` existem e sao validos, mas sao internos de scaffolding na maior parte dos fluxos.
 - Fonte de verdade dos comandos do Core:
   - `/.ai/guidelines/projeto/comandos-core.md`.
+- Convencao de seeds obrigatorios:
+  - `/.ai/guidelines/projeto/seeds-obrigatorios.md`.
 
 ## Convencoes de menu
 - Cada item deve ter `slug` que corresponda a nome de rota.
