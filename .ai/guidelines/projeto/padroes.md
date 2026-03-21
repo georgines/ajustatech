@@ -78,6 +78,8 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
 - Concluir apenas com teste de Feature passando.
 - Fonte de verdade para esse fluxo:
   - `/.ai/guidelines/projeto/testes-feature-tdd.md`.
+- Factories + Seeds + Testes:
+  - `/.ai/guidelines/projeto/factories-para-seeds-e-testes.md`.
 
 ## Convencoes de responsividade (obrigatorio)
 - Pensar primeiro na visualizacao em dispositivo movel (mobile-first).
