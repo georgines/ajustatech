@@ -24,6 +24,16 @@
                     "url": "",
                     "name": "Caixa de Vendas",
                     "slug": "financial-sales-cash-daily"
+                },
+                {
+                    "url": "",
+                    "name": "Formas de Pagamento",
+                    "slug": "financial-payment-methods-show"
+                },
+                {
+                    "url": "",
+                    "name": "Bandeiras de Cartao",
+                    "slug": "financial-card-brands-show"
                 }
             ]
         }
