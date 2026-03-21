@@ -20,14 +20,49 @@
         </div>
     </div>
 
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="m-0">{{ trans('financial::messages.transfer_title') }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="destinationCashId">{{ trans('financial::messages.transfer_destination_cash') }}</label>
+                            <select id="destinationCashId" class="form-select" wire:model="destinationCashId">
+                                <option value="">{{ trans('financial::messages.transfer_select_destination') }}</option>
+                                @foreach ($availableCashes as $cash)
+                                    <option value="{{ $cash['id'] }}">{{ $cash['cash_name'] }}</option>
+                                @endforeach
+                            </select>
+                            @error('destinationCashId')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label" for="transferAmount">{{ trans('financial::messages.transfer_amount') }}</label>
+                            <input id="transferAmount" type="number" step="0.01" min="0.01" class="form-control" wire:model="transferAmount">
+                            @error('transferAmount')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
+                        </div>
+                        <div class="col-12 col-md-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-primary w-100" wire:click="transferToAnotherCash">
+                                {{ trans('financial::messages.transfer_button') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="col-12 mb-4">
         <div class="card h-100">
             <div class="card-header d-flex justify-content-between">
                 <div class="card-title m-0 me-2">
                     <h5 class="m-0 me-2">{{ trans('financial::messages.transactions') }}</h5>
-                    {{-- <small
-                        class="text-muted">{{ trans('financial::messages.total_transactions', ['count' => count($transactions)]) }}
-                    </small> --}}
                 </div>
                 <div class="dropdown">
                     <button class="btn p-0" type="button" id="transactionID" data-bs-toggle="dropdown"
@@ -44,10 +79,6 @@
                         <a class="dropdown-item" href="javascript:void(0);" wire:click="loadLastYear">
                             {{ trans('financial::messages.last_year') }}
                         </a>
-                        {{-- <a class="dropdown-item" href="javascript:void(0);"
-                            wire:click="loadCustomInterval('{{ $customStartDate }}', '{{ $customEndDate }}')">
-                            {{ trans('financial::messages.custom_interval') }}
-                        </a> --}}
                     </div>
                 </div>
             </div>

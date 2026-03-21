@@ -2,19 +2,28 @@
 
 namespace Ajustatech\Financial\Livewire;
 
+use Ajustatech\Core\Traits\HandlesCompanyCashTransfer;
+use Ajustatech\Financial\Exceptions\InsufficientBalanceException;
 use Ajustatech\Financial\Services\CompanyCashServiceInterface;
 use Ajustatech\Financial\Services\CompanyCashTransactionsServiceInterface;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Carbon;
+use InvalidArgumentException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use Illuminate\Support\Carbon;
 
 #[Layout('core::layouts.app')]
 class ShowCompanyCashTransactions extends Component
 {
+    use HandlesCompanyCashTransfer;
+
     public $title;
     public $companyCashId;
     public $transactions = [];
     public $balance = null;
+    public $destinationCashId = '';
+    public $transferAmount = null;
+    public $availableCashes = [];
     public $offset = 0;
     public $limit = 2;
     public $startDate = null;
@@ -25,7 +34,8 @@ class ShowCompanyCashTransactions extends Component
     public function mount($id)
     {
         $this->companyCashId = $id;
-        $this->loadTransactions(); // Carrega as primeiras 10 transações ao iniciar o componente
+        $this->loadTransactions();
+        $this->loadAvailableCashes();
         $this->title = trans('financial::messages.title');
     }
 
@@ -45,7 +55,6 @@ class ShowCompanyCashTransactions extends Component
         $cash->find($this->companyCashId);
         $this->balance = $cash->getBalance()->balance;
 
-
         $this->transactions = array_merge($this->transactions, $transactions);
         $this->offset += $this->limit;
     }
@@ -53,6 +62,33 @@ class ShowCompanyCashTransactions extends Component
     public function loadMore()
     {
         $this->loadTransactions();
+    }
+
+    public function transferToAnotherCash(): void
+    {
+        $this->validate(
+            $this->transferValidationRules($this->companyCashId),
+            [],
+            $this->transferValidationAttributes()
+        );
+
+        try {
+            $cashService = app(CompanyCashServiceInterface::class);
+            $cashService::transferBetweenCompanyCashes(
+                (float) $this->transferAmount,
+                $this->companyCashId,
+                $this->destinationCashId
+            );
+
+            $this->resetPagination();
+            $this->loadTransactions();
+            $this->resetTransferForm();
+            $this->dispatch('cash-transfer-success', ['message' => trans('financial::messages.transfer_success')]);
+        } catch (InsufficientBalanceException $exception) {
+            $this->addError('transferAmount', trans('financial::messages.transfer_insufficient_balance'));
+        } catch (InvalidArgumentException | ModelNotFoundException $exception) {
+            $this->addError('destinationCashId', $exception->getMessage());
+        }
     }
 
     public function loadLast7Days()
@@ -87,6 +123,15 @@ class ShowCompanyCashTransactions extends Component
     {
         $this->transactions = [];
         $this->offset = 0;
+    }
+
+    private function loadAvailableCashes(): void
+    {
+        $cashService = app(CompanyCashServiceInterface::class);
+        $this->availableCashes = $cashService::getAllCompanyCashs()
+            ->where('id', '!=', $this->companyCashId)
+            ->values()
+            ->all();
     }
 
     public function render()

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('account')->nullable();
             $table->boolean('is_online')->default(true);
             $table->boolean('is_active')->default(true);
+            $table->boolean('is_managerial')->default(true);
             $table->timestamps();
         });
     }

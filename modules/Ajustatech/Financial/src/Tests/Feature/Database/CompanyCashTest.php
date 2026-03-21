@@ -3,6 +3,7 @@
 namespace Ajustatech\Financial\Tests\Feature\Database;
 
 use Ajustatech\Financial\Database\Models\CompanyCash;
+use Ajustatech\Financial\Exceptions\ProtectedCashDeletionException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -386,5 +387,21 @@ class CompanyCashTest extends TestCase
         $types = $account->availableCompanyCashsTypes();
 
         $this->assertEquals(['physical', 'online'], $types);
+    }
+
+    public function test_managerial_cash_cannot_be_deleted()
+    {
+        $this->expectException(ProtectedCashDeletionException::class);
+
+        $account = CompanyCash::createNew([
+            "user_id" => Str::uuid()->toString(),
+            "cash_name" => "Caixa Gerencial Principal",
+            "balance_amount" => 100,
+            "is_online" => true,
+            "is_active" => true,
+            "is_managerial" => true
+        ]);
+
+        $account->delete();
     }
 }

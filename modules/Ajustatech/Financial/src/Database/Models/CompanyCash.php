@@ -3,6 +3,7 @@
 namespace Ajustatech\Financial\Database\Models;
 
 use Ajustatech\Financial\Database\Factories\CompanyCashFactory;
+use Ajustatech\Financial\Exceptions\ProtectedCashDeletionException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -28,11 +29,21 @@ class CompanyCash extends Model
         'agency',
         'account',
         'is_online',
-        'is_active'
+        'is_active',
+        'is_managerial',
     ];
 
     protected $currentHash;
     protected $currentBalance;
+
+    protected static function booted(): void
+    {
+        static::deleting(function (CompanyCash $cash): void {
+            if ((bool) $cash->is_managerial) {
+                throw new ProtectedCashDeletionException();
+            }
+        });
+    }
 
     public function balances(): HasMany
     {
@@ -52,7 +63,7 @@ class CompanyCash extends Model
 
         return DB::transaction(function () use ($attributes) {
             $amount = isset($attributes['balance_amount']) ? $attributes['balance_amount'] : 0;
-            $balanceDescription = isset($description['balance_description']) ? $description['balance_description'] : '';
+            $balanceDescription = isset($attributes['balance_description']) ? $attributes['balance_description'] : '';
             $cash = static::create($attributes);
             $cash->initializeBalance();
             $cash->registerInflow($amount, $balanceDescription);

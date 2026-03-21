@@ -4,6 +4,9 @@ namespace Ajustatech\Financial\Services;
 
 use Ajustatech\Financial\Database\Models\CompanyCash;
 use Ajustatech\Financial\Exceptions\InsufficientBalanceException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 
 class CompanyCashService implements CompanyCashServiceInterface
 {
@@ -16,7 +19,7 @@ class CompanyCashService implements CompanyCashServiceInterface
         $this->cash = $cash;
     }
 
-    public function createCash(string $name, float $initialBalance, ?string $agency = null, ?string $account = null, ?string $description = null, bool $isOnline = true)
+    public function createCash(string $name, float $initialBalance, ?string $agency = null, ?string $account = null, ?string $description = null, bool $isOnline = true, bool $isManagerial = true)
     {
         $this->cash = CompanyCash::createNew([
             'cash_name' => $name,
@@ -26,7 +29,8 @@ class CompanyCashService implements CompanyCashServiceInterface
             'balance_amount' => $initialBalance,
             'balance_description' => $this->getInitialDepositDescription($initialBalance),
             'is_online' => $isOnline,
-            'is_active' => true
+            'is_active' => true,
+            'is_managerial' => $isManagerial,
         ]);
         return $this->cash;
     }
@@ -108,28 +112,46 @@ class CompanyCashService implements CompanyCashServiceInterface
 
     public static function transferBetweenCompanyCashes($amount, string $origin_cash_id, string $destination_cash_id)
     {
-        $originCompanyCash = CompanyCash::find($origin_cash_id);
-        $destinationCompanyCash = CompanyCash::find($destination_cash_id);
+        if ((float) $amount <= 0) {
+            throw new InvalidArgumentException(trans('financial::messages.transfer_amount_must_be_positive'));
+        }
 
-        $transferData = $originCompanyCash->transfer($amount);
+        if ($origin_cash_id === $destination_cash_id) {
+            throw new InvalidArgumentException(trans('financial::messages.transfer_destination_must_be_different'));
+        }
 
-        $description1 = trans('financial::transactions.transfer_received', [
-            'amount' => $amount,
-            'originCashName' => $destinationCompanyCash->cash_name,
-            'originCashId' => $destinationCompanyCash->id,
-            'transferHash' => $transferData->get("hash")
-        ]);
+        return DB::transaction(function () use ($amount, $origin_cash_id, $destination_cash_id) {
+            $originCompanyCash = CompanyCash::find($origin_cash_id);
+            $destinationCompanyCash = CompanyCash::find($destination_cash_id);
 
-        $description2 = trans('financial::transactions.transfer_sent', [
-            'amount' => $amount,
-            'destinationCashName' => $originCompanyCash->cash_name,
-            'destinationCashId' => $originCompanyCash->id,
-            'transferHash' => $transferData->get("hash")
-        ]);
+            if (!$originCompanyCash || !$destinationCompanyCash) {
+                throw new ModelNotFoundException(trans('financial::messages.transfer_cash_not_found'));
+            }
 
-        $receiptDestination = $destinationCompanyCash->receive($transferData, $description1);
-        $originCompanyCashConfirmation = $originCompanyCash->confirmTransfer($transferData, $description2);
-        return $originCompanyCashConfirmation;
+            if (!$originCompanyCash->hasSufficientBalance($amount)) {
+                $currentBalance = $originCompanyCash->getBalance();
+                throw new InsufficientBalanceException($amount, $currentBalance ? $currentBalance->balance : 0);
+            }
+
+            $transferData = $originCompanyCash->transfer($amount);
+
+            $description1 = trans('financial::transactions.transfer_received', [
+                'amount' => $amount,
+                'originCashName' => $originCompanyCash->cash_name,
+                'originCashId' => $originCompanyCash->id,
+                'transferHash' => $transferData->get('hash')
+            ]);
+
+            $description2 = trans('financial::transactions.transfer_sent', [
+                'amount' => $amount,
+                'destinationCashName' => $destinationCompanyCash->cash_name,
+                'destinationCashId' => $destinationCompanyCash->id,
+                'transferHash' => $transferData->get('hash')
+            ]);
+
+            $destinationCompanyCash->receive($transferData, $description1);
+            return $originCompanyCash->confirmTransfer($transferData, $description2);
+        });
     }
 
     protected function ensureSufficientBalance(float $amount)
