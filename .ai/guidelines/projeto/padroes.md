@@ -35,6 +35,8 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
   - listagem/show
   - cadastro
   - edicao
+- Para telas de listagem em tabela, seguir:
+  - `/.ai/guidelines/projeto/filtros-tabelas-modulo.md`.
 
 ## Convencoes de comandos internos
 - Seeds modulares: `module:seed-*`.
@@ -59,6 +61,13 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
 ## Convencoes de i18n
 - Modulos devem concentrar textos em `Lang/<locale>/messages.php` e arquivos correlatos.
 - Priorizar `trans('modulo::arquivo.chave')` em componentes e views.
+
+## Convencoes de validacao
+- Validacoes reutilizaveis devem ser centralizadas em:
+  - `modules/Ajustatech/Core/src/Rules`
+- Quando nao existir regra pronta, criar no Core e reutilizar no modulo que precisar.
+- Fonte de verdade:
+  - `/.ai/guidelines/projeto/validacoes-core-reutilizaveis.md`.
 
 ## Convencoes de testes (obrigatorio)
 - Fluxo TDD para feature: RED -> GREEN -> REFACTOR.
