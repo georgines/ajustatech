@@ -12,6 +12,11 @@ use Ajustatech\Financial\Commands\SeedCompanyCashBalancesCommand;
 use Ajustatech\Financial\Commands\SeedCompanyCashTransactionsCommand;
 use Ajustatech\Financial\Livewire\CompanyCashTransactionsManagement;
 use Ajustatech\Financial\Livewire\ShowCompanyCashTransactions;
+use Ajustatech\Financial\Livewire\PayableManagement;
+use Ajustatech\Financial\Livewire\ReceivableManagement;
+use Ajustatech\Financial\Livewire\SalesCashDailyManagement;
+use Ajustatech\Financial\Livewire\ShowPayables;
+use Ajustatech\Financial\Livewire\ShowReceivables;
 use Ajustatech\Financial\Services\CompanyCashServiceInterface;
 use Ajustatech\Financial\Services\CompanyCashService;
 use Ajustatech\Financial\Services\CompanyCashTransactionsService;
@@ -42,7 +47,7 @@ class FinancialServiceProvider extends ServiceProvider
     private function initializeMenus()
     {
         $verticalMenu = json_decode(file_get_contents("$this->path/Menu/verticalMenu.json"));
-        $horizontalMenu = json_decode(file_get_contents("$this->path/Menu/verticalMenu.json"));
+        $horizontalMenu = json_decode(file_get_contents("$this->path/Menu/horizontalMenu.json"));
 
         $menu = app(MenuManagerInterface::class);
         $menu->addVerticalMenu($verticalMenu);
@@ -55,6 +60,11 @@ class FinancialServiceProvider extends ServiceProvider
         Livewire::component('company-cash-management', CompanyCashManagement::class);
         Livewire::component('show-company-cash-transactions', ShowCompanyCashTransactions::class);
         Livewire::component('company-cash-transactions-management', CompanyCashTransactionsManagement::class);
+        Livewire::component('show-payables', ShowPayables::class);
+        Livewire::component('payable-management', PayableManagement::class);
+        Livewire::component('show-receivables', ShowReceivables::class);
+        Livewire::component('receivable-management', ReceivableManagement::class);
+        Livewire::component('sales-cash-daily-management', SalesCashDailyManagement::class);
     }
 
     private function loadCommands()

@@ -1,0 +1,49 @@
+<?php
+
+namespace Ajustatech\Financial\Database\Models;
+
+use App\Models\User;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class SalesCashSession extends Model
+{
+    use HasUuids;
+
+    protected $table = 'sales_cash_sessions';
+
+    protected $fillable = [
+        'user_id',
+        'source_company_cash_id',
+        'business_date',
+        'opening_amount',
+        'closing_amount',
+        'opened_at',
+        'closed_at',
+        'status',
+        'outflow_status',
+        'inflow_status',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'opening_amount' => 'float',
+            'closing_amount' => 'float',
+            'business_date' => 'date',
+            'opened_at' => 'datetime',
+            'closed_at' => 'datetime',
+        ];
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function sourceCash(): BelongsTo
+    {
+        return $this->belongsTo(CompanyCash::class, 'source_company_cash_id');
+    }
+}

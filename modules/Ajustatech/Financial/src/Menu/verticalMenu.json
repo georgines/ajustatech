@@ -1,16 +1,31 @@
 {
-	"menu": [
-		{
-			"name": "Finanças",
-			"icon": "menu-icon tf-icons ti ti-pig-money",
-			"slug": "financial",
-			"submenu": [
-				{
-					"url": "",
-					"name": "Caixas Gerenciais",
-					"slug": "companycash-show"
-				}
-			]
-		}
-	]
+    "menu": [
+        {
+            "name": "Financas",
+            "icon": "menu-icon tf-icons ti ti-pig-money",
+            "slug": "financial",
+            "submenu": [
+                {
+                    "url": "",
+                    "name": "Caixas Gerenciais",
+                    "slug": "companycash-show"
+                },
+                {
+                    "url": "",
+                    "name": "Contas a Pagar",
+                    "slug": "financial-payables-show"
+                },
+                {
+                    "url": "",
+                    "name": "Contas a Receber",
+                    "slug": "financial-receivables-show"
+                },
+                {
+                    "url": "",
+                    "name": "Caixa de Vendas",
+                    "slug": "financial-sales-cash-daily"
+                }
+            ]
+        }
+    ]
 }
