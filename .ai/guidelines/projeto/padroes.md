@@ -60,6 +60,14 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
 - Modulos devem concentrar textos em `Lang/<locale>/messages.php` e arquivos correlatos.
 - Priorizar `trans('modulo::arquivo.chave')` em componentes e views.
 
+## Convencoes de testes (obrigatorio)
+- Fluxo TDD para feature: RED -> GREEN -> REFACTOR.
+- Antes de implementar, criar teste de **Feature** e comprovar falha inicial.
+- Implementar somente depois da falha validada.
+- Concluir apenas com teste de Feature passando.
+- Fonte de verdade para esse fluxo:
+  - `/.ai/guidelines/projeto/testes-feature-tdd.md`.
+
 ## Convencoes de responsividade (obrigatorio)
 - Pensar primeiro na visualizacao em dispositivo movel (mobile-first).
 - Depois ajustar e validar a experiencia completa para desktop/PC.
