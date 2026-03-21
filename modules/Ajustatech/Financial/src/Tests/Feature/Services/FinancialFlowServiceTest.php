@@ -135,4 +135,93 @@ class FinancialFlowServiceTest extends TestCase
 
         $this->assertEquals(1000.0, (float) $managerialCash->fresh()->calculateBalance());
     }
+
+    public function test_settling_payable_should_follow_current_route_even_when_record_has_old_cash(): void
+    {
+        $wrongCash = CompanyCash::createNew([
+            'cash_name' => 'Caixa Antigo',
+            'balance_amount' => 1000,
+            'is_online' => true,
+            'is_active' => true,
+            'is_managerial' => true,
+        ]);
+
+        $routeCash = CompanyCash::createNew([
+            'cash_name' => 'Caixa da Rota',
+            'balance_amount' => 1000,
+            'is_online' => true,
+            'is_active' => true,
+            'is_managerial' => true,
+        ]);
+
+        FinancialCashFlowRoute::create([
+            'flow_key' => FinancialCashFlowRoute::FLOW_PAYABLE_OUTFLOW,
+            'payment_method_type' => null,
+            'company_cash_id' => $routeCash->id,
+            'is_active' => true,
+        ]);
+
+        $payable = \Ajustatech\Financial\Database\Models\FinancialPayable::factory()->create([
+            'company_cash_id' => $wrongCash->id,
+            'amount' => 200,
+            'status' => 'pending',
+            'cash_flow_status' => 'pending',
+        ]);
+
+        $service = app(FinancialFlowService::class);
+        $service->settlePayable($payable->id);
+
+        $this->assertEquals(1000.0, (float) $wrongCash->fresh()->calculateBalance());
+        $this->assertEquals(800.0, (float) $routeCash->fresh()->calculateBalance());
+        $this->assertDatabaseHas('financial_payables', [
+            'id' => $payable->id,
+            'company_cash_id' => $routeCash->id,
+            'status' => 'paid',
+        ]);
+    }
+
+    public function test_settling_receivable_should_follow_current_route_even_when_record_has_old_cash(): void
+    {
+        $wrongCash = CompanyCash::createNew([
+            'cash_name' => 'Caixa Antigo Recebimento',
+            'balance_amount' => 500,
+            'is_online' => true,
+            'is_active' => true,
+            'is_managerial' => true,
+        ]);
+
+        $routeCash = CompanyCash::createNew([
+            'cash_name' => 'Caixa da Rota Recebimento',
+            'balance_amount' => 500,
+            'is_online' => true,
+            'is_active' => true,
+            'is_managerial' => true,
+        ]);
+
+        FinancialCashFlowRoute::create([
+            'flow_key' => FinancialCashFlowRoute::FLOW_RECEIVABLE_INFLOW,
+            'payment_method_type' => 'pix',
+            'company_cash_id' => $routeCash->id,
+            'is_active' => true,
+        ]);
+
+        $receivable = \Ajustatech\Financial\Database\Models\FinancialReceivable::factory()->create([
+            'company_cash_id' => $wrongCash->id,
+            'payment_method_type' => 'pix',
+            'amount' => 300,
+            'status' => 'pending',
+            'cash_flow_status' => 'pending',
+        ]);
+
+        $service = app(FinancialFlowService::class);
+        $service->settleReceivable($receivable->id);
+
+        $this->assertEquals(500.0, (float) $wrongCash->fresh()->calculateBalance());
+        $this->assertEquals(800.0, (float) $routeCash->fresh()->calculateBalance());
+        $this->assertDatabaseHas('financial_receivables', [
+            'id' => $receivable->id,
+            'company_cash_id' => $routeCash->id,
+            'status' => 'received',
+        ]);
+    }
 }

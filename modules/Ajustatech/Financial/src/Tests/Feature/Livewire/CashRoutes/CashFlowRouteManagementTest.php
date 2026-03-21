@@ -34,4 +34,25 @@ class CashFlowRouteManagementTest extends TestCase
             'company_cash_id' => $cash->id,
         ]);
     }
+
+    public function test_edit_form_lists_managerial_cash_even_without_balance_snapshot(): void
+    {
+        $cashWithoutBalance = CompanyCash::factory()->managerial()->create([
+            'cash_name' => 'Caixa Sem Snapshot',
+        ]);
+
+        $route = FinancialCashFlowRoute::factory()->create([
+            'flow_key' => FinancialCashFlowRoute::FLOW_PAYABLE_OUTFLOW,
+            'payment_method_type' => null,
+            'company_cash_id' => $cashWithoutBalance->id,
+        ]);
+
+        $component = Livewire::test(CashFlowRouteManagement::class, ['id' => $route->id]);
+
+        $managerialCashes = collect($component->get('managerialCashes'));
+
+        $this->assertTrue(
+            $managerialCashes->pluck('id')->contains($cashWithoutBalance->id)
+        );
+    }
 }

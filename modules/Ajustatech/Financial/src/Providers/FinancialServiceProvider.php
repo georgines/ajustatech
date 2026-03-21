@@ -9,6 +9,11 @@ use Ajustatech\Financial\Livewire\ShowCompanyCash;
 use Ajustatech\Financial\Livewire\CompanyCashManagement;
 use Ajustatech\Financial\Commands\SeedCompanyCashCommand;
 use Ajustatech\Financial\Commands\SeedFinancialCardBrandCommand;
+use Ajustatech\Financial\Commands\SeedFinancialCashFlowRoutesCommand;
+use Ajustatech\Financial\Commands\SeedFinancialPayablesCommand;
+use Ajustatech\Financial\Commands\SeedFinancialReceivablesCommand;
+use Ajustatech\Financial\Commands\SeedPaymentMethodsCommand;
+use Ajustatech\Financial\Commands\SeedSalesCashSessionsCommand;
 use Ajustatech\Financial\Commands\SeedCompanyCashBalancesCommand;
 use Ajustatech\Financial\Commands\SeedCompanyCashTransactionsCommand;
 use Ajustatech\Financial\Livewire\CompanyCashTransactionsManagement;
@@ -87,6 +92,11 @@ class FinancialServiceProvider extends ServiceProvider
             SeedCompanyCashBalancesCommand::class,
             SeedCompanyCashCommand::class,
             SeedFinancialCardBrandCommand::class,
+            SeedPaymentMethodsCommand::class,
+            SeedFinancialReceivablesCommand::class,
+            SeedFinancialPayablesCommand::class,
+            SeedFinancialCashFlowRoutesCommand::class,
+            SeedSalesCashSessionsCommand::class,
         ]);
     }
 }

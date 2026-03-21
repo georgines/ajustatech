@@ -44,7 +44,8 @@ class FinancialFlowService
                 return $payable;
             }
 
-            $cash = CompanyCash::findOrFail($payable->company_cash_id);
+            $routeCashId = $this->resolveCashIdForPayableSettlement($payable);
+            $cash = CompanyCash::findOrFail($routeCashId);
             $this->guardManagerialCash($cash);
 
             if (!$cash->hasSufficientBalance($payable->amount)) {
@@ -61,6 +62,7 @@ class FinancialFlowService
             );
 
             $payable->update([
+                'company_cash_id' => $routeCashId,
                 'status' => 'paid',
                 'cash_flow_status' => 'completed',
                 'settled_at' => Carbon::now(),
@@ -97,7 +99,8 @@ class FinancialFlowService
                 return $receivable;
             }
 
-            $cash = CompanyCash::findOrFail($receivable->company_cash_id);
+            $routeCashId = $this->resolveCashIdForReceivableSettlement($receivable);
+            $cash = CompanyCash::findOrFail($routeCashId);
             $this->guardManagerialCash($cash);
 
             $cash->registerInflow(
@@ -109,6 +112,7 @@ class FinancialFlowService
             );
 
             $receivable->update([
+                'company_cash_id' => $routeCashId,
                 'status' => 'received',
                 'cash_flow_status' => 'completed',
                 'settled_at' => Carbon::now(),
@@ -221,6 +225,27 @@ class FinancialFlowService
     {
         if ($amount <= 0) {
             throw new InvalidArgumentException(trans('financial::messages.transfer_amount_must_be_positive'));
+        }
+    }
+
+    private function resolveCashIdForPayableSettlement(FinancialPayable $payable): string
+    {
+        try {
+            return $this->routeService->resolveCashId(FinancialCashFlowRoute::FLOW_PAYABLE_OUTFLOW);
+        } catch (InvalidArgumentException) {
+            return $payable->company_cash_id;
+        }
+    }
+
+    private function resolveCashIdForReceivableSettlement(FinancialReceivable $receivable): string
+    {
+        try {
+            return $this->routeService->resolveCashId(
+                FinancialCashFlowRoute::FLOW_RECEIVABLE_INFLOW,
+                $receivable->payment_method_type
+            );
+        } catch (InvalidArgumentException) {
+            return $receivable->company_cash_id;
         }
     }
 }

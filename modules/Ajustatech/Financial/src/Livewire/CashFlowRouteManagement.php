@@ -2,9 +2,9 @@
 
 namespace Ajustatech\Financial\Livewire;
 
+use Ajustatech\Financial\Database\Models\CompanyCash;
 use Ajustatech\Financial\Database\Models\FinancialCashFlowRoute;
 use Ajustatech\Financial\Services\CashFlowRouteService;
-use Ajustatech\Financial\Services\CompanyCashServiceInterface;
 use Ajustatech\Financial\Services\PaymentMethodService;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -30,9 +30,10 @@ class CashFlowRouteManagement extends Component
         $this->flowOptions = $this->getFlowOptions($service);
         $this->paymentMethodTypes = $paymentMethodService->getTypes();
 
-        $cashService = app(CompanyCashServiceInterface::class);
-        $this->managerialCashes = $cashService::getAllCompanyCashs()
+        $this->managerialCashes = CompanyCash::query()
             ->where('is_managerial', true)
+            ->orderBy('cash_name')
+            ->get(['id', 'cash_name'])
             ->values()
             ->all();
 

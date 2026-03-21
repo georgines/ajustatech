@@ -3,12 +3,15 @@
 namespace Ajustatech\Financial\Database\Models;
 
 use App\Models\User;
+use Ajustatech\Financial\Database\Factories\SalesCashSessionFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SalesCashSession extends Model
 {
+    use HasFactory;
     use HasUuids;
 
     protected $table = 'sales_cash_sessions';
@@ -53,5 +56,10 @@ class SalesCashSession extends Model
     public function destinationCash(): BelongsTo
     {
         return $this->belongsTo(CompanyCash::class, 'destination_company_cash_id');
+    }
+
+    protected static function newFactory()
+    {
+        return SalesCashSessionFactory::new();
     }
 }

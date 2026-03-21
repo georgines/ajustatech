@@ -2,12 +2,15 @@
 
 namespace Ajustatech\Financial\Database\Models;
 
+use Ajustatech\Financial\Database\Factories\FinancialPaymentMethodFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FinancialPaymentMethod extends Model
 {
+    use HasFactory;
     use HasUuids;
 
     public const TYPE_DINHEIRO = 'dinheiro';
@@ -33,5 +36,10 @@ class FinancialPaymentMethod extends Model
     public function costs(): HasMany
     {
         return $this->hasMany(FinancialPaymentMethodCost::class, 'financial_payment_method_id');
+    }
+
+    protected static function newFactory()
+    {
+        return FinancialPaymentMethodFactory::new();
     }
 }

@@ -2,12 +2,15 @@
 
 namespace Ajustatech\Financial\Database\Models;
 
+use Ajustatech\Financial\Database\Factories\FinancialReceivableFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FinancialReceivable extends Model
 {
+    use HasFactory;
     use HasUuids;
 
     protected $table = 'financial_receivables';
@@ -36,5 +39,10 @@ class FinancialReceivable extends Model
     public function companyCash(): BelongsTo
     {
         return $this->belongsTo(CompanyCash::class, 'company_cash_id');
+    }
+
+    protected static function newFactory()
+    {
+        return FinancialReceivableFactory::new();
     }
 }

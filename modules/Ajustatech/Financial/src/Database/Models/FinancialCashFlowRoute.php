@@ -2,12 +2,15 @@
 
 namespace Ajustatech\Financial\Database\Models;
 
+use Ajustatech\Financial\Database\Factories\FinancialCashFlowRouteFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FinancialCashFlowRoute extends Model
 {
+    use HasFactory;
     use HasUuids;
 
     public const FLOW_PAYABLE_OUTFLOW = 'payable_outflow';
@@ -34,5 +37,10 @@ class FinancialCashFlowRoute extends Model
     public function companyCash(): BelongsTo
     {
         return $this->belongsTo(CompanyCash::class, 'company_cash_id');
+    }
+
+    protected static function newFactory()
+    {
+        return FinancialCashFlowRouteFactory::new();
     }
 }
