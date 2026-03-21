@@ -43,6 +43,13 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
   - `php artisan dev:seed` (delegando para `module:seed`).
 - Migracao de desenvolvimento:
   - `php artisan dev:migrate` (atual: `migrate:fresh`).
+- Limpeza de cache de desenvolvimento:
+  - `php artisan dev:clear`.
+- Comando recomendado para gerar modulo completo:
+  - `php artisan make:module <NomeModulo>`.
+- Comandos `make:module-*` existem e sao validos, mas sao internos de scaffolding na maior parte dos fluxos.
+- Fonte de verdade dos comandos do Core:
+  - `/.ai/guidelines/projeto/comandos-core.md`.
 
 ## Convencoes de menu
 - Cada item deve ter `slug` que corresponda a nome de rota.

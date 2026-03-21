@@ -16,7 +16,11 @@ Implementacoes reais devem ocorrer em `resources/*` e `modules/Ajustatech/*`.
 1. Confirmar nome do modulo/entidade.
 2. Preferir comandos do Core:
    - `php artisan make:module <Nome>`
-   - `php artisan make:module-model <Nome> <path>` (quando aplicavel)
+   - `php artisan dev:clear`
+   - `php artisan dev:migrate`
+   - `php artisan dev:seed`
+   - `php artisan module:seed`
+   - `php artisan make:module-model <Nome> <path>` (uso avancado, quando aplicavel)
 3. Conferir estrutura criada em `modules/Ajustatech/<Modulo>/src`.
 4. Registrar provider no `CoreServiceProvider`.
 5. Registrar namespace PSR-4 no `composer.json` raiz.
@@ -42,3 +46,4 @@ Implementacoes reais devem ocorrer em `resources/*` e `modules/Ajustatech/*`.
 - Nao implementar regra de negocio em `templete/`.
 - Nao quebrar padrao de provider final (`ViewServiceProvider` por ultimo no Core).
 - Nao deixar modulo sem `composer.json` proprio e sem registro PSR-4 no composer raiz.
+- Nao usar comandos `make:module-*` internos sem entender os argumentos obrigatorios de scaffolding.
