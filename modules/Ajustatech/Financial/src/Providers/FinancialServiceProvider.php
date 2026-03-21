@@ -22,6 +22,8 @@ use Ajustatech\Financial\Livewire\ShowPaymentMethods;
 use Ajustatech\Financial\Livewire\PaymentMethodManagement;
 use Ajustatech\Financial\Livewire\ShowCardBrands;
 use Ajustatech\Financial\Livewire\CardBrandManagement;
+use Ajustatech\Financial\Livewire\ShowCashFlowRoutes;
+use Ajustatech\Financial\Livewire\CashFlowRouteManagement;
 use Ajustatech\Financial\Services\CompanyCashServiceInterface;
 use Ajustatech\Financial\Services\CompanyCashService;
 use Ajustatech\Financial\Services\CompanyCashTransactionsService;
@@ -74,6 +76,8 @@ class FinancialServiceProvider extends ServiceProvider
         Livewire::component('payment-method-management', PaymentMethodManagement::class);
         Livewire::component('show-card-brands', ShowCardBrands::class);
         Livewire::component('card-brand-management', CardBrandManagement::class);
+        Livewire::component('show-cash-flow-routes', ShowCashFlowRoutes::class);
+        Livewire::component('cash-flow-route-management', CashFlowRouteManagement::class);
     }
 
     private function loadCommands()

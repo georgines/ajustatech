@@ -3,6 +3,7 @@
 namespace Ajustatech\Financial\Livewire;
 
 use Ajustatech\Financial\Services\FinancialFlowService;
+use Ajustatech\Financial\Services\PaymentMethodService;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -14,14 +15,14 @@ class ReceivableManagement extends Component
     public $description = '';
     public $amount;
     public $dueDate;
-    public $managerialCashId = '';
-    public $managerialCashes = [];
+    public $paymentMethodType = '';
+    public $paymentMethodTypes = [];
 
-    public function mount(FinancialFlowService $service): void
+    public function mount(PaymentMethodService $paymentMethodService): void
     {
         $this->title = trans('financial::messages.receivable_create_title');
         $this->dueDate = now()->toDateString();
-        $this->managerialCashes = $service->getManagerialCashes();
+        $this->paymentMethodTypes = $paymentMethodService->getTypes();
     }
 
     public function save(FinancialFlowService $service)
@@ -31,14 +32,14 @@ class ReceivableManagement extends Component
             'description' => 'nullable|string|max:255',
             'amount' => 'required|numeric|gt:0',
             'dueDate' => 'required|date',
-            'managerialCashId' => 'required|exists:company_cashes,id',
+            'paymentMethodType' => 'required|string',
         ]);
 
         $service->createReceivable(
             $this->counterpartyName,
             (float) $this->amount,
             $this->dueDate,
-            $this->managerialCashId,
+            $this->paymentMethodType,
             $this->description ?: null
         );
 

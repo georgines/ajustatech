@@ -34,6 +34,11 @@
                     "url": "",
                     "name": "Bandeiras de Cartao",
                     "slug": "financial-card-brands-show"
+                },
+                {
+                    "url": "",
+                    "name": "Rotas de Caixa",
+                    "slug": "financial-cash-routes-show"
                 }
             ]
         }

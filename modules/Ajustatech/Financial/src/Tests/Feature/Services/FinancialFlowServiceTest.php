@@ -3,6 +3,7 @@
 namespace Ajustatech\Financial\Tests\Feature\Services;
 
 use Ajustatech\Financial\Database\Models\CompanyCash;
+use Ajustatech\Financial\Database\Models\FinancialCashFlowRoute;
 use Ajustatech\Financial\Services\FinancialFlowService;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,11 +25,17 @@ class FinancialFlowServiceTest extends TestCase
 
         $service = app(FinancialFlowService::class);
 
+        FinancialCashFlowRoute::create([
+            'flow_key' => FinancialCashFlowRoute::FLOW_PAYABLE_OUTFLOW,
+            'payment_method_type' => null,
+            'company_cash_id' => $managerialCash->id,
+            'is_active' => true,
+        ]);
+
         $payable = $service->createPayable(
             'Fornecedor ABC',
             200,
-            '2026-03-21',
-            $managerialCash->id
+            '2026-03-21'
         );
 
         $service->settlePayable($payable->id);
@@ -54,11 +61,18 @@ class FinancialFlowServiceTest extends TestCase
 
         $service = app(FinancialFlowService::class);
 
+        FinancialCashFlowRoute::create([
+            'flow_key' => FinancialCashFlowRoute::FLOW_RECEIVABLE_INFLOW,
+            'payment_method_type' => 'pix',
+            'company_cash_id' => $managerialCash->id,
+            'is_active' => true,
+        ]);
+
         $receivable = $service->createReceivable(
             'Cliente XPTO',
             300,
             '2026-03-21',
-            $managerialCash->id
+            'pix'
         );
 
         $service->settleReceivable($receivable->id);
@@ -86,7 +100,21 @@ class FinancialFlowServiceTest extends TestCase
 
         $service = app(FinancialFlowService::class);
 
-        $session = $service->openDailySalesCash($user->id, $managerialCash->id, 150);
+        FinancialCashFlowRoute::create([
+            'flow_key' => FinancialCashFlowRoute::FLOW_SALES_OPEN_OUTFLOW,
+            'payment_method_type' => 'dinheiro',
+            'company_cash_id' => $managerialCash->id,
+            'is_active' => true,
+        ]);
+
+        FinancialCashFlowRoute::create([
+            'flow_key' => FinancialCashFlowRoute::FLOW_SALES_CLOSE_INFLOW,
+            'payment_method_type' => 'dinheiro',
+            'company_cash_id' => $managerialCash->id,
+            'is_active' => true,
+        ]);
+
+        $session = $service->openDailySalesCash($user->id, 'dinheiro', 150);
 
         $this->assertDatabaseHas('sales_cash_sessions', [
             'id' => $session->id,
@@ -97,7 +125,7 @@ class FinancialFlowServiceTest extends TestCase
 
         $this->assertEquals(850.0, (float) $managerialCash->fresh()->calculateBalance());
 
-        $service->closeDailySalesCash($user->id, 150);
+        $service->closeDailySalesCash($user->id, 'dinheiro', 150);
 
         $this->assertDatabaseHas('sales_cash_sessions', [
             'id' => $session->id,
@@ -108,4 +136,3 @@ class FinancialFlowServiceTest extends TestCase
         $this->assertEquals(1000.0, (float) $managerialCash->fresh()->calculateBalance());
     }
 }
-

@@ -17,16 +17,6 @@
                 <input type="date" class="form-control" wire:model="dueDate">
                 @error('dueDate') <small class="text-danger">{{ $message }}</small> @enderror
             </div>
-            <div class="col-12 col-md-6">
-                <label class="form-label">{{ trans('financial::messages.managerial_cash') }}</label>
-                <select class="form-select" wire:model="managerialCashId">
-                    <option value="">{{ trans('financial::messages.select_option') }}</option>
-                    @foreach ($managerialCashes as $cash)
-                        <option value="{{ $cash->id }}">{{ $cash->cash_name }}</option>
-                    @endforeach
-                </select>
-                @error('managerialCashId') <small class="text-danger">{{ $message }}</small> @enderror
-            </div>
             <div class="col-12">
                 <label class="form-label">{{ trans('financial::messages.description') }}</label>
                 <textarea class="form-control" wire:model="description"></textarea>

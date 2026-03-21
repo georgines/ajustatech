@@ -13,6 +13,8 @@ use Ajustatech\Financial\Livewire\ShowPaymentMethods;
 use Ajustatech\Financial\Livewire\PaymentMethodManagement;
 use Ajustatech\Financial\Livewire\ShowCardBrands;
 use Ajustatech\Financial\Livewire\CardBrandManagement;
+use Ajustatech\Financial\Livewire\ShowCashFlowRoutes;
+use Ajustatech\Financial\Livewire\CashFlowRouteManagement;
 
 Route::get('/caixas-gerenciais', ShowCompanyCash::class)->name('companycash-show');
 Route::get('/caixas-gerenciais/cadastro', CompanyCashManagement::class)->name('companycash-create');
@@ -34,3 +36,7 @@ Route::get('/formas-pagamento/{id}/editar', PaymentMethodManagement::class)->nam
 Route::get('/bandeiras-cartao', ShowCardBrands::class)->name('financial-card-brands-show');
 Route::get('/bandeiras-cartao/cadastro', CardBrandManagement::class)->name('financial-card-brands-create');
 Route::get('/bandeiras-cartao/{id}/editar', CardBrandManagement::class)->name('financial-card-brands-edit');
+
+Route::get('/rotas-caixa', ShowCashFlowRoutes::class)->name('financial-cash-routes-show');
+Route::get('/rotas-caixa/cadastro', CashFlowRouteManagement::class)->name('financial-cash-routes-create');
+Route::get('/rotas-caixa/{id}/editar', CashFlowRouteManagement::class)->name('financial-cash-routes-edit');

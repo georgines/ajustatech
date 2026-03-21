@@ -14,14 +14,11 @@ class PayableManagement extends Component
     public $description = '';
     public $amount;
     public $dueDate;
-    public $managerialCashId = '';
-    public $managerialCashes = [];
 
-    public function mount(FinancialFlowService $service): void
+    public function mount(): void
     {
         $this->title = trans('financial::messages.payable_create_title');
         $this->dueDate = now()->toDateString();
-        $this->managerialCashes = $service->getManagerialCashes();
     }
 
     public function save(FinancialFlowService $service)
@@ -31,14 +28,12 @@ class PayableManagement extends Component
             'description' => 'nullable|string|max:255',
             'amount' => 'required|numeric|gt:0',
             'dueDate' => 'required|date',
-            'managerialCashId' => 'required|exists:company_cashes,id',
         ]);
 
         $service->createPayable(
             $this->counterpartyName,
             (float) $this->amount,
             $this->dueDate,
-            $this->managerialCashId,
             $this->description ?: null
         );
 

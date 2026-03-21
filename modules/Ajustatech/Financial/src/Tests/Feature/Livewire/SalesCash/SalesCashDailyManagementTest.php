@@ -3,6 +3,7 @@
 namespace Ajustatech\Financial\Tests\Feature\Livewire\SalesCash;
 
 use Ajustatech\Financial\Database\Models\CompanyCash;
+use Ajustatech\Financial\Database\Models\FinancialCashFlowRoute;
 use Ajustatech\Financial\Livewire\SalesCashDailyManagement;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,13 +27,28 @@ class SalesCashDailyManagementTest extends TestCase
             'is_managerial' => true,
         ]);
 
+        FinancialCashFlowRoute::create([
+            'flow_key' => FinancialCashFlowRoute::FLOW_SALES_OPEN_OUTFLOW,
+            'payment_method_type' => 'dinheiro',
+            'company_cash_id' => $managerialCash->id,
+            'is_active' => true,
+        ]);
+
+        FinancialCashFlowRoute::create([
+            'flow_key' => FinancialCashFlowRoute::FLOW_SALES_CLOSE_INFLOW,
+            'payment_method_type' => 'dinheiro',
+            'company_cash_id' => $managerialCash->id,
+            'is_active' => true,
+        ]);
+
         Livewire::test(SalesCashDailyManagement::class)
-            ->set('managerialCashId', $managerialCash->id)
+            ->set('openingPaymentMethodType', 'dinheiro')
             ->set('openingAmount', 100)
             ->call('openCash')
             ->assertHasNoErrors();
 
         Livewire::test(SalesCashDailyManagement::class)
+            ->set('closingPaymentMethodType', 'dinheiro')
             ->set('closingAmount', 100)
             ->call('closeCash')
             ->assertHasNoErrors();
@@ -43,4 +59,3 @@ class SalesCashDailyManagementTest extends TestCase
         ]);
     }
 }
-

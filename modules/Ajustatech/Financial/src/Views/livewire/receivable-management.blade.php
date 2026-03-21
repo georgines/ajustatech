@@ -18,14 +18,14 @@
                 @error('dueDate') <small class="text-danger">{{ $message }}</small> @enderror
             </div>
             <div class="col-12 col-md-6">
-                <label class="form-label">{{ trans('financial::messages.managerial_cash') }}</label>
-                <select class="form-select" wire:model="managerialCashId">
+                <label class="form-label">{{ trans('financial::messages.payment_method_type') }}</label>
+                <select class="form-select" wire:model="paymentMethodType">
                     <option value="">{{ trans('financial::messages.select_option') }}</option>
-                    @foreach ($managerialCashes as $cash)
-                        <option value="{{ $cash->id }}">{{ $cash->cash_name }}</option>
+                    @foreach ($paymentMethodTypes as $type)
+                        <option value="{{ $type }}">{{ $type }}</option>
                     @endforeach
                 </select>
-                @error('managerialCashId') <small class="text-danger">{{ $message }}</small> @enderror
+                @error('paymentMethodType') <small class="text-danger">{{ $message }}</small> @enderror
             </div>
             <div class="col-12">
                 <label class="form-label">{{ trans('financial::messages.description') }}</label>

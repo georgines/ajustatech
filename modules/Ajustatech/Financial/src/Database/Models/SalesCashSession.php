@@ -16,6 +16,9 @@ class SalesCashSession extends Model
     protected $fillable = [
         'user_id',
         'source_company_cash_id',
+        'destination_company_cash_id',
+        'opening_payment_method_type',
+        'closing_payment_method_type',
         'business_date',
         'opening_amount',
         'closing_amount',
@@ -45,5 +48,10 @@ class SalesCashSession extends Model
     public function sourceCash(): BelongsTo
     {
         return $this->belongsTo(CompanyCash::class, 'source_company_cash_id');
+    }
+
+    public function destinationCash(): BelongsTo
+    {
+        return $this->belongsTo(CompanyCash::class, 'destination_company_cash_id');
     }
 }

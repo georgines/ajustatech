@@ -3,6 +3,7 @@
 namespace Ajustatech\Financial\Services;
 
 use Ajustatech\Financial\Database\Models\CompanyCash;
+use Ajustatech\Financial\Database\Models\FinancialCashFlowRoute;
 use Ajustatech\Financial\Database\Models\FinancialPayable;
 use Ajustatech\Financial\Database\Models\FinancialReceivable;
 use Ajustatech\Financial\Database\Models\SalesCashSession;
@@ -13,10 +14,15 @@ use InvalidArgumentException;
 
 class FinancialFlowService
 {
-    public function createPayable(string $counterpartyName, float $amount, string $dueDate, string $managerialCashId, ?string $description = null): FinancialPayable
+    public function __construct(private readonly CashFlowRouteService $routeService)
+    {
+    }
+
+    public function createPayable(string $counterpartyName, float $amount, string $dueDate, ?string $description = null): FinancialPayable
     {
         $this->ensurePositiveAmount($amount);
-        $this->ensureManagerialCash($managerialCashId);
+
+        $managerialCashId = $this->routeService->resolveCashId(FinancialCashFlowRoute::FLOW_PAYABLE_OUTFLOW);
 
         return FinancialPayable::create([
             'counterparty_name' => $counterpartyName,
@@ -64,16 +70,18 @@ class FinancialFlowService
         });
     }
 
-    public function createReceivable(string $counterpartyName, float $amount, string $dueDate, string $managerialCashId, ?string $description = null): FinancialReceivable
+    public function createReceivable(string $counterpartyName, float $amount, string $dueDate, string $paymentMethodType, ?string $description = null): FinancialReceivable
     {
         $this->ensurePositiveAmount($amount);
-        $this->ensureManagerialCash($managerialCashId);
+
+        $managerialCashId = $this->routeService->resolveCashId(FinancialCashFlowRoute::FLOW_RECEIVABLE_INFLOW, $paymentMethodType);
 
         return FinancialReceivable::create([
             'counterparty_name' => $counterpartyName,
             'description' => $description,
             'amount' => $amount,
             'due_date' => $dueDate,
+            'payment_method_type' => $paymentMethodType,
             'company_cash_id' => $managerialCashId,
             'status' => 'pending',
             'cash_flow_status' => 'pending',
@@ -110,7 +118,7 @@ class FinancialFlowService
         });
     }
 
-    public function openDailySalesCash(int $userId, string $managerialCashId, float $openingAmount): SalesCashSession
+    public function openDailySalesCash(int $userId, string $paymentMethodType, float $openingAmount): SalesCashSession
     {
         $this->ensurePositiveAmount($openingAmount);
 
@@ -118,8 +126,11 @@ class FinancialFlowService
             throw new InvalidArgumentException(trans('financial::messages.sales_cash_already_opened_today'));
         }
 
-        return DB::transaction(function () use ($userId, $managerialCashId, $openingAmount) {
-            $cash = CompanyCash::findOrFail($managerialCashId);
+        return DB::transaction(function () use ($userId, $paymentMethodType, $openingAmount) {
+            $sourceCashId = $this->routeService->resolveCashId(FinancialCashFlowRoute::FLOW_SALES_OPEN_OUTFLOW, $paymentMethodType);
+            $destinationCashId = $this->routeService->resolveCashId(FinancialCashFlowRoute::FLOW_SALES_CLOSE_INFLOW, $paymentMethodType);
+
+            $cash = CompanyCash::findOrFail($sourceCashId);
             $this->guardManagerialCash($cash);
 
             if (!$cash->hasSufficientBalance($openingAmount)) {
@@ -134,7 +145,9 @@ class FinancialFlowService
 
             return SalesCashSession::create([
                 'user_id' => $userId,
-                'source_company_cash_id' => $managerialCashId,
+                'source_company_cash_id' => $sourceCashId,
+                'destination_company_cash_id' => $destinationCashId,
+                'opening_payment_method_type' => $paymentMethodType,
                 'business_date' => Carbon::today(),
                 'opening_amount' => $openingAmount,
                 'opened_at' => Carbon::now(),
@@ -145,18 +158,19 @@ class FinancialFlowService
         });
     }
 
-    public function closeDailySalesCash(int $userId, float $closingAmount): SalesCashSession
+    public function closeDailySalesCash(int $userId, string $paymentMethodType, float $closingAmount): SalesCashSession
     {
         $this->ensurePositiveAmount($closingAmount);
 
-        return DB::transaction(function () use ($userId, $closingAmount) {
+        return DB::transaction(function () use ($userId, $paymentMethodType, $closingAmount) {
             $session = $this->getOpenSalesCashForUserToday($userId);
 
             if (!$session) {
                 throw new InvalidArgumentException(trans('financial::messages.sales_cash_not_opened_today'));
             }
 
-            $cash = CompanyCash::findOrFail($session->source_company_cash_id);
+            $destinationCashId = $this->routeService->resolveCashId(FinancialCashFlowRoute::FLOW_SALES_CLOSE_INFLOW, $paymentMethodType);
+            $cash = CompanyCash::findOrFail($destinationCashId);
             $this->guardManagerialCash($cash);
 
             $cash->registerInflow(
@@ -165,6 +179,8 @@ class FinancialFlowService
             );
 
             $session->update([
+                'destination_company_cash_id' => $destinationCashId,
+                'closing_payment_method_type' => $paymentMethodType,
                 'closing_amount' => $closingAmount,
                 'closed_at' => Carbon::now(),
                 'status' => 'closed',
@@ -184,11 +200,6 @@ class FinancialFlowService
             ->first();
     }
 
-    public function getManagerialCashes()
-    {
-        return CompanyCash::query()->where('is_managerial', true)->get();
-    }
-
     public function listPayables()
     {
         return FinancialPayable::query()->latest('due_date')->get();
@@ -197,12 +208,6 @@ class FinancialFlowService
     public function listReceivables()
     {
         return FinancialReceivable::query()->latest('due_date')->get();
-    }
-
-    private function ensureManagerialCash(string $managerialCashId): void
-    {
-        $cash = CompanyCash::findOrFail($managerialCashId);
-        $this->guardManagerialCash($cash);
     }
 
     private function guardManagerialCash(CompanyCash $cash): void
