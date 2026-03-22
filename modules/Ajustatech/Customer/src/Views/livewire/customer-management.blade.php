@@ -1,6 +1,8 @@
-<x-slot name='page_title'>
-    {{ $title }}
-</x-slot>
+@if (!$embedded)
+    <x-slot name='page_title'>
+        {{ $title }}
+    </x-slot>
+@endif
 
 <section>
     <div class="row">
@@ -309,7 +311,9 @@
                     </div>
                     <div class="card-footer">
                         <button type="submit" class="btn btn-primary me-sm-3 me-1">Salvar</button>
-                        <a href="{{ route('customers-show') }}" class="btn btn-label-secondary">Cancelar</a>
+                        @if (!$embedded)
+                            <a href="{{ route('customers-show') }}" class="btn btn-label-secondary">Cancelar</a>
+                        @endif
                     </div>
                 </form>
             </div>

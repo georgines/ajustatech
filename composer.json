@@ -29,7 +29,8 @@
             "Database\\Seeders\\": "database/seeders/",
             "Ajustatech\\Core\\": "modules/Ajustatech/Core/src",
             "Ajustatech\\Customer\\": "modules/Ajustatech/Customer/src",
-            "Ajustatech\\Financial\\": "modules/Ajustatech/Financial/src"
+            "Ajustatech\\Financial\\": "modules/Ajustatech/Financial/src",
+            "Ajustatech\\ServiceOrder\\": "modules/Ajustatech/ServiceOrder/src"
         }
     },
     "autoload-dev": {

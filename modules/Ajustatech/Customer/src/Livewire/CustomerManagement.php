@@ -24,6 +24,8 @@ class CustomerManagement extends Component
 
     #[Locked]
     public $mode = 'create';
+    
+    public bool $embedded = false;
 
     public $customer_ = [
         'name' => '',
@@ -44,8 +46,9 @@ class CustomerManagement extends Component
         'status' => '1',
     ];
 
-    public function mount(Customer $customer)
+    public function mount(Customer $customer, bool $embedded = false)
     {
+        $this->embedded = $embedded;
         $this->title = trans('customer::messages.title');
 
         if ($customer->id) {
@@ -65,6 +68,11 @@ class CustomerManagement extends Component
         $this->validateData();
         $customer = Customer::create($this->customer_);
         if ($customer) {
+            if ($this->embedded) {
+                $this->dispatch('customer-created', id: $customer->id, name: $customer->name);
+                return;
+            }
+
             $message = 'Cliente salvo!';
 
             $this->dispatchConfirmation($message)
@@ -77,6 +85,10 @@ class CustomerManagement extends Component
     #[On('redirect-to')]
     public function redirectTo()
     {
+        if ($this->embedded) {
+            return;
+        }
+
         $this->redirectRoute('customers-show');
     }
 
@@ -86,6 +98,11 @@ class CustomerManagement extends Component
         $this->validateData($customer->id);
         $updated = $customer->update($this->customer_);
         if ($updated) {
+            if ($this->embedded) {
+                $this->dispatch('customer-created', id: $customer->id, name: $customer->name);
+                return;
+            }
+
             $message = 'Cliente atualizado!';
 
             $this->dispatchConfirmation($message)
