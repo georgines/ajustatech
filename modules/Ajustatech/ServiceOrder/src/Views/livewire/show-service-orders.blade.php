@@ -18,6 +18,10 @@
                 </thead>
                 <tbody>
                     @forelse ($orders as $order)
+                        @php
+                            $hasDocuments = collect($order->fields_snapshot ?? [])
+                                ->contains(fn ($field) => ($field['field_type'] ?? null) === 'document');
+                        @endphp
                         <tr>
                             <td>{{ optional($order->entry_date)->format('d/m/Y') }}</td>
                             <td>{{ $order->customer_name }}</td>
@@ -32,6 +36,10 @@
                                 </a>
                                 <a class="btn btn-sm btn-icon btn-text-secondary rounded-pill me-1"
                                    href="{{ route('service-order-orders-documents', ['id' => $order->id]) }}"
+                                   @if (!$hasDocuments) aria-disabled="true" @endif
+                                   @class([
+                                       'disabled pe-none opacity-50' => !$hasDocuments,
+                                   ])
                                    title="Ver documentos">
                                     <i class="ti ti-file-text"></i>
                                 </a>

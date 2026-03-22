@@ -27,6 +27,8 @@ class NewServiceOrderManagement extends Component
 
     public string $title = 'Nova Ordem de Servico';
     public string $currentStep = 'customer';
+    public bool $isEditMode = false;
+    public ?string $orderId = null;
 
     public int $orderNumberPreview = 0;
     public string $openingDate = '';
@@ -64,7 +66,7 @@ class NewServiceOrderManagement extends Component
     public string $productFilter = '';
     public string $serviceFilter = '';
 
-    public function mount(EquipmentTypeService $equipmentTypeService): void
+    public function mount(EquipmentTypeService $equipmentTypeService, ?string $id = null): void
     {
         $now = now();
         $this->entry_date = $now->toDateString();
@@ -80,6 +82,11 @@ class NewServiceOrderManagement extends Component
             ->all();
 
         $this->refreshAvailableServices();
+
+        if ($id) {
+            $this->loadOrderForEditing($id, $equipmentTypeService);
+            return;
+        }
 
         if ($this->equipment_type_id) {
             $this->loadFieldsForEquipmentType($equipmentTypeService);
@@ -312,7 +319,7 @@ class NewServiceOrderManagement extends Component
         $this->loadFieldsForEquipmentType($equipmentTypeService);
     }
 
-    public function save(ServiceOrderService $serviceOrderService)
+    public function save(ServiceOrderService $serviceOrderService, EquipmentTypeService $equipmentTypeService)
     {
         $this->resetErrorBag();
 
@@ -332,17 +339,19 @@ class NewServiceOrderManagement extends Component
         $equipmentName = $this->resolveEquipmentName();
 
         try {
-            DB::transaction(function () use ($serviceOrderService, $customer, $equipmentName) {
-                $order = $serviceOrderService->create([
-                    'equipment_type_id' => $this->equipment_type_id,
-                    'customer_id' => $customer->id,
-                    'equipment_name' => $equipmentName,
-                    'brand' => $this->brand,
-                    'model' => $this->model,
-                    'serial_number' => $this->serial_number,
-                    'entry_date' => $this->entry_date,
-                    'reported_issue' => $this->reported_issue,
-                ]);
+            DB::transaction(function () use ($serviceOrderService, $equipmentTypeService, $customer, $equipmentName) {
+                $order = $this->isEditMode && $this->orderId
+                    ? $this->updateExistingOrder($this->orderId, $customer->id, $equipmentName, $equipmentTypeService)
+                    : $serviceOrderService->create([
+                        'equipment_type_id' => $this->equipment_type_id,
+                        'customer_id' => $customer->id,
+                        'equipment_name' => $equipmentName,
+                        'brand' => $this->brand,
+                        'model' => $this->model,
+                        'serial_number' => $this->serial_number,
+                        'entry_date' => $this->entry_date,
+                        'reported_issue' => $this->reported_issue,
+                    ]);
 
                 $textualValues = [];
                 $attachments = [];
@@ -682,5 +691,85 @@ class NewServiceOrderManagement extends Component
             ['selectedServices' => $this->selectedServices],
             ['selectedServices.*' => ['nullable', 'integer', 'min:1', 'max:100']]
         )->validate();
+    }
+
+    private function loadOrderForEditing(string $id, EquipmentTypeService $equipmentTypeService): void
+    {
+        $order = ServiceOrder::query()
+            ->with(['fieldValues', 'serviceItems'])
+            ->findOrFail($id);
+
+        $this->isEditMode = true;
+        $this->orderId = $order->id;
+        $this->title = 'Editar Ordem de Servico';
+        $this->currentStep = 'order';
+        $this->customer_id = $order->customer_id;
+        $this->customerSearch = $order->customer_name;
+        $this->equipment_type_id = $order->equipment_type_id;
+        $this->brand = $order->brand;
+        $this->model = $order->model;
+        $this->serial_number = $order->serial_number;
+        $this->entry_date = optional($order->entry_date)->format('Y-m-d');
+        $this->reported_issue = $order->reported_issue;
+
+        $this->activeFieldSnapshots = collect($order->fields_snapshot ?? [])
+            ->sortBy('sort_order')
+            ->values()
+            ->all();
+
+        if (empty($this->activeFieldSnapshots)) {
+            $this->loadFieldsForEquipmentType($equipmentTypeService);
+        }
+
+        $this->fieldValues = [];
+        foreach ($order->fieldValues as $value) {
+            $this->fieldValues[$value->field_slug] = $value->value_text;
+        }
+
+        $this->selectedServices = [];
+        $this->serviceDiscounts = [];
+        foreach ($order->serviceItems as $item) {
+            if (!$item->service_catalog_service_id) {
+                continue;
+            }
+
+            $serviceId = (string) $item->service_catalog_service_id;
+            $this->selectedServices[$serviceId] = max((int) $item->quantity, 1);
+            $discount = $item->discount_amount ?? Arr::get($item->service_snapshot, 'discount', 0);
+            $this->serviceDiscounts[$serviceId] = $this->normalizedDiscount($discount);
+        }
+    }
+
+    private function updateExistingOrder(
+        string $orderId,
+        string $customerId,
+        string $equipmentName,
+        EquipmentTypeService $equipmentTypeService
+    ): ServiceOrder {
+        $order = ServiceOrder::query()->findOrFail($orderId);
+        $equipmentType = EquipmentType::query()->findOrFail((string) $this->equipment_type_id);
+        $fieldSnapshots = $equipmentTypeService->buildActiveFieldSnapshots($equipmentType->id);
+
+        $order->update([
+            'equipment_type_id' => $equipmentType->id,
+            'customer_id' => $customerId,
+            'customer_name' => (string) Customer::query()->findOrFail($customerId)->name,
+            'equipment_name' => $equipmentName,
+            'brand' => $this->brand,
+            'model' => $this->model,
+            'serial_number' => $this->serial_number,
+            'entry_date' => $this->entry_date,
+            'reported_issue' => $this->reported_issue,
+            'equipment_type_snapshot' => [
+                'id' => $equipmentType->id,
+                'name' => $equipmentType->name,
+                'description' => $equipmentType->description,
+            ],
+            'fields_snapshot' => $fieldSnapshots,
+        ]);
+
+        $this->activeFieldSnapshots = $fieldSnapshots;
+
+        return $order->fresh();
     }
 }

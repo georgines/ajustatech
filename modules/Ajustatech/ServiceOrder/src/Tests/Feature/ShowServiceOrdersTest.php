@@ -76,5 +76,25 @@ class ShowServiceOrdersTest extends TestCase
             ->assertSee('Termo de entrada')
             ->assertSee('Documento preenchido');
     }
-}
 
+    public function test_documents_action_is_disabled_when_order_has_no_document_field(): void
+    {
+        $order = ServiceOrder::factory()->open()->create([
+            'fields_snapshot' => [
+                [
+                    'id' => 'field-2',
+                    'name' => 'Observacoes',
+                    'slug' => 'observacoes',
+                    'field_type' => 'text',
+                    'sort_order' => 1,
+                    'is_printable' => true,
+                ],
+            ],
+        ]);
+
+        $this->get(route('service-order-orders-show'))
+            ->assertOk()
+            ->assertSee('pe-none opacity-50', false)
+            ->assertSee(route('service-order-orders-documents', ['id' => $order->id]), false);
+    }
+}

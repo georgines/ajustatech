@@ -3,6 +3,8 @@
 namespace Ajustatech\ServiceOrder\Tests\Feature;
 
 use Ajustatech\Customer\Database\Models\Customer;
+use Ajustatech\ServiceOrder\Database\Models\EquipmentType;
+use Ajustatech\ServiceOrder\Database\Models\ServiceOrder;
 use Ajustatech\ServiceOrder\Livewire\NewServiceOrderManagement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -51,5 +53,38 @@ class NewServiceOrderManagementTest extends TestCase
             ->assertSet('currentStep', 'customer')
             ->call('proceedToOrder')
             ->assertSet('currentStep', 'order');
+    }
+
+    public function test_can_load_and_edit_existing_service_order_using_same_form(): void
+    {
+        $customer = Customer::factory()->create(['name' => 'Cliente Teste']);
+        $equipmentType = EquipmentType::factory()->create(['name' => 'Notebook']);
+        $order = ServiceOrder::factory()->create([
+            'customer_id' => $customer->id,
+            'customer_name' => $customer->name,
+            'equipment_type_id' => $equipmentType->id,
+            'equipment_name' => 'Notebook',
+            'brand' => 'Marca antiga',
+            'model' => 'Modelo antigo',
+            'fields_snapshot' => [],
+            'equipment_type_snapshot' => [
+                'id' => $equipmentType->id,
+                'name' => $equipmentType->name,
+                'description' => $equipmentType->description,
+            ],
+        ]);
+
+        Livewire::test(NewServiceOrderManagement::class, ['id' => $order->id])
+            ->assertSet('isEditMode', true)
+            ->assertSet('orderId', $order->id)
+            ->set('brand', 'Marca nova')
+            ->set('model', 'Modelo novo')
+            ->call('save');
+
+        $this->assertDatabaseHas('service_orders', [
+            'id' => $order->id,
+            'brand' => 'Marca nova',
+            'model' => 'Modelo novo',
+        ]);
     }
 }

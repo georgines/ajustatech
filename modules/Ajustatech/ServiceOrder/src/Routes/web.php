@@ -5,7 +5,6 @@ use Ajustatech\ServiceOrder\Livewire\ShowServiceOrders;
 use Ajustatech\ServiceOrder\Livewire\ShowServiceOrderDocuments;
 use Ajustatech\ServiceOrder\Livewire\ShowServiceCatalog;
 use Ajustatech\ServiceOrder\Livewire\ShowEquipmentTypes;
-use Ajustatech\ServiceOrder\Livewire\EditServiceOrderManagement;
 use Ajustatech\ServiceOrder\Livewire\NewServiceOrderManagement;
 use Ajustatech\ServiceOrder\Livewire\EquipmentTypeManagement;
 use Ajustatech\ServiceOrder\Livewire\ServiceCatalogManagement;
@@ -26,7 +25,7 @@ Route::middleware(['web'])->group(function () {
     Route::get('/os/ordens-servico', ShowServiceOrders::class)
         ->name('service-order-orders-show');
 
-    Route::get('/os/ordens-servico/{id}/editar', EditServiceOrderManagement::class)
+    Route::get('/os/ordens-servico/{id}/editar', NewServiceOrderManagement::class)
         ->name('service-order-orders-edit');
 
     Route::get('/os/ordens-servico/{id}/documentos', ShowServiceOrderDocuments::class)

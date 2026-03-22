@@ -9,32 +9,24 @@
     </div>
 
     <div class="card">
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Documento</th>
-                        <th>Slug</th>
-                        <th>Conteudo</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($documents as $document)
-                        <tr>
-                            <td>{{ $document['name'] }}</td>
-                            <td>{{ $document['slug'] }}</td>
-                            <td>{{ $document['value'] ?: '-' }}</td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="3" class="text-center text-muted">
-                                Nenhum documento cadastrado para este tipo de equipamento.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+        <div class="card-body">
+            @if (empty($documents))
+                <div class="text-center text-muted">
+                    Nenhum documento cadastrado para este tipo de equipamento.
+                </div>
+            @else
+                <div class="row g-3">
+                    @foreach ($documents as $document)
+                        <div class="col-12 col-md-6">
+                            <div class="border rounded p-3 h-100">
+                                <div class="fw-semibold mb-1">{{ $document['name'] }}</div>
+                                <small class="text-muted d-block mb-2">{{ $document['slug'] }}</small>
+                                <div class="text-body">{{ $document['value'] ?: '-' }}</div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
         </div>
     </div>
 </div>
-
