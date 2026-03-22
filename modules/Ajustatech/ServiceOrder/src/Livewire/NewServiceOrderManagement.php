@@ -303,6 +303,7 @@ class NewServiceOrderManagement extends Component
     {
         $this->availableServices = ServiceCatalogService::query()
             ->where('is_active', true)
+            ->where('is_reusable', true)
             ->orderBy('name')
             ->get(['id', 'name', 'base_price'])
             ->map(fn ($item) => [

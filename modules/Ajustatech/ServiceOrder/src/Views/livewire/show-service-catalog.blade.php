@@ -10,8 +10,10 @@
                 <thead>
                     <tr>
                         <th>Servico</th>
+                        <th>Procedimentos</th>
                         <th>Valor base</th>
                         <th>Status</th>
+                        <th>Uso futuro</th>
                         <th class="text-end">Acoes</th>
                     </tr>
                 </thead>
@@ -24,8 +26,10 @@
                                     <small class="text-muted">{{ $service->description }}</small>
                                 @endif
                             </td>
+                            <td>{{ $service->steps_count }}</td>
                             <td>R$ {{ number_format((float) $service->base_price, 2, ',', '.') }}</td>
                             <td>{{ $service->is_active ? 'Ativo' : 'Inativo' }}</td>
+                            <td>{{ $service->is_reusable ? 'Sim' : 'Nao' }}</td>
                             <td class="text-end">
                                 <a class="btn btn-sm btn-icon btn-text-secondary rounded-pill me-1"
                                    href="{{ route('service-order-services-edit', ['id' => $service->id]) }}">
@@ -40,7 +44,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="text-center text-muted">Nenhum servico cadastrado.</td>
+                            <td colspan="6" class="text-center text-muted">Nenhum servico cadastrado.</td>
                         </tr>
                     @endforelse
                 </tbody>

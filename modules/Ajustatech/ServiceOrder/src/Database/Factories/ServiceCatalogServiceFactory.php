@@ -24,7 +24,7 @@ class ServiceCatalogServiceFactory extends Factory
             'description' => $this->faker->sentence(),
             'base_price' => $this->faker->randomFloat(2, 50, 600),
             'is_active' => true,
+            'is_reusable' => true,
         ];
     }
 }
-

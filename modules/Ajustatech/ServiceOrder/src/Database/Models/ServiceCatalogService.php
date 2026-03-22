@@ -20,6 +20,7 @@ class ServiceCatalogService extends Model
         'description',
         'base_price',
         'is_active',
+        'is_reusable',
     ];
 
     protected function casts(): array
@@ -27,6 +28,7 @@ class ServiceCatalogService extends Model
         return [
             'base_price' => 'decimal:2',
             'is_active' => 'boolean',
+            'is_reusable' => 'boolean',
         ];
     }
 
@@ -35,9 +37,14 @@ class ServiceCatalogService extends Model
         return $this->hasMany(ServiceOrderServiceItem::class, 'service_catalog_service_id');
     }
 
+    public function steps(): HasMany
+    {
+        return $this->hasMany(ServiceCatalogServiceStep::class, 'service_catalog_service_id')
+            ->orderBy('sort_order');
+    }
+
     protected static function newFactory()
     {
         return ServiceCatalogServiceFactory::new();
     }
 }
-

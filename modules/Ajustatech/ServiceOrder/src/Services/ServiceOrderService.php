@@ -79,6 +79,7 @@ class ServiceOrderService
         $order = $this->resolveOrder($order);
         $catalogServices = ServiceCatalogService::query()
             ->whereIn('id', collect($items)->pluck('service_catalog_service_id')->filter()->all())
+            ->with(['steps' => fn ($query) => $query->where('is_active', true)->orderBy('sort_order')])
             ->get()
             ->keyBy('id');
 
@@ -110,6 +111,15 @@ class ServiceOrderService
                         'name' => $catalogService->name,
                         'description' => $catalogService->description,
                         'base_price' => (float) $catalogService->base_price,
+                        'steps' => $catalogService->steps->map(fn ($step) => [
+                            'id' => $step->id,
+                            'name' => $step->name,
+                            'sort_order' => $step->sort_order,
+                            'is_required' => $step->is_required,
+                            'help_text' => $step->help_text,
+                            'technician_report_label' => $step->technician_report_label,
+                            'requires_image_proof' => $step->requires_image_proof,
+                        ])->values()->all(),
                     ],
                 ]);
             }

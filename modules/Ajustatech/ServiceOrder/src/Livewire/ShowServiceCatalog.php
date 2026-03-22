@@ -19,7 +19,10 @@ class ShowServiceCatalog extends Component
 
     public function render()
     {
-        $services = ServiceCatalogService::query()->orderBy('name')->get();
+        $services = ServiceCatalogService::query()
+            ->withCount('steps')
+            ->orderBy('name')
+            ->get();
 
         return view('service-order::livewire.show-service-catalog', [
             'services' => $services,

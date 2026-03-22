@@ -260,6 +260,26 @@ class ServiceOrderServiceTest extends TestCase
 
         $serviceA = ServiceCatalogService::factory()->create(['name' => 'Formatacao', 'base_price' => 150, 'is_active' => true]);
         $serviceB = ServiceCatalogService::factory()->create(['name' => 'Limpeza', 'base_price' => 90, 'is_active' => true]);
+        $serviceA->steps()->createMany([
+            [
+                'name' => 'Checklist inicial',
+                'sort_order' => 1,
+                'is_required' => true,
+                'help_text' => 'Verifique estado geral',
+                'technician_report_label' => 'Relato do checklist',
+                'requires_image_proof' => true,
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Executar formatacao',
+                'sort_order' => 2,
+                'is_required' => true,
+                'help_text' => 'Instalar sistema e drivers',
+                'technician_report_label' => 'Relato da formatacao',
+                'requires_image_proof' => false,
+                'is_active' => true,
+            ],
+        ]);
 
         $serviceOrderService->syncServices($order->id, [
             ['service_catalog_service_id' => $serviceA->id, 'quantity' => 1],
@@ -278,6 +298,14 @@ class ServiceOrderServiceTest extends TestCase
             'service_name' => 'Limpeza',
             'quantity' => 2,
         ]);
+
+        $itemA = $order->fresh('serviceItems')->serviceItems->firstWhere('service_catalog_service_id', $serviceA->id);
+        $this->assertNotNull($itemA);
+        $steps = $itemA->service_snapshot['steps'] ?? [];
+        $this->assertCount(2, $steps);
+        $this->assertSame('Checklist inicial', $steps[0]['name']);
+        $this->assertTrue($steps[0]['is_required']);
+        $this->assertTrue($steps[0]['requires_image_proof']);
     }
 
     private function equipmentTypePayload(): array
