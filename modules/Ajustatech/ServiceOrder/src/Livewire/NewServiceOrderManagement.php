@@ -5,6 +5,7 @@ namespace Ajustatech\ServiceOrder\Livewire;
 use Ajustatech\Customer\Database\Models\Customer;
 use Ajustatech\ServiceOrder\Database\Models\EquipmentType;
 use Ajustatech\ServiceOrder\Database\Models\ServiceCatalogService;
+use Ajustatech\ServiceOrder\Database\Models\ServiceOrder;
 use Ajustatech\ServiceOrder\Services\EquipmentTypeService;
 use Ajustatech\ServiceOrder\Services\ServiceOrderService;
 use Ajustatech\ServiceOrder\Support\EquipmentFieldType;
@@ -22,6 +23,10 @@ class NewServiceOrderManagement extends Component
 
     public string $title = 'Nova Ordem de Servico';
     public string $currentStep = 'customer';
+
+    public int $orderNumberPreview = 0;
+    public string $openingDate = '';
+    public string $openingTime = '';
 
     public string $customerSearch = '';
     public array $customerResults = [];
@@ -49,7 +54,11 @@ class NewServiceOrderManagement extends Component
 
     public function mount(EquipmentTypeService $equipmentTypeService): void
     {
-        $this->entry_date = now()->toDateString();
+        $now = now();
+        $this->entry_date = $now->toDateString();
+        $this->openingDate = $now->format('d/m/Y');
+        $this->openingTime = $now->format('H:i');
+        $this->orderNumberPreview = ServiceOrder::query()->count() + 1;
 
         $this->availableEquipmentTypes = EquipmentType::query()
             ->where('is_active', true)
@@ -80,6 +89,7 @@ class NewServiceOrderManagement extends Component
                 'name' => $customer->name,
                 'cpf_cnpj' => $customer->cpf_cnpj,
                 'email' => $customer->email,
+                'cellphone' => $customer->cellphone,
             ])
             ->all();
     }
@@ -91,19 +101,20 @@ class NewServiceOrderManagement extends Component
         $this->customerSearch = $customer->name;
         $this->customerResults = [];
         $this->showCustomerModal = false;
+        $this->resetErrorBag('customer');
     }
 
     public function clearSelectedCustomer(): void
     {
         $this->customer_id = null;
         $this->customerSearch = '';
+        $this->customerResults = [];
         $this->currentStep = 'customer';
     }
 
     public function openCustomerModal(): void
     {
         $this->showCustomerModal = true;
-        $this->customer_id = null;
     }
 
     public function closeCustomerModal(): void
@@ -118,7 +129,8 @@ class NewServiceOrderManagement extends Component
         $this->customerSearch = $name;
         $this->customerResults = [];
         $this->showCustomerModal = false;
-        $this->currentStep = 'order';
+        $this->currentStep = 'customer';
+        $this->resetErrorBag('customer');
     }
 
     #[On('service-catalog-changed')]
@@ -167,13 +179,12 @@ class NewServiceOrderManagement extends Component
 
     public function proceedToOrder(): void
     {
-        if ($this->customer_id) {
-            $this->currentStep = 'order';
+        if (!$this->customer_id) {
+            $this->addError('customer', 'Selecione um cliente existente ou cadastre um novo cliente antes de prosseguir.');
             return;
         }
 
-        $this->addError('customer', 'Selecione um cliente existente ou cadastre um novo cliente antes de prosseguir.');
-        $this->openCustomerModal();
+        $this->currentStep = 'order';
     }
 
     public function updatedEquipmentTypeId(EquipmentTypeService $equipmentTypeService): void
@@ -181,34 +192,24 @@ class NewServiceOrderManagement extends Component
         $this->loadFieldsForEquipmentType($equipmentTypeService);
     }
 
-    public function updated(string $name): void
-    {
-        if ($name !== 'equipment_type_id') {
-            return;
-        }
-
-        $this->loadFieldsForEquipmentType(app(EquipmentTypeService::class));
-    }
-
-    public function save(ServiceOrderService $serviceOrderService, EquipmentTypeService $equipmentTypeService)
+    public function save(ServiceOrderService $serviceOrderService)
     {
         $this->validate([
             'customer_id' => 'required|string|uuid|exists:customers,id',
             'equipment_type_id' => 'required|string|uuid|exists:equipment_types,id',
-            'equipment_name' => 'required|string|max:255',
-            'brand' => 'nullable|string|max:255',
-            'model' => 'nullable|string|max:255',
+            'brand' => 'required|string|max:255',
+            'model' => 'required|string|max:255',
             'serial_number' => 'nullable|string|max:255',
-            'entry_date' => 'required|date',
             'reported_issue' => 'nullable|string',
         ]);
 
         $customer = Customer::query()->findOrFail($this->customer_id);
+        $equipmentName = $this->resolveEquipmentName();
 
         $order = $serviceOrderService->create([
             'equipment_type_id' => $this->equipment_type_id,
             'customer_id' => $customer->id,
-            'equipment_name' => $this->equipment_name,
+            'equipment_name' => $equipmentName,
             'brand' => $this->brand,
             'model' => $this->model,
             'serial_number' => $this->serial_number,
@@ -261,6 +262,59 @@ class NewServiceOrderManagement extends Component
         }
 
         return redirect()->route('service-order-orders-show');
+    }
+
+    public function getCanCreateOrderProperty(): bool
+    {
+        return filled($this->customer_id);
+    }
+
+    public function getSelectedCustomerProperty(): ?array
+    {
+        if (!$this->customer_id) {
+            return null;
+        }
+
+        $customer = Customer::query()->find($this->customer_id);
+        if (!$customer) {
+            return null;
+        }
+
+        return [
+            'id' => $customer->id,
+            'name' => $customer->name,
+            'email' => $customer->email,
+            'cellphone' => $customer->cellphone,
+            'cpf_cnpj' => $customer->cpf_cnpj,
+        ];
+    }
+
+    public function getSelectedServiceRowsProperty(): array
+    {
+        $catalogById = collect($this->availableServices)->keyBy('id');
+
+        return collect($this->selectedServices)
+            ->map(function ($quantity, $serviceId) use ($catalogById) {
+                $service = $catalogById->get($serviceId);
+                if (!$service) {
+                    return null;
+                }
+
+                return [
+                    'id' => $serviceId,
+                    'name' => $service['name'],
+                    'base_price' => (float) $service['base_price'],
+                    'quantity' => max((int) $quantity, 1),
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    public function render()
+    {
+        return view('service-order::livewire.new-service-order-management');
     }
 
     private function loadFieldsForEquipmentType(EquipmentTypeService $equipmentTypeService): void
@@ -319,31 +373,13 @@ class NewServiceOrderManagement extends Component
             ->all();
     }
 
-    public function getSelectedServiceRowsProperty(): array
+    private function resolveEquipmentName(): string
     {
-        $catalogById = collect($this->availableServices)->keyBy('id');
+        $selected = collect($this->availableEquipmentTypes)
+            ->firstWhere('id', $this->equipment_type_id);
 
-        return collect($this->selectedServices)
-            ->map(function ($quantity, $serviceId) use ($catalogById) {
-                $service = $catalogById->get($serviceId);
-                if (!$service) {
-                    return null;
-                }
+        $name = trim((string) Arr::get($selected, 'name', ''));
 
-                return [
-                    'id' => $serviceId,
-                    'name' => $service['name'],
-                    'base_price' => (float) $service['base_price'],
-                    'quantity' => max((int) $quantity, 1),
-                ];
-            })
-            ->filter()
-            ->values()
-            ->all();
-    }
-
-    public function render()
-    {
-        return view('service-order::livewire.new-service-order-management');
+        return $name !== '' ? $name : 'Equipamento';
     }
 }
