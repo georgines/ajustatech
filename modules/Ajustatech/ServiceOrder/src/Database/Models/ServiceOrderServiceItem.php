@@ -21,6 +21,7 @@ class ServiceOrderServiceItem extends Model
         'service_name',
         'quantity',
         'unit_price',
+        'discount_amount',
         'service_snapshot',
     ];
 
@@ -29,6 +30,7 @@ class ServiceOrderServiceItem extends Model
         return [
             'quantity' => 'integer',
             'unit_price' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
             'service_snapshot' => 'array',
         ];
     }
@@ -48,4 +50,3 @@ class ServiceOrderServiceItem extends Model
         return ServiceOrderServiceItemFactory::new();
     }
 }
-

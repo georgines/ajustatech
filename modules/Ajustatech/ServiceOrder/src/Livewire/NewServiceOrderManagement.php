@@ -2,6 +2,7 @@
 
 namespace Ajustatech\ServiceOrder\Livewire;
 
+use Ajustatech\Core\Traits\SwitchAlertDispatch;
 use Ajustatech\Customer\Database\Models\Customer;
 use Ajustatech\ServiceOrder\Database\Models\EquipmentType;
 use Ajustatech\ServiceOrder\Database\Models\ServiceCatalogService;
@@ -10,6 +11,8 @@ use Ajustatech\ServiceOrder\Services\EquipmentTypeService;
 use Ajustatech\ServiceOrder\Services\ServiceOrderService;
 use Ajustatech\ServiceOrder\Support\EquipmentFieldType;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
@@ -20,6 +23,7 @@ use Livewire\Features\SupportFileUploads\WithFileUploads;
 class NewServiceOrderManagement extends Component
 {
     use WithFileUploads;
+    use SwitchAlertDispatch;
 
     public string $title = 'Nova Ordem de Servico';
     public string $currentStep = 'customer';
@@ -49,8 +53,16 @@ class NewServiceOrderManagement extends Component
 
     public array $availableServices = [];
     public array $selectedServices = [];
+    public array $serviceDiscounts = [];
     public ?string $serviceToAddId = null;
     public bool $showServiceModal = false;
+    public bool $showServiceEditModal = false;
+    public ?string $editingServiceId = null;
+    public ?string $editServiceSelectionId = null;
+    public int $editServiceQty = 1;
+    public $editServiceDiscount = '0,00';
+    public string $productFilter = '';
+    public string $serviceFilter = '';
 
     public function mount(EquipmentTypeService $equipmentTypeService): void
     {
@@ -153,7 +165,9 @@ class NewServiceOrderManagement extends Component
     public function includeAllRegisteredServices(): void
     {
         foreach ($this->availableServices as $service) {
-            $this->selectedServices[$service['id']] = max((int) ($this->selectedServices[$service['id']] ?? 0), 1);
+            $serviceId = (string) $service['id'];
+            $this->selectedServices[$serviceId] = max((int) ($this->selectedServices[$serviceId] ?? 0), 1);
+            $this->serviceDiscounts[$serviceId] = $this->normalizedDiscount($this->serviceDiscounts[$serviceId] ?? 0);
         }
     }
 
@@ -169,12 +183,118 @@ class NewServiceOrderManagement extends Component
         }
 
         $this->selectedServices[$this->serviceToAddId] = max((int) ($this->selectedServices[$this->serviceToAddId] ?? 0), 1);
+        $this->serviceDiscounts[$this->serviceToAddId] = $this->normalizedDiscount($this->serviceDiscounts[$this->serviceToAddId] ?? 0);
         $this->serviceToAddId = null;
     }
 
+    public function openServiceEditModal(string $serviceId): void
+    {
+        if (!array_key_exists($serviceId, $this->selectedServices)) {
+            return;
+        }
+
+        $this->editingServiceId = $serviceId;
+        $this->editServiceSelectionId = $serviceId;
+        $this->editServiceQty = max((int) Arr::get($this->selectedServices, $serviceId, 1), 1);
+        $this->editServiceDiscount = number_format($this->normalizedDiscount($this->serviceDiscounts[$serviceId] ?? 0), 2, ',', '');
+        $this->showServiceEditModal = true;
+    }
+
+    public function closeServiceEditModal(): void
+    {
+        $this->showServiceEditModal = false;
+        $this->editingServiceId = null;
+        $this->editServiceSelectionId = null;
+        $this->editServiceQty = 1;
+        $this->editServiceDiscount = '0,00';
+        $this->resetErrorBag(['editServiceSelectionId', 'editServiceQty', 'editServiceDiscount']);
+    }
+
+    public function confirmSaveServiceEdition(): void
+    {
+        if (!$this->editingServiceId || !$this->editServiceSelectionId) {
+            return;
+        }
+
+        $this->validate([
+            'editServiceSelectionId' => ['required', 'string', 'uuid'],
+            'editServiceQty' => ['required', 'integer', 'min:1', 'max:100'],
+            'editServiceDiscount' => ['required'],
+        ]);
+
+        $normalizedDiscount = $this->parseDecimalToFloat($this->editServiceDiscount);
+        if ($normalizedDiscount === null) {
+            $this->addError('editServiceDiscount', 'Informe um desconto valido. Ex.: 10,50');
+            return;
+        }
+
+        $gross = $this->editServiceGrossAmount;
+        if ($normalizedDiscount > $gross) {
+            $this->addError('editServiceDiscount', 'O desconto nao pode ser maior que o total do servico.');
+            return;
+        }
+
+        if (
+            $this->editServiceSelectionId !== $this->editingServiceId
+            && array_key_exists($this->editServiceSelectionId, $this->selectedServices)
+        ) {
+            $this->addError('editServiceSelectionId', 'Este servico ja esta adicionado na ordem.');
+            return;
+        }
+
+        $this->resetErrorBag(['editServiceSelectionId', 'editServiceQty', 'editServiceDiscount']);
+
+        $this->dispatchConfirmation('Confirmar alteracao do servico?')
+            ->typeWarning()
+            ->setButtonOK('Sim')
+            ->setButtonCancel('Nao')
+            ->to(
+                'service-order-apply-service-edit',
+                $this->editingServiceId,
+                $this->editServiceSelectionId,
+                $this->editServiceQty,
+                $normalizedDiscount
+            )
+            ->run();
+    }
+
+    #[On('service-order-apply-service-edit')]
+    public function applyServiceEdition(string $oldServiceId, string $newServiceId, int $quantity, mixed $discount): void
+    {
+        if (!array_key_exists($oldServiceId, $this->selectedServices)) {
+            return;
+        }
+
+        $qty = max((int) $quantity, 1);
+        unset($this->selectedServices[$oldServiceId], $this->serviceDiscounts[$oldServiceId]);
+
+        $this->selectedServices[$newServiceId] = $qty;
+        $normalized = min($this->normalizedDiscount($discount), $this->serviceGrossAmount($newServiceId));
+        $this->serviceDiscounts[$newServiceId] = $normalized;
+        $this->closeServiceEditModal();
+    }
+
+    public function confirmRemoveService(string $serviceId): void
+    {
+        if (!array_key_exists($serviceId, $this->selectedServices)) {
+            return;
+        }
+
+        $name = (string) Arr::get(collect($this->availableServices)->firstWhere('id', $serviceId), 'name', 'servico');
+
+        $this->dispatchConfirmation('Confirma remover o servico "' . $name . '" desta ordem?')
+            ->typeWarning()
+            ->setButtonOK('Sim')
+            ->setButtonCancel('Nao')
+            ->to('service-order-remove-service', $serviceId)
+            ->run();
+    }
+
+    #[On('service-order-remove-service')]
     public function removeServiceFromOrder(string $serviceId): void
     {
         unset($this->selectedServices[$serviceId]);
+        unset($this->serviceDiscounts[$serviceId]);
     }
 
     public function proceedToOrder(): void
@@ -194,6 +314,8 @@ class NewServiceOrderManagement extends Component
 
     public function save(ServiceOrderService $serviceOrderService)
     {
+        $this->resetErrorBag();
+
         $this->validate([
             'customer_id' => 'required|string|uuid|exists:customers,id',
             'equipment_type_id' => 'required|string|uuid|exists:equipment_types,id',
@@ -203,59 +325,64 @@ class NewServiceOrderManagement extends Component
             'reported_issue' => 'nullable|string',
         ]);
 
+        $this->validateDynamicRequiredFields();
+        $this->validateSelectedServices();
+
         $customer = Customer::query()->findOrFail($this->customer_id);
         $equipmentName = $this->resolveEquipmentName();
 
-        $order = $serviceOrderService->create([
-            'equipment_type_id' => $this->equipment_type_id,
-            'customer_id' => $customer->id,
-            'equipment_name' => $equipmentName,
-            'brand' => $this->brand,
-            'model' => $this->model,
-            'serial_number' => $this->serial_number,
-            'entry_date' => $this->entry_date,
-            'reported_issue' => $this->reported_issue,
-        ]);
+        try {
+            DB::transaction(function () use ($serviceOrderService, $customer, $equipmentName) {
+                $order = $serviceOrderService->create([
+                    'equipment_type_id' => $this->equipment_type_id,
+                    'customer_id' => $customer->id,
+                    'equipment_name' => $equipmentName,
+                    'brand' => $this->brand,
+                    'model' => $this->model,
+                    'serial_number' => $this->serial_number,
+                    'entry_date' => $this->entry_date,
+                    'reported_issue' => $this->reported_issue,
+                ]);
 
-        $textualValues = [];
-        $attachments = [];
+                $textualValues = [];
+                $attachments = [];
 
-        foreach ($this->activeFieldSnapshots as $field) {
-            $slug = Arr::get($field, 'slug');
-            $fieldType = Arr::get($field, 'field_type');
+                foreach ($this->activeFieldSnapshots as $field) {
+                    $slug = Arr::get($field, 'slug');
+                    $fieldType = Arr::get($field, 'field_type');
 
-            if (EquipmentFieldType::isAttachment($fieldType)) {
-                $uploads = Arr::get($this->uploadedFiles, $slug, []);
-                if (!is_array($uploads)) {
-                    $uploads = $uploads ? [$uploads] : [];
+                    if (EquipmentFieldType::isAttachment($fieldType)) {
+                        $uploads = Arr::get($this->uploadedFiles, $slug, []);
+                        if (!is_array($uploads)) {
+                            $uploads = $uploads ? [$uploads] : [];
+                        }
+
+                        $attachments[$slug] = collect($uploads)
+                            ->filter()
+                            ->map(function ($upload) use ($order) {
+                                $path = $upload->store('service-orders/' . $order->id, 'public');
+
+                                return [
+                                    'disk' => 'public',
+                                    'path' => $path,
+                                    'original_name' => $upload->getClientOriginalName(),
+                                    'mime_type' => $upload->getMimeType(),
+                                    'extension' => strtolower($upload->getClientOriginalExtension()),
+                                    'size' => $upload->getSize(),
+                                ];
+                            })
+                            ->values()
+                            ->all();
+
+                        continue;
+                    }
+
+                    $textualValues[$slug] = Arr::get($this->fieldValues, $slug);
                 }
 
-                $attachments[$slug] = collect($uploads)
-                    ->filter()
-                    ->map(function ($upload) use ($order) {
-                        $path = $upload->store('service-orders/' . $order->id, 'public');
-
-                        return [
-                            'disk' => 'public',
-                            'path' => $path,
-                            'original_name' => $upload->getClientOriginalName(),
-                            'mime_type' => $upload->getMimeType(),
-                            'extension' => strtolower($upload->getClientOriginalExtension()),
-                            'size' => $upload->getSize(),
-                        ];
-                    })
-                    ->values()
-                    ->all();
-
-                continue;
-            }
-
-            $textualValues[$slug] = Arr::get($this->fieldValues, $slug);
-        }
-
-        try {
-            $serviceOrderService->fillFields($order->id, $textualValues, $attachments);
-            $serviceOrderService->syncServices($order->id, $this->normalizedServices());
+                $serviceOrderService->fillFields($order->id, $textualValues, $attachments);
+                $serviceOrderService->syncServices($order->id, $this->normalizedServices());
+            });
         } catch (ValidationException $exception) {
             $this->setErrorBag($exception->validator->getMessageBag());
             return null;
@@ -300,16 +427,72 @@ class NewServiceOrderManagement extends Component
                     return null;
                 }
 
+                $unit = (float) $service['base_price'];
+                $qty = max((int) $quantity, 1);
+                $gross = $unit * $qty;
+                $discount = min($this->normalizedDiscount(Arr::get($this->serviceDiscounts, $serviceId, 0)), $gross);
+
                 return [
                     'id' => $serviceId,
                     'name' => $service['name'],
-                    'base_price' => (float) $service['base_price'],
-                    'quantity' => max((int) $quantity, 1),
+                    'base_price' => $unit,
+                    'quantity' => $qty,
+                    'discount' => $discount,
+                    'line_total' => max($gross - $discount, 0),
                 ];
             })
             ->filter()
             ->values()
             ->all();
+    }
+
+    public function getFilteredServiceRowsProperty(): array
+    {
+        $filter = mb_strtolower(trim($this->serviceFilter));
+        $rows = $this->selectedServiceRows;
+
+        if ($filter === '') {
+            return $rows;
+        }
+
+        return collect($rows)
+            ->filter(fn (array $row) => str_contains(mb_strtolower((string) Arr::get($row, 'name', '')), $filter))
+            ->values()
+            ->all();
+    }
+
+    public function getServiceSummaryProperty(): array
+    {
+        $gross = collect($this->selectedServiceRows)
+            ->sum(fn (array $row) => ((float) Arr::get($row, 'base_price', 0)) * ((int) Arr::get($row, 'quantity', 0)));
+
+        $discount = collect($this->selectedServiceRows)
+            ->sum(fn (array $row) => (float) Arr::get($row, 'discount', 0));
+        $net = $gross - $discount;
+
+        return [
+            'gross' => $gross,
+            'discount' => $discount,
+            'net' => $net,
+        ];
+    }
+
+    public function getProductSummaryProperty(): array
+    {
+        return [
+            'gross' => 0.0,
+            'discount' => 0.0,
+            'net' => 0.0,
+        ];
+    }
+
+    public function getEquipmentTotalsProperty(): array
+    {
+        return [
+            'gross' => (float) Arr::get($this->serviceSummary, 'gross', 0) + (float) Arr::get($this->productSummary, 'gross', 0),
+            'discount' => (float) Arr::get($this->serviceSummary, 'discount', 0) + (float) Arr::get($this->productSummary, 'discount', 0),
+            'net' => (float) Arr::get($this->serviceSummary, 'net', 0) + (float) Arr::get($this->productSummary, 'net', 0),
+        ];
     }
 
     public function render()
@@ -346,6 +529,7 @@ class NewServiceOrderManagement extends Component
                 return [
                     'service_catalog_service_id' => $serviceId,
                     'quantity' => $qty,
+                    'discount' => $this->normalizedDiscount($this->serviceDiscounts[$serviceId] ?? 0),
                 ];
             })
             ->filter()
@@ -371,6 +555,9 @@ class NewServiceOrderManagement extends Component
         $this->selectedServices = collect($this->selectedServices)
             ->filter(fn ($qty, $serviceId) => in_array($serviceId, $activeIds, true))
             ->all();
+        $this->serviceDiscounts = collect($this->serviceDiscounts)
+            ->filter(fn ($value, $serviceId) => in_array($serviceId, $activeIds, true))
+            ->all();
     }
 
     private function resolveEquipmentName(): string
@@ -381,5 +568,119 @@ class NewServiceOrderManagement extends Component
         $name = trim((string) Arr::get($selected, 'name', ''));
 
         return $name !== '' ? $name : 'Equipamento';
+    }
+
+    private function normalizedDiscount(mixed $value): float
+    {
+        $parsed = $this->parseDecimalToFloat($value);
+        if ($parsed === null) {
+            return 0.0;
+        }
+
+        return max($parsed, 0);
+    }
+
+    private function serviceGrossAmount(string $serviceId): float
+    {
+        $service = collect($this->availableServices)->firstWhere('id', $serviceId);
+        if (!$service) {
+            return 0.0;
+        }
+
+        $qty = max((int) Arr::get($this->selectedServices, $serviceId, 1), 1);
+        $unit = (float) Arr::get($service, 'base_price', 0);
+
+        return $qty * $unit;
+    }
+
+    public function getEditServiceUnitPriceProperty(): float
+    {
+        if (!$this->editServiceSelectionId) {
+            return 0;
+        }
+
+        $service = collect($this->availableServices)->firstWhere('id', $this->editServiceSelectionId);
+
+        return (float) Arr::get($service, 'base_price', 0);
+    }
+
+    public function getEditServiceGrossAmountProperty(): float
+    {
+        return max((int) $this->editServiceQty, 1) * $this->editServiceUnitPrice;
+    }
+
+    public function getEditServiceNetAmountProperty(): float
+    {
+        return max($this->editServiceGrossAmount - $this->normalizedDiscount($this->editServiceDiscount), 0);
+    }
+
+    private function parseDecimalToFloat(mixed $value): ?float
+    {
+        if (is_int($value) || is_float($value)) {
+            return (float) $value;
+        }
+
+        if (!is_string($value)) {
+            return null;
+        }
+
+        $normalized = trim($value);
+        if ($normalized === '') {
+            return null;
+        }
+
+        $normalized = str_replace(',', '.', $normalized);
+
+        if (!preg_match('/^\d+(\.\d{1,2})?$/', $normalized)) {
+            return null;
+        }
+
+        return (float) $normalized;
+    }
+
+    private function validateDynamicRequiredFields(): void
+    {
+        $messages = [];
+
+        foreach ($this->activeFieldSnapshots as $field) {
+            $slug = (string) Arr::get($field, 'slug');
+            $name = (string) Arr::get($field, 'name', $slug);
+            $required = (bool) Arr::get($field, 'is_required', false);
+            $fieldType = (string) Arr::get($field, 'field_type');
+
+            if (!$required || $slug === '') {
+                continue;
+            }
+
+            if (EquipmentFieldType::isAttachment($fieldType)) {
+                $uploads = Arr::get($this->uploadedFiles, $slug, []);
+                if (!is_array($uploads)) {
+                    $uploads = $uploads ? [$uploads] : [];
+                }
+
+                if (collect($uploads)->filter()->isEmpty()) {
+                    $messages['uploadedFiles.' . $slug] = 'O campo "' . $name . '" é obrigatório.';
+                }
+                continue;
+            }
+
+            $value = Arr::get($this->fieldValues, $slug);
+            $emptyText = is_string($value) && trim($value) === '';
+            if ($value === null || $emptyText) {
+                $messages['fieldValues.' . $slug] = 'O campo "' . $name . '" é obrigatório.';
+            }
+        }
+
+        if (!empty($messages)) {
+            throw ValidationException::withMessages($messages);
+        }
+    }
+
+    private function validateSelectedServices(): void
+    {
+        Validator::make(
+            ['selectedServices' => $this->selectedServices],
+            ['selectedServices.*' => ['nullable', 'integer', 'min:1', 'max:100']]
+        )->validate();
     }
 }

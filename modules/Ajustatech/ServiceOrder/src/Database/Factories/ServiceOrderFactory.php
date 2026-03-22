@@ -30,4 +30,19 @@ class ServiceOrderFactory extends Factory
             'fields_snapshot' => [],
         ];
     }
+
+    public function open(): self
+    {
+        return $this->state(fn () => ['status' => 'open']);
+    }
+
+    public function cancelled(): self
+    {
+        return $this->state(fn () => ['status' => 'canceled']);
+    }
+
+    public function completed(): self
+    {
+        return $this->state(fn () => ['status' => 'completed']);
+    }
 }

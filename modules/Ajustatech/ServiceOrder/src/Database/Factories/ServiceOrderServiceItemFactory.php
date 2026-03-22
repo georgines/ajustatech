@@ -21,6 +21,7 @@ class ServiceOrderServiceItemFactory extends Factory
             'service_name' => $this->faker->words(2, true),
             'quantity' => $this->faker->numberBetween(1, 3),
             'unit_price' => $this->faker->randomFloat(2, 30, 300),
+            'discount_amount' => $this->faker->randomFloat(2, 0, 30),
             'service_snapshot' => [
                 'id' => null,
                 'name' => 'Snapshot',
@@ -29,4 +30,3 @@ class ServiceOrderServiceItemFactory extends Factory
         ];
     }
 }
-

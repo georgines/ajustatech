@@ -282,7 +282,7 @@ class ServiceOrderServiceTest extends TestCase
         ]);
 
         $serviceOrderService->syncServices($order->id, [
-            ['service_catalog_service_id' => $serviceA->id, 'quantity' => 1],
+            ['service_catalog_service_id' => $serviceA->id, 'quantity' => 1, 'discount' => 10.5],
             ['service_catalog_service_id' => $serviceB->id, 'quantity' => 2],
         ]);
 
@@ -291,6 +291,7 @@ class ServiceOrderServiceTest extends TestCase
             'service_catalog_service_id' => $serviceA->id,
             'service_name' => 'Formatacao',
             'quantity' => 1,
+            'discount_amount' => 10.50,
         ]);
         $this->assertDatabaseHas('service_order_service_items', [
             'service_order_id' => $order->id,
@@ -301,6 +302,7 @@ class ServiceOrderServiceTest extends TestCase
 
         $itemA = $order->fresh('serviceItems')->serviceItems->firstWhere('service_catalog_service_id', $serviceA->id);
         $this->assertNotNull($itemA);
+        $this->assertSame('10.50', (string) $itemA->discount_amount);
         $steps = $itemA->service_snapshot['steps'] ?? [];
         $this->assertCount(2, $steps);
         $this->assertSame('Checklist inicial', $steps[0]['name']);

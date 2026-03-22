@@ -13,6 +13,7 @@
                         <th>Equipamento</th>
                         <th>Servicos</th>
                         <th>Status</th>
+                        <th class="text-end">Acoes</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -22,11 +23,30 @@
                             <td>{{ $order->customer_name }}</td>
                             <td>{{ $order->equipment_name }}</td>
                             <td>{{ $order->serviceItems->count() }}</td>
-                            <td>{{ $order->status }}</td>
+                            <td>{{ $statusLabels[$order->status] ?? $order->status }}</td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-icon btn-text-secondary rounded-pill me-1"
+                                   href="{{ route('service-order-orders-edit', ['id' => $order->id]) }}"
+                                   title="Editar ordem">
+                                    <i class="ti ti-pencil"></i>
+                                </a>
+                                <a class="btn btn-sm btn-icon btn-text-secondary rounded-pill me-1"
+                                   href="{{ route('service-order-orders-documents', ['id' => $order->id]) }}"
+                                   title="Ver documentos">
+                                    <i class="ti ti-file-text"></i>
+                                </a>
+                                <button class="btn btn-sm btn-icon btn-text-secondary rounded-pill text-danger"
+                                        type="button"
+                                        wire:click="confirmCancelOrder('{{ $order->id }}')"
+                                        @disabled($order->status === 'canceled')
+                                        title="Cancelar ordem">
+                                    <i class="ti ti-ban"></i>
+                                </button>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-muted">Nenhuma ordem de servico cadastrada.</td>
+                            <td colspan="6" class="text-center text-muted">Nenhuma ordem de servico cadastrada.</td>
                         </tr>
                     @endforelse
                 </tbody>

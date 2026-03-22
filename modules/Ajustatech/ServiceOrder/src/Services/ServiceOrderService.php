@@ -90,6 +90,7 @@ class ServiceOrderService
                 $validated = Validator::make($item, [
                     'service_catalog_service_id' => ['required', 'string', 'uuid'],
                     'quantity' => ['required', 'integer', 'min:1', 'max:100'],
+                    'discount' => ['nullable', 'numeric', 'min:0'],
                 ])->validate();
 
                 /** @var ServiceCatalogService|null $catalogService */
@@ -100,17 +101,29 @@ class ServiceOrderService
                     ]);
                 }
 
+                $quantity = (int) Arr::get($validated, 'quantity', 1);
+                $unitPrice = (float) $catalogService->base_price;
+                $discount = (float) Arr::get($validated, 'discount', 0);
+                $lineGross = $quantity * $unitPrice;
+                if ($discount > $lineGross) {
+                    throw ValidationException::withMessages([
+                        'services' => 'Discount cannot be greater than service total.',
+                    ]);
+                }
+
                 ServiceOrderServiceItem::query()->create([
                     'service_order_id' => $order->id,
                     'service_catalog_service_id' => $catalogService->id,
                     'service_name' => $catalogService->name,
-                    'quantity' => (int) Arr::get($validated, 'quantity', 1),
-                    'unit_price' => (float) $catalogService->base_price,
+                    'quantity' => $quantity,
+                    'unit_price' => $unitPrice,
+                    'discount_amount' => $discount,
                     'service_snapshot' => [
                         'id' => $catalogService->id,
                         'name' => $catalogService->name,
                         'description' => $catalogService->description,
-                        'base_price' => (float) $catalogService->base_price,
+                        'base_price' => $unitPrice,
+                        'discount' => $discount,
                         'steps' => $catalogService->steps->map(fn ($step) => [
                             'id' => $step->id,
                             'name' => $step->name,

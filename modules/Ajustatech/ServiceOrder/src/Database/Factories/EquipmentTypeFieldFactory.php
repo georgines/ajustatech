@@ -22,7 +22,7 @@ class EquipmentTypeFieldFactory extends Factory
             'equipment_type_id' => EquipmentType::factory(),
             'field_type' => $fieldType,
             'name' => $this->faker->words(3, true),
-            'slug' => $this->faker->unique()->slug('_'),
+            'slug' => $this->faker->unique()->slug(2, '_'),
             'sort_order' => $this->faker->numberBetween(1, 20),
             'is_required' => $this->faker->boolean(60),
             'is_printable' => in_array($fieldType, [EquipmentFieldType::PHOTO, EquipmentFieldType::FILE], true)
@@ -57,4 +57,3 @@ class EquipmentTypeFieldFactory extends Factory
         };
     }
 }
-

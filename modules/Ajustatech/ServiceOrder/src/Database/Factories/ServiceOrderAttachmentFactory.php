@@ -19,7 +19,7 @@ class ServiceOrderAttachmentFactory extends Factory
             'id' => (string) Str::uuid(),
             'service_order_id' => ServiceOrder::factory(),
             'equipment_type_field_id' => EquipmentTypeField::factory(),
-            'field_slug' => $this->faker->slug('_'),
+            'field_slug' => $this->faker->slug(2, '_'),
             'attachment_type' => $this->faker->randomElement([EquipmentFieldType::PHOTO, EquipmentFieldType::FILE]),
             'disk' => 'public',
             'path' => 'service-orders/' . $this->faker->uuid() . '.jpg',
@@ -31,4 +31,3 @@ class ServiceOrderAttachmentFactory extends Factory
         ];
     }
 }
-

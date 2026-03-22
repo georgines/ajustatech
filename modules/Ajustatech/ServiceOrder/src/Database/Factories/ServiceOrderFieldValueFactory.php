@@ -19,7 +19,7 @@ class ServiceOrderFieldValueFactory extends Factory
             'id' => (string) Str::uuid(),
             'service_order_id' => ServiceOrder::factory(),
             'equipment_type_field_id' => EquipmentTypeField::factory(),
-            'field_slug' => $this->faker->unique()->slug('_'),
+            'field_slug' => $this->faker->unique()->slug(2, '_'),
             'field_type' => EquipmentFieldType::TEXT,
             'value_text' => $this->faker->sentence(),
             'value_json' => null,
@@ -31,4 +31,3 @@ class ServiceOrderFieldValueFactory extends Factory
         ];
     }
 }
-
