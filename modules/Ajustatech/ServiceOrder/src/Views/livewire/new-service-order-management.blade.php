@@ -28,7 +28,7 @@
     <div class="card mb-4">
         <div class="card-body">
             <div class="row g-3">
-                <div class="col-12 col-lg-7">
+                <div class="col-12">
                     <div class="row g-3">
                         <div class="col-12 col-md-4">
                             <label class="form-label text-danger">Numero da O.S.</label>
@@ -48,7 +48,7 @@
                     </div>
                 </div>
 
-                <div class="col-12 col-lg-5">
+                <div class="col-12 col-lg-8">
                     <div class="d-flex gap-3 mb-2 small text-muted">
                         <span class="text-success fw-semibold border-bottom border-success">Nome</span>
                         <span>Celular</span>
@@ -86,15 +86,32 @@
                     @enderror
 
                     @if ($this->selectedCustomer)
-                        <div class="alert alert-success mb-3">
-                            Cliente selecionado: <strong>{{ $this->selectedCustomer['name'] }}</strong>
-                            @if ($this->selectedCustomer['cpf_cnpj'])
-                                | {{ $this->selectedCustomer['cpf_cnpj'] }}
-                            @endif
+                        <div class="card border-success mb-3">
+                            <div class="card-body py-3">
+                                <div class="fw-semibold text-success mb-2">Dados do cliente</div>
+                                <div class="row g-2 small">
+                                    <div class="col-12 col-md-4">
+                                        <div class="text-muted">Nome</div>
+                                        <div class="fw-semibold">{{ $this->selectedCustomer['name'] }}</div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="text-muted">E-mail</div>
+                                        <div>{{ $this->selectedCustomer['email'] ?: '-' }}</div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="text-muted">CPF/CNPJ</div>
+                                        <div>{{ $this->selectedCustomer['cpf_cnpj'] ?: '-' }}</div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="text-muted">Celular</div>
+                                        <div>{{ $this->selectedCustomer['cellphone'] ?: '-' }}</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     @endif
 
-                    <div class="d-flex flex-wrap gap-2 justify-content-end">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="button" class="btn btn-outline-secondary" wire:click="clearSelectedCustomer">Limpar selecao</button>
                         <button type="button" class="btn btn-success" wire:click="openCustomerModal">
                             <i class="ti ti-plus me-1"></i> NOVO CLIENTE
@@ -164,14 +181,17 @@
             <div class="card-body">
                 @forelse ($activeFieldSnapshots as $field)
                     @php
-                        $slug = $field['slug'];
-                        $type = $field['field_type'];
+                        $slug = (string) data_get($field, 'slug', '');
+                        $type = (string) data_get($field, 'field_type', '');
+                        $isRequired = (bool) data_get($field, 'is_required', false);
+                        $isPrintable = (bool) data_get($field, 'is_printable', true);
+                        $fieldName = (string) data_get($field, 'name', $slug);
                     @endphp
                     <div class="mb-3">
                         <label class="form-label">
-                            {{ $field['name'] }}
-                            @if ($field['is_required']) <span class="text-danger">*</span> @endif
-                            @if (!$field['is_printable']) <small class="text-muted">(interno)</small> @endif
+                            {{ $fieldName }}
+                            @if ($isRequired) <span class="text-danger">*</span> @endif
+                            @if (!$isPrintable) <small class="text-muted">(interno)</small> @endif
                         </label>
 
                         @if ($type === 'text' || $type === 'document')
@@ -211,50 +231,75 @@
 
         <div class="card mb-4">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-md-center gap-2 mb-3">
                     <h4 class="mb-0">Produtos e servicos deste Equipamento</h4>
-                    <button type="button" class="btn btn-primary" wire:click="openServiceModal">
+                    <button type="button" class="btn btn-primary w-100 w-md-auto" wire:click="openServiceModal">
                         <i class="ti ti-tool me-1"></i> NOVO PRODUTO / SERVICO
                     </button>
                 </div>
 
-                <div class="row g-2 align-items-end mb-3">
-                    <div class="col-12 col-md-7">
-                        <label class="form-label">Produto / Servico cadastrado</label>
-                        <select class="form-select" wire:model="serviceToAddId">
-                            <option value="">Selecione um servico cadastrado</option>
-                            @foreach ($availableServices as $serviceOption)
-                                <option value="{{ $serviceOption['id'] }}">{{ $serviceOption['name'] }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-12 col-md-3">
-                        <button type="button" class="btn btn-outline-primary w-100" wire:click="addServiceToOrder">ADICIONAR</button>
-                    </div>
-                    <div class="col-12 col-md-2">
-                        <button type="button" class="btn btn-outline-secondary w-100" wire:click="includeAllRegisteredServices">TODOS</button>
-                    </div>
-                </div>
-
-                <div class="border rounded p-3 mb-3 bg-label-success">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 class="mb-0">Produtos</h5>
-                        <button type="button" class="btn btn-sm btn-secondary" disabled>
-                            <i class="ti ti-arrows-shuffle me-1"></i> MOVIMENTAR ESTOQUES
+                <div class="mb-3">
+                    <label class="form-label">Produto / Servico cadastrado</label>
+                    <div class="input-group">
+                        <span class="input-group-text" id="service-catalog-search-addon">
+                            <i class="ti ti-search"></i>
+                        </span>
+                        <input type="text"
+                               class="form-control"
+                               wire:model.live.debounce.300ms="serviceCatalogSearch"
+                               placeholder="Busque e selecione um produto/servico"
+                               aria-label="Buscar produto ou servico"
+                               aria-describedby="service-catalog-search-addon">
+                        <button type="button"
+                                class="btn btn-outline-primary"
+                                wire:click="addServiceToOrder"
+                                @disabled(!$this->canAddCatalogService)>
+                            <i class="ti ti-plus me-1"></i>ADICIONAR
                         </button>
                     </div>
-                    <div class="mb-3">
-                        <input class="form-control" type="text" wire:model.live.debounce.300ms="productFilter" placeholder="Filtrar produtos">
+
+                    @if (!empty($serviceCatalogSearchResults))
+                        <div class="list-group mt-2" style="max-height: 220px; overflow-y: auto;">
+                            @foreach ($serviceCatalogSearchResults as $serviceItem)
+                                <button type="button"
+                                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                                        wire:click="selectCatalogService('{{ $serviceItem['id'] }}')">
+                                    <span>{{ $serviceItem['name'] }}</span>
+                                    <span class="text-muted small">R$ {{ number_format((float) $serviceItem['base_price'], 2, ',', '.') }}</span>
+                                </button>
+                            @endforeach
+                        </div>
+                    @elseif (mb_strlen(trim($serviceCatalogSearch)) >= 2)
+                        <small class="text-muted d-block mt-2">Nenhum servico encontrado.</small>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body p-0">
+                <div class="card mb-0">
+                    <h5 class="card-header">Produtos</h5>
+                    <div class="table-responsive text-nowrap">
+                        <table class="table mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Descricao</th>
+                                    <th>Est.</th>
+                                    <th>Qtd.</th>
+                                    <th>R$ Unit.</th>
+                                    <th>R$ Desc.</th>
+                                    <th>R$ Total</th>
+                                </tr>
+                            </thead>
+                            <tbody class="table-border-bottom-0">
+                                <tr>
+                                    <td colspan="6" class="text-muted">Sem itens de produto nesta etapa.</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="row text-muted small fw-semibold mb-2">
-                        <div class="col-12 col-md-3">Descricao</div>
-                        <div class="col-6 col-md-1">Est.</div>
-                        <div class="col-6 col-md-1">Qtd.</div>
-                        <div class="col-6 col-md-2">R$ Unit.</div>
-                        <div class="col-6 col-md-2">R$ Desc.</div>
-                        <div class="col-12 col-md-3">R$ Total</div>
-                    </div>
-                    <div class="row text-center">
+                    <div class="row text-center p-3 pt-2">
                         <div class="col-12 col-md-4">
                             <div class="small">Subtotal Bruto de Produtos:</div>
                             <div class="fw-bold">R$ {{ number_format($this->productSummary['gross'], 2, ',', '.') }}</div>
@@ -269,43 +314,51 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <div class="border rounded p-3 mb-3 bg-label-info">
-                    <h5 class="mb-2">Servicos</h5>
-                    <div class="mb-3">
-                        <input class="form-control" type="text" wire:model.live.debounce.300ms="serviceFilter" placeholder="Filtrar servicos">
+        <div class="card mb-4">
+            <div class="card-body p-0">
+                <div class="card mb-0">
+                    <h5 class="card-header">Servicos</h5>
+                    <div class="table-responsive text-nowrap">
+                        <table class="table mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Servico</th>
+                                    <th>Qtd.</th>
+                                    <th>R$ Unit.</th>
+                                    <th>R$ Desc.</th>
+                                    <th>R$ Total</th>
+                                    <th class="text-end">Acoes</th>
+                                </tr>
+                            </thead>
+                            <tbody class="table-border-bottom-0">
+                                @forelse ($this->filteredServiceRows as $service)
+                                    <tr>
+                                        <td class="fw-semibold">{{ $service['name'] }}</td>
+                                        <td>{{ $service['quantity'] }}</td>
+                                        <td>R$ {{ number_format($service['base_price'], 2, ',', '.') }}</td>
+                                        <td>R$ {{ number_format($service['discount'], 2, ',', '.') }}</td>
+                                        <td>R$ {{ number_format($service['line_total'], 2, ',', '.') }}</td>
+                                        <td class="text-end">
+                                            <button type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" wire:click="openServiceEditModal('{{ $service['id'] }}')" title="Editar servico">
+                                                <i class="ti ti-pencil"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill text-danger" wire:click="confirmRemoveService('{{ $service['id'] }}')" title="Remover servico">
+                                                <i class="ti ti-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" class="text-muted">Nenhum servico adicionado.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="row text-muted small fw-semibold mb-2">
-                        <div class="col-12 col-md-5">Servico</div>
-                        <div class="col-6 col-md-1">Qtd.</div>
-                        <div class="col-6 col-md-2">R$ Unit.</div>
-                        <div class="col-6 col-md-2">R$ Desc.</div>
-                        <div class="col-6 col-md-2">R$ Total</div>
-                    </div>
-                    @forelse ($this->filteredServiceRows as $service)
-                        <div class="row g-2 align-items-center mb-2">
-                            <div class="col-12 col-md-5">
-                                <div class="fw-semibold">{{ $service['name'] }}</div>
-                            </div>
-                            <div class="col-6 col-md-1">
-                                <span class="fw-semibold">{{ $service['quantity'] }}</span>
-                            </div>
-                            <div class="col-6 col-md-2">R$ {{ number_format($service['base_price'], 2, ',', '.') }}</div>
-                            <div class="col-6 col-md-2">R$ {{ number_format($service['discount'], 2, ',', '.') }}</div>
-                            <div class="col-6 col-md-1">R$ {{ number_format($service['line_total'], 2, ',', '.') }}</div>
-                            <div class="col-12 col-md-1 d-flex justify-content-end align-items-center gap-1">
-                                <button type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" wire:click="openServiceEditModal('{{ $service['id'] }}')" title="Editar servico">
-                                    <i class="ti ti-pencil"></i>
-                                </button>
-                                <button type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill text-danger" wire:click="confirmRemoveService('{{ $service['id'] }}')" title="Remover servico">
-                                    <i class="ti ti-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                    @empty
-                        <p class="text-muted mb-2">Nenhum servico adicionado.</p>
-                    @endforelse
-                    <div class="row text-center">
+                    <div class="row text-center p-3 pt-2">
                         <div class="col-12 col-md-4">
                             <div class="small">Subtotal Bruto de Servicos:</div>
                             <div class="fw-bold">R$ {{ number_format($this->serviceSummary['gross'], 2, ',', '.') }}</div>
@@ -320,7 +373,11 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
 
+        <div class="card mb-4">
+            <div class="card-body">
                 <div class="border rounded p-3 text-white" style="background-color: #3f5c00;">
                     <h5 class="mb-2 text-white">Subtotais deste Equipamento</h5>
                     <div class="row text-center">
@@ -338,8 +395,8 @@
             </div>
         </div>
 
-        <div class="d-flex justify-content-end">
-            <button type="button" class="btn btn-primary" wire:click="save">Salvar nova ordem</button>
+        <div class="d-grid d-md-flex justify-content-md-end">
+            <button type="button" class="btn btn-primary w-100 w-md-auto" wire:click="save">Salvar nova ordem</button>
         </div>
     @endif
 

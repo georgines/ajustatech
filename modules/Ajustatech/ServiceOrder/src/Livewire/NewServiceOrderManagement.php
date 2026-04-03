@@ -57,14 +57,14 @@ class NewServiceOrderManagement extends Component
     public array $selectedServices = [];
     public array $serviceDiscounts = [];
     public ?string $serviceToAddId = null;
+    public string $serviceCatalogSearch = '';
+    public array $serviceCatalogSearchResults = [];
     public bool $showServiceModal = false;
     public bool $showServiceEditModal = false;
     public ?string $editingServiceId = null;
     public ?string $editServiceSelectionId = null;
     public int $editServiceQty = 1;
     public $editServiceDiscount = '0,00';
-    public string $productFilter = '';
-    public string $serviceFilter = '';
 
     public function mount(EquipmentTypeService $equipmentTypeService, ?string $id = null): void
     {
@@ -192,6 +192,37 @@ class NewServiceOrderManagement extends Component
         $this->selectedServices[$this->serviceToAddId] = max((int) ($this->selectedServices[$this->serviceToAddId] ?? 0), 1);
         $this->serviceDiscounts[$this->serviceToAddId] = $this->normalizedDiscount($this->serviceDiscounts[$this->serviceToAddId] ?? 0);
         $this->serviceToAddId = null;
+        $this->serviceCatalogSearch = '';
+        $this->serviceCatalogSearchResults = [];
+    }
+
+    public function updatedServiceCatalogSearch(): void
+    {
+        $search = mb_strtolower(trim($this->serviceCatalogSearch));
+        if ($search === '' || mb_strlen($search) < 2) {
+            $this->serviceCatalogSearchResults = [];
+            return;
+        }
+
+        $this->serviceCatalogSearchResults = collect($this->availableServices)
+            ->filter(function (array $service) use ($search) {
+                return str_contains(mb_strtolower((string) Arr::get($service, 'name', '')), $search);
+            })
+            ->take(10)
+            ->values()
+            ->all();
+    }
+
+    public function selectCatalogService(string $serviceId): void
+    {
+        $service = collect($this->availableServices)->firstWhere('id', $serviceId);
+        if (!$service) {
+            return;
+        }
+
+        $this->serviceToAddId = $serviceId;
+        $this->serviceCatalogSearch = (string) $service['name'];
+        $this->serviceCatalogSearchResults = [];
     }
 
     public function openServiceEditModal(string $serviceId): void
@@ -457,17 +488,7 @@ class NewServiceOrderManagement extends Component
 
     public function getFilteredServiceRowsProperty(): array
     {
-        $filter = mb_strtolower(trim($this->serviceFilter));
-        $rows = $this->selectedServiceRows;
-
-        if ($filter === '') {
-            return $rows;
-        }
-
-        return collect($rows)
-            ->filter(fn (array $row) => str_contains(mb_strtolower((string) Arr::get($row, 'name', '')), $filter))
-            ->values()
-            ->all();
+        return $this->selectedServiceRows;
     }
 
     public function getServiceSummaryProperty(): array
@@ -703,6 +724,8 @@ class NewServiceOrderManagement extends Component
         $this->orderId = $order->id;
         $this->title = 'Editar Ordem de Servico';
         $this->currentStep = 'order';
+        $this->openingDate = optional($order->created_at)->format('d/m/Y') ?: $this->openingDate;
+        $this->openingTime = optional($order->created_at)->format('H:i') ?: $this->openingTime;
         $this->customer_id = $order->customer_id;
         $this->customerSearch = $order->customer_name;
         $this->equipment_type_id = $order->equipment_type_id;
@@ -738,6 +761,11 @@ class NewServiceOrderManagement extends Component
             $discount = $item->discount_amount ?? Arr::get($item->service_snapshot, 'discount', 0);
             $this->serviceDiscounts[$serviceId] = $this->normalizedDiscount($discount);
         }
+    }
+
+    public function getCanAddCatalogServiceProperty(): bool
+    {
+        return filled($this->serviceToAddId);
     }
 
     private function updateExistingOrder(
