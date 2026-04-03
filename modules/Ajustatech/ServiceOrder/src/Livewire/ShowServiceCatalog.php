@@ -13,16 +13,13 @@ class ShowServiceCatalog extends Component
 
     public function toggleStatus(string $id): void
     {
-        $service = ServiceCatalogService::query()->findOrFail($id);
-        $service->update(['is_active' => !$service->is_active]);
+        $service = ServiceCatalogService::findOrFailById($id);
+        $service->toggleActiveStatus();
     }
 
     public function render()
     {
-        $services = ServiceCatalogService::query()
-            ->withCount('steps')
-            ->orderBy('name')
-            ->get();
+        $services = ServiceCatalogService::getListingWithStepsCount();
 
         return view('service-order::livewire.show-service-catalog', [
             'services' => $services,

@@ -14,17 +14,15 @@ class EditServiceOrderManagement extends Component
 
     public function mount(string $id): void
     {
-        $order = ServiceOrder::query()->findOrFail($id);
-        $this->orderId = $order->id;
+        $this->orderId = $id;
     }
 
     public function render()
     {
-        $order = ServiceOrder::query()->findOrFail($this->orderId);
+        $order = ServiceOrder::findOrFailById($this->orderId);
 
         return view('service-order::livewire.edit-service-order-management', [
             'order' => $order,
         ]);
     }
 }
-

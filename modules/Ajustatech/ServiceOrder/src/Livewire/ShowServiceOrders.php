@@ -17,7 +17,7 @@ class ShowServiceOrders extends Component
 
     public function confirmCancelOrder(string $id): void
     {
-        $order = ServiceOrder::query()->findOrFail($id);
+        $order = ServiceOrder::findOrFailById($id);
 
         if ($order->status === 'canceled') {
             return;
@@ -34,21 +34,17 @@ class ShowServiceOrders extends Component
     #[On('service-order-confirm-cancel-order')]
     public function cancelOrder(string $id): void
     {
-        $order = ServiceOrder::query()->findOrFail($id);
+        $order = ServiceOrder::findOrFailById($id);
         if ($order->status === 'canceled') {
             return;
         }
 
-        $order->update(['status' => 'canceled']);
+        $order->cancel();
     }
 
     public function render()
     {
-        $orders = ServiceOrder::query()
-            ->with('serviceItems')
-            ->latest()
-            ->limit(100)
-            ->get();
+        $orders = ServiceOrder::getLatestListingWithServiceItems(100);
 
         return view('service-order::livewire.show-service-orders', [
             'orders' => $orders,

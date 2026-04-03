@@ -24,7 +24,7 @@ class EquipmentTypeService
         $validated = $this->validateEquipmentTypePayload($payload);
 
         return DB::transaction(function () use ($validated) {
-            $equipmentType = EquipmentType::query()->create([
+            $equipmentType = EquipmentType::createFromPayload([
                 'name' => Arr::get($validated, 'name'),
                 'description' => Arr::get($validated, 'description'),
                 'is_active' => Arr::get($validated, 'is_active', true),
@@ -38,7 +38,7 @@ class EquipmentTypeService
 
     public function update(string $equipmentTypeId, array $payload): EquipmentType
     {
-        $equipmentType = EquipmentType::query()->findOrFail($equipmentTypeId);
+        $equipmentType = EquipmentType::findOrFailById($equipmentTypeId);
         $validated = $this->validateEquipmentTypePayload($payload, true);
 
         return DB::transaction(function () use ($equipmentType, $validated) {
@@ -56,8 +56,8 @@ class EquipmentTypeService
 
     public function reorderFields(string $equipmentTypeId, array $orderedFieldIds): void
     {
-        $equipmentType = EquipmentType::query()->findOrFail($equipmentTypeId);
-        $currentFields = $equipmentType->fields()->pluck('id')->all();
+        $equipmentType = EquipmentType::findOrFailById($equipmentTypeId);
+        $currentFields = $equipmentType->getFieldIds();
 
         if (count($currentFields) !== count($orderedFieldIds)) {
             throw ValidationException::withMessages([
@@ -72,22 +72,26 @@ class EquipmentTypeService
                 ]);
             }
 
-            EquipmentTypeField::query()
-                ->where('id', $fieldId)
-                ->where('equipment_type_id', $equipmentType->id)
-                ->update(['sort_order' => $index + 1]);
+            EquipmentTypeField::updateSortOrderWithinEquipmentType($equipmentType->id, $fieldId, $index + 1);
         }
     }
 
     public function buildActiveFieldSnapshots(EquipmentType|string $equipmentType): array
     {
         $equipmentType = $equipmentType instanceof EquipmentType
-            ? $equipmentType->loadMissing('fields.options')
-            : EquipmentType::query()->with('fields.options')->findOrFail($equipmentType);
+            ? $equipmentType->load([
+                'fields' => fn ($query) => $query
+                    ->where('is_active', true)
+                    ->orderBy('sort_order')
+                    ->with([
+                        'options' => fn ($optionQuery) => $optionQuery
+                            ->where('is_active', true)
+                            ->orderBy('sort_order'),
+                    ]),
+            ])
+            : EquipmentType::findWithActiveFieldsAndOptionsOrFail($equipmentType);
 
         return $equipmentType->fields
-            ->where('is_active', true)
-            ->sortBy('sort_order')
             ->values()
             ->map(function (EquipmentTypeField $field) {
                 return [
@@ -101,8 +105,6 @@ class EquipmentTypeService
                     'is_active' => $field->is_active,
                     'configuration' => $field->configuration ?? [],
                     'options' => $field->options
-                        ->where('is_active', true)
-                        ->sortBy('sort_order')
                         ->values()
                         ->map(fn ($option) => [
                             'id' => $option->id,
@@ -147,7 +149,7 @@ class EquipmentTypeService
 
     private function syncFields(EquipmentType $equipmentType, array $fields): void
     {
-        $existingFields = $equipmentType->fields()->with('options')->get()->keyBy('id');
+        $existingFields = $equipmentType->getFieldsWithOptionsKeyedById();
         $keptFieldIds = [];
 
         foreach ($fields as $fieldPayload) {
@@ -186,23 +188,23 @@ class EquipmentTypeService
         }
 
         if (!empty($keptFieldIds)) {
-            $equipmentType->fields()->whereNotIn('id', $keptFieldIds)->delete();
+            $equipmentType->deleteFieldsNotIn($keptFieldIds);
             return;
         }
 
-        $equipmentType->fields()->delete();
+        $equipmentType->deleteAllFields();
     }
 
     private function syncFieldOptions(EquipmentTypeField $field, array $options): void
     {
         if (!EquipmentFieldType::acceptsOptions($field->field_type)) {
-            $field->options()->delete();
+            $field->deleteAllOptions();
             return;
         }
 
-        $field->options()->delete();
+        $field->deleteAllOptions();
         foreach ($options as $index => $optionPayload) {
-            $field->options()->create([
+            $field->createOption([
                 'label' => Arr::get($optionPayload, 'label'),
                 'value' => Arr::get($optionPayload, 'value'),
                 'sort_order' => Arr::get($optionPayload, 'sort_order', $index + 1),
@@ -230,15 +232,7 @@ class EquipmentTypeService
 
     private function ensureSlugIsUniqueInsideEquipmentType(string $equipmentTypeId, string $slug, ?string $ignoreFieldId = null): void
     {
-        $query = EquipmentTypeField::query()
-            ->where('equipment_type_id', $equipmentTypeId)
-            ->where('slug', $slug);
-
-        if ($ignoreFieldId) {
-            $query->where('id', '!=', $ignoreFieldId);
-        }
-
-        if ($query->exists()) {
+        if (EquipmentTypeField::slugExistsInEquipmentType($equipmentTypeId, $slug, $ignoreFieldId)) {
             throw ValidationException::withMessages([
                 'fields' => 'The slug "' . $slug . '" is already used in this equipment type.',
             ]);

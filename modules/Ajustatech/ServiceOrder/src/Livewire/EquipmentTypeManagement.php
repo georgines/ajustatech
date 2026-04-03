@@ -43,7 +43,7 @@ class EquipmentTypeManagement extends Component
             $this->equipmentTypeId = $id;
             $this->title = 'Editar Tipo de Equipamento';
 
-            $equipmentType = EquipmentType::query()->with('fields.options')->findOrFail($id);
+            $equipmentType = EquipmentType::findWithFieldsAndOptionsOrFail($id);
             $this->name = $equipmentType->name;
             $this->description = $equipmentType->description;
             $this->is_active = (bool) $equipmentType->is_active;

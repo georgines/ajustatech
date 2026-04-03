@@ -72,14 +72,8 @@ class NewServiceOrderManagement extends Component
         $this->entry_date = $now->toDateString();
         $this->openingDate = $now->format('d/m/Y');
         $this->openingTime = $now->format('H:i');
-        $this->orderNumberPreview = ServiceOrder::query()->count() + 1;
-
-        $this->availableEquipmentTypes = EquipmentType::query()
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get(['id', 'name'])
-            ->map(fn ($item) => ['id' => $item->id, 'name' => $item->name])
-            ->all();
+        $this->orderNumberPreview = ServiceOrder::countAll() + 1;
+        $this->availableEquipmentTypes = EquipmentType::getActiveSelectionList();
 
         $this->refreshAvailableServices();
 
@@ -115,7 +109,7 @@ class NewServiceOrderManagement extends Component
 
     public function selectCustomer(string $id): void
     {
-        $customer = Customer::query()->findOrFail($id);
+        $customer = Customer::findOrFail($id);
         $this->customer_id = $customer->id;
         $this->customerSearch = $customer->name;
         $this->customerResults = [];
@@ -366,13 +360,13 @@ class NewServiceOrderManagement extends Component
         $this->validateDynamicRequiredFields();
         $this->validateSelectedServices();
 
-        $customer = Customer::query()->findOrFail($this->customer_id);
+        $customer = Customer::findOrFail($this->customer_id);
         $equipmentName = $this->resolveEquipmentName();
 
         try {
             DB::transaction(function () use ($serviceOrderService, $equipmentTypeService, $customer, $equipmentName) {
                 $order = $this->isEditMode && $this->orderId
-                    ? $this->updateExistingOrder($this->orderId, $customer->id, $equipmentName, $equipmentTypeService)
+                    ? $this->updateExistingOrder($this->orderId, $customer->id, $customer->name, $equipmentName, $equipmentTypeService)
                     : $serviceOrderService->create([
                         'equipment_type_id' => $this->equipment_type_id,
                         'customer_id' => $customer->id,
@@ -442,7 +436,7 @@ class NewServiceOrderManagement extends Component
             return null;
         }
 
-        $customer = Customer::query()->find($this->customer_id);
+        $customer = Customer::find($this->customer_id);
         if (!$customer) {
             return null;
         }
@@ -569,17 +563,7 @@ class NewServiceOrderManagement extends Component
 
     private function refreshAvailableServices(): void
     {
-        $this->availableServices = ServiceCatalogService::query()
-            ->where('is_active', true)
-            ->where('is_reusable', true)
-            ->orderBy('name')
-            ->get(['id', 'name', 'base_price'])
-            ->map(fn ($item) => [
-                'id' => $item->id,
-                'name' => $item->name,
-                'base_price' => (float) $item->base_price,
-            ])
-            ->all();
+        $this->availableServices = ServiceCatalogService::getReusableActiveSelectionList();
 
         $activeIds = collect($this->availableServices)->pluck('id')->all();
         $this->selectedServices = collect($this->selectedServices)
@@ -716,9 +700,7 @@ class NewServiceOrderManagement extends Component
 
     private function loadOrderForEditing(string $id, EquipmentTypeService $equipmentTypeService): void
     {
-        $order = ServiceOrder::query()
-            ->with(['fieldValues', 'serviceItems'])
-            ->findOrFail($id);
+        $order = ServiceOrder::findForEditOrFail($id);
 
         $this->isEditMode = true;
         $this->orderId = $order->id;
@@ -771,17 +753,18 @@ class NewServiceOrderManagement extends Component
     private function updateExistingOrder(
         string $orderId,
         string $customerId,
+        string $customerName,
         string $equipmentName,
         EquipmentTypeService $equipmentTypeService
     ): ServiceOrder {
-        $order = ServiceOrder::query()->findOrFail($orderId);
-        $equipmentType = EquipmentType::query()->findOrFail((string) $this->equipment_type_id);
+        $order = ServiceOrder::findOrFailById($orderId);
+        $equipmentType = EquipmentType::findOrFailById((string) $this->equipment_type_id);
         $fieldSnapshots = $equipmentTypeService->buildActiveFieldSnapshots($equipmentType->id);
 
         $order->update([
             'equipment_type_id' => $equipmentType->id,
             'customer_id' => $customerId,
-            'customer_name' => (string) Customer::query()->findOrFail($customerId)->name,
+            'customer_name' => $customerName,
             'equipment_name' => $equipmentName,
             'brand' => $this->brand,
             'model' => $this->model,

@@ -13,18 +13,13 @@ class ShowEquipmentTypes extends Component
 
     public function toggleStatus(string $id): void
     {
-        $equipmentType = EquipmentType::query()->findOrFail($id);
-        $equipmentType->update([
-            'is_active' => !$equipmentType->is_active,
-        ]);
+        $equipmentType = EquipmentType::findOrFailById($id);
+        $equipmentType->toggleActiveStatus();
     }
 
     public function render()
     {
-        $equipmentTypes = EquipmentType::query()
-            ->withCount('fields')
-            ->orderBy('name')
-            ->get();
+        $equipmentTypes = EquipmentType::getListingWithFieldsCount();
 
         return view('service-order::livewire.show-equipment-types', [
             'equipmentTypes' => $equipmentTypes,

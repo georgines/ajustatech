@@ -104,19 +104,16 @@ class ServiceCatalogManagement extends Component
             $servicePayload['description'] = $this->normalizeNullableText($servicePayload['description'] ?? null);
 
             if ($this->mode === 'edit' && $this->serviceId) {
-                $service = ServiceCatalogService::query()->findOrFail($this->serviceId);
-                $service->update($servicePayload);
+                $service = ServiceCatalogService::findOrFailById($this->serviceId);
+                $service->updateFromPayload($servicePayload);
             } else {
-                $service = ServiceCatalogService::query()->create($servicePayload);
+                $service = ServiceCatalogService::createFromPayload($servicePayload);
                 $this->mode = 'edit';
                 $this->serviceId = $service->id;
                 $this->title = 'Editar Servico';
             }
 
-            $service->steps()->delete();
-            foreach ($this->normalizedStepsForPersistence() as $stepPayload) {
-                $service->steps()->create($stepPayload);
-            }
+            $service->replaceSteps($this->normalizedStepsForPersistence());
         });
 
         if ($this->embedded) {
@@ -142,7 +139,7 @@ class ServiceCatalogManagement extends Component
 
     private function loadService(string $id): void
     {
-        $service = ServiceCatalogService::query()->with('steps')->findOrFail($id);
+        $service = ServiceCatalogService::findWithStepsOrFail($id);
 
         $this->mode = 'edit';
         $this->serviceId = $service->id;

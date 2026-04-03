@@ -8,7 +8,6 @@ use Ajustatech\ServiceOrder\Database\Models\ServiceCatalogService;
 use Ajustatech\ServiceOrder\Database\Models\ServiceOrder;
 use Ajustatech\ServiceOrder\Database\Models\ServiceOrderAttachment;
 use Ajustatech\ServiceOrder\Database\Models\ServiceOrderFieldValue;
-use Ajustatech\ServiceOrder\Database\Models\ServiceOrderServiceItem;
 use Ajustatech\ServiceOrder\Support\DocumentTemplateRenderer;
 use Ajustatech\ServiceOrder\Support\EquipmentFieldType;
 use Illuminate\Support\Arr;
@@ -41,9 +40,8 @@ class ServiceOrderService
             'status' => ['nullable', 'string', 'max:100'],
         ])->validate();
 
-        $fieldSnapshots = $this->equipmentTypeService->buildActiveFieldSnapshots(Arr::get($validated, 'equipment_type_id'));
-        $equipmentTypeModel = EquipmentType::query()
-            ->findOrFail(Arr::get($validated, 'equipment_type_id'));
+        $equipmentTypeModel = EquipmentType::findWithActiveFieldsAndOptionsOrFail(Arr::get($validated, 'equipment_type_id'));
+        $fieldSnapshots = $this->equipmentTypeService->buildActiveFieldSnapshots($equipmentTypeModel);
 
         $equipmentTypeSnapshot = [
             'id' => $equipmentTypeModel->id,
@@ -54,11 +52,11 @@ class ServiceOrderService
         $resolvedCustomerName = Arr::get($validated, 'customer_name');
         $resolvedCustomerId = Arr::get($validated, 'customer_id');
         if ($resolvedCustomerId) {
-            $customer = Customer::query()->findOrFail($resolvedCustomerId);
+            $customer = Customer::findOrFail($resolvedCustomerId);
             $resolvedCustomerName = $customer->name;
         }
 
-        return ServiceOrder::query()->create([
+        return ServiceOrder::createFromPayload([
             'equipment_type_id' => Arr::get($validated, 'equipment_type_id'),
             'customer_id' => $resolvedCustomerId,
             'customer_name' => $resolvedCustomerName,
@@ -71,20 +69,18 @@ class ServiceOrderService
             'status' => Arr::get($validated, 'status', 'open'),
             'equipment_type_snapshot' => $equipmentTypeSnapshot,
             'fields_snapshot' => $fieldSnapshots,
-        ])->fresh(['fieldValues', 'attachments', 'serviceItems']);
+        ])->freshWithAllRelations();
     }
 
     public function syncServices(ServiceOrder|string $order, array $items): ServiceOrder
     {
         $order = $this->resolveOrder($order);
-        $catalogServices = ServiceCatalogService::query()
-            ->whereIn('id', collect($items)->pluck('service_catalog_service_id')->filter()->all())
-            ->with(['steps' => fn ($query) => $query->where('is_active', true)->orderBy('sort_order')])
-            ->get()
-            ->keyBy('id');
+        $catalogServices = ServiceCatalogService::getActiveWithActiveStepsByIds(
+            collect($items)->pluck('service_catalog_service_id')->filter()->all()
+        );
 
         DB::transaction(function () use ($order, $items, $catalogServices) {
-            $order->serviceItems()->delete();
+            $order->deleteAllServiceItems();
 
             foreach ($items as $item) {
                 $validated = Validator::make($item, [
@@ -111,8 +107,7 @@ class ServiceOrderService
                     ]);
                 }
 
-                ServiceOrderServiceItem::query()->create([
-                    'service_order_id' => $order->id,
+                $order->createServiceItem([
                     'service_catalog_service_id' => $catalogService->id,
                     'service_name' => $catalogService->name,
                     'quantity' => $quantity,
@@ -138,7 +133,7 @@ class ServiceOrderService
             }
         });
 
-        return $order->fresh(['serviceItems']);
+        return $order->fresh('serviceItems');
     }
 
     public function getDynamicFields(ServiceOrder|string $order): array
@@ -242,10 +237,10 @@ class ServiceOrderService
     private function resolveOrder(ServiceOrder|string $order): ServiceOrder
     {
         if ($order instanceof ServiceOrder) {
-            return $order->loadMissing('fieldValues', 'attachments', 'serviceItems');
+            return $order->loadMissingAllRelations();
         }
 
-        return ServiceOrder::query()->with(['fieldValues', 'attachments', 'serviceItems'])->findOrFail($order);
+        return ServiceOrder::findWithAllRelationsOrFail($order);
     }
 
     private function validateRequiredFields(ServiceOrder $order, Collection $fieldSnapshots, array $values, array $attachments): void
@@ -262,7 +257,7 @@ class ServiceOrderService
 
             if (EquipmentFieldType::isAttachment($fieldType)) {
                 $provided = Arr::get($attachments, $slug, []);
-                $existingCount = $order->attachments()->where('field_slug', $slug)->count();
+                $existingCount = $order->countAttachmentsBySlug($slug);
                 if (empty($provided) && $existingCount === 0) {
                     $missing[] = $slug;
                 }
@@ -321,11 +316,9 @@ class ServiceOrderService
             $normalizedText = (string) $value;
         }
 
-        ServiceOrderFieldValue::query()->updateOrCreate(
-            [
-                'service_order_id' => $order->id,
-                'field_slug' => $slug,
-            ],
+        ServiceOrderFieldValue::upsertForOrder(
+            $order->id,
+            $slug,
             [
                 'equipment_type_field_id' => Arr::get($fieldSnapshot, 'id'),
                 'field_type' => $fieldType,
@@ -355,7 +348,7 @@ class ServiceOrderService
             ]);
         }
 
-        $existingCount = $order->attachments()->where('field_slug', $slug)->count();
+        $existingCount = $order->countAttachmentsBySlug($slug);
         $maxFiles = Arr::get($configuration, 'max_files');
         if ($fieldType === EquipmentFieldType::PHOTO && $maxFiles !== null && ($existingCount + count($attachments)) > (int) $maxFiles) {
             throw ValidationException::withMessages([
@@ -380,8 +373,7 @@ class ServiceOrderService
                 ]);
             }
 
-            ServiceOrderAttachment::query()->create([
-                'service_order_id' => $order->id,
+            ServiceOrderAttachment::createForOrder($order->id, [
                 'equipment_type_field_id' => Arr::get($fieldSnapshot, 'id'),
                 'field_slug' => $slug,
                 'attachment_type' => $fieldType,
