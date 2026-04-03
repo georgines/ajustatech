@@ -26,7 +26,7 @@
                             <td>{{ optional($order->entry_date)->format('d/m/Y') }}</td>
                             <td>{{ $order->customer_name }}</td>
                             <td>{{ $order->equipment_name }}</td>
-                            <td>{{ $order->analysisServices->count() }}</td>
+                            <td>{{ (int) ($order->analysis_services_count ?? 0) }}</td>
                             <td>{{ $statusLabels[$order->status] ?? $order->status }}</td>
                             <td class="text-end">
                                 <a class="btn btn-sm btn-icon btn-text-secondary rounded-pill me-1"

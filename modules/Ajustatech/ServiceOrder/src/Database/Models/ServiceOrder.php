@@ -125,7 +125,7 @@ class ServiceOrder extends Model
     public static function getLatestListingWithServiceItems(int $limit = 100): Collection
     {
         return static::query()
-            ->with(['serviceItems', 'analysisServices'])
+            ->withCount('analysisServices')
             ->latestFirst()
             ->limit($limit)
             ->get();
