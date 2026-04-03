@@ -43,9 +43,19 @@ class ServiceOrderFieldValue extends Model
         return $this->belongsTo(EquipmentTypeField::class, 'equipment_type_field_id');
     }
 
+    public static function upsertForOrder(string $serviceOrderId, string $fieldSlug, array $payload): self
+    {
+        return static::query()->updateOrCreate(
+            [
+                'service_order_id' => $serviceOrderId,
+                'field_slug' => $fieldSlug,
+            ],
+            $payload
+        );
+    }
+
     protected static function newFactory()
     {
         return ServiceOrderFieldValueFactory::new();
     }
 }
-

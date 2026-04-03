@@ -54,9 +54,39 @@ class EquipmentTypeField extends Model
         return $this->options()->where('is_active', true)->orderBy('sort_order');
     }
 
+    public static function updateSortOrderWithinEquipmentType(string $equipmentTypeId, string $fieldId, int $sortOrder): void
+    {
+        static::query()
+            ->where('id', $fieldId)
+            ->where('equipment_type_id', $equipmentTypeId)
+            ->update(['sort_order' => $sortOrder]);
+    }
+
+    public static function slugExistsInEquipmentType(string $equipmentTypeId, string $slug, ?string $ignoreFieldId = null): bool
+    {
+        $query = static::query()
+            ->where('equipment_type_id', $equipmentTypeId)
+            ->where('slug', $slug);
+
+        if ($ignoreFieldId) {
+            $query->where('id', '!=', $ignoreFieldId);
+        }
+
+        return $query->exists();
+    }
+
+    public function createOption(array $payload): EquipmentTypeFieldOption
+    {
+        return $this->options()->create($payload);
+    }
+
+    public function deleteAllOptions(): void
+    {
+        $this->options()->delete();
+    }
+
     protected static function newFactory()
     {
         return EquipmentTypeFieldFactory::new();
     }
 }
-

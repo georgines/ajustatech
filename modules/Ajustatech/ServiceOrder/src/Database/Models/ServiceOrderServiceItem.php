@@ -45,6 +45,14 @@ class ServiceOrderServiceItem extends Model
         return $this->belongsTo(ServiceCatalogService::class, 'service_catalog_service_id');
     }
 
+    public static function createForOrder(string $serviceOrderId, array $payload): self
+    {
+        return static::query()->create([
+            ...$payload,
+            'service_order_id' => $serviceOrderId,
+        ]);
+    }
+
     protected static function newFactory()
     {
         return ServiceOrderServiceItemFactory::new();
