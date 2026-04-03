@@ -54,6 +54,13 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
   - `/.ai/guidelines/projeto/comandos-core.md`.
 - Convencao de seeds obrigatorios:
   - `/.ai/guidelines/projeto/seeds-obrigatorios.md`.
+- Convencao profissional de migrations:
+  - `/.ai/guidelines/projeto/migrations-laravel-profissional.md`.
+
+## Convencoes de migrations (obrigatorio)
+- Seguir `/.ai/guidelines/projeto/migrations-laravel-profissional.md`.
+- Em MySQL, sempre considerar limite de 64 caracteres para nome de indice/constraint.
+- Para indices compostos e FKs com nomes longos, definir nome explicito curto e descritivo.
 
 ## Convencoes de menu
 - Cada item deve ter `slug` que corresponda a nome de rota.
