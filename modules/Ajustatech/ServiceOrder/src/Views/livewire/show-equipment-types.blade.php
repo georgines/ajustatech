@@ -9,6 +9,7 @@
             <table class="table">
                 <thead>
                     <tr>
+                        <th>Imagem</th>
                         <th>Nome</th>
                         <th>Status</th>
                         <th>Quantidade de Campos</th>
@@ -18,6 +19,16 @@
                 <tbody>
                     @forelse ($equipmentTypes as $equipmentType)
                         <tr>
+                            <td>
+                                @if ($equipmentType->image_url)
+                                    <img src="{{ $equipmentType->image_url }}"
+                                         alt="Imagem do tipo {{ $equipmentType->name }}"
+                                         class="rounded border"
+                                         style="width: 56px; height: 56px; object-fit: cover;">
+                                @else
+                                    <span class="text-muted">Sem imagem</span>
+                                @endif
+                            </td>
                             <td>
                                 <div class="fw-semibold">{{ $equipmentType->name }}</div>
                                 @if ($equipmentType->description)
@@ -48,7 +59,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="text-center text-muted">Nenhum tipo de equipamento cadastrado.</td>
+                            <td colspan="5" class="text-center text-muted">Nenhum tipo de equipamento cadastrado.</td>
                         </tr>
                     @endforelse
                 </tbody>

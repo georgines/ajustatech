@@ -50,6 +50,8 @@ class ServiceOrderService
             'id' => $equipmentTypeModel->id,
             'name' => $equipmentTypeModel->name,
             'description' => $equipmentTypeModel->description,
+            'image_path' => $equipmentTypeModel->image_path,
+            'image_disk' => $equipmentTypeModel->image_disk,
         ];
 
         $resolvedCustomerName = Arr::get($validated, 'customer_name');

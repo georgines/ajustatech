@@ -32,6 +32,8 @@ class ServiceOrderDemoSeeder extends Seeder
                     'id' => $equipmentType->id,
                     'name' => $equipmentType->name,
                     'description' => $equipmentType->description,
+                    'image_path' => $equipmentType->image_path,
+                    'image_disk' => $equipmentType->image_disk,
                 ],
                 'fields_snapshot' => [
                     [

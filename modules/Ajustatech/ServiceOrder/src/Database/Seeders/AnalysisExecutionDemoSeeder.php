@@ -36,6 +36,8 @@ class AnalysisExecutionDemoSeeder extends Seeder
                 'id' => $notebookEquipment->id,
                 'name' => $notebookEquipment->name,
                 'description' => $notebookEquipment->description,
+                'image_path' => $notebookEquipment->image_path,
+                'image_disk' => $notebookEquipment->image_disk,
             ],
         ]);
 
@@ -50,6 +52,8 @@ class AnalysisExecutionDemoSeeder extends Seeder
                 'id' => $desktopEquipment->id,
                 'name' => $desktopEquipment->name,
                 'description' => $desktopEquipment->description,
+                'image_path' => $desktopEquipment->image_path,
+                'image_disk' => $desktopEquipment->image_disk,
             ],
         ]);
 
@@ -75,4 +79,3 @@ class AnalysisExecutionDemoSeeder extends Seeder
         ]);
     }
 }
-

@@ -6,6 +6,7 @@ use Ajustatech\ServiceOrder\Database\Models\EquipmentType;
 use Ajustatech\ServiceOrder\Database\Models\EquipmentTypeField;
 use Ajustatech\ServiceOrder\Support\EquipmentFieldConfigurationValidator;
 use Ajustatech\ServiceOrder\Support\EquipmentFieldType;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -15,43 +16,114 @@ use Illuminate\Validation\ValidationException;
 class EquipmentTypeService
 {
     public function __construct(
-        private readonly EquipmentFieldConfigurationValidator $fieldConfigurationValidator
+        private readonly EquipmentFieldConfigurationValidator $fieldConfigurationValidator,
+        private readonly EquipmentTypeImageStorageService $equipmentTypeImageStorageService
     ) {
     }
 
-    public function create(array $payload): EquipmentType
+    public function create(array $payload, ?UploadedFile $image = null): EquipmentType
     {
         $validated = $this->validateEquipmentTypePayload($payload);
+        if ($image) {
+            $this->equipmentTypeImageStorageService->validate($image);
+        }
 
-        return DB::transaction(function () use ($validated) {
-            $equipmentType = EquipmentType::createFromPayload([
-                'name' => Arr::get($validated, 'name'),
-                'description' => Arr::get($validated, 'description'),
-                'is_active' => Arr::get($validated, 'is_active', true),
-            ]);
+        $uploadedImageMetadata = null;
 
-            $this->syncFields($equipmentType, Arr::get($validated, 'fields', []));
+        try {
+            return DB::transaction(function () use ($validated, $image, &$uploadedImageMetadata) {
+                $equipmentType = EquipmentType::createFromPayload([
+                    'name' => Arr::get($validated, 'name'),
+                    'description' => Arr::get($validated, 'description'),
+                    'is_active' => Arr::get($validated, 'is_active', true),
+                ]);
 
-            return $equipmentType->fresh('fields.options');
-        });
+                $this->syncFields($equipmentType, Arr::get($validated, 'fields', []));
+
+                if ($image) {
+                    $uploadedImageMetadata = $this->equipmentTypeImageStorageService->store($image, $equipmentType->id);
+                    $equipmentType->updateFromPayload($uploadedImageMetadata);
+                }
+
+                return $equipmentType->fresh('fields.options');
+            });
+        } catch (\Throwable $exception) {
+            $this->equipmentTypeImageStorageService->delete(
+                Arr::get($uploadedImageMetadata, 'image_disk'),
+                Arr::get($uploadedImageMetadata, 'image_path')
+            );
+
+            throw $exception;
+        }
     }
 
-    public function update(string $equipmentTypeId, array $payload): EquipmentType
+    public function update(string $equipmentTypeId, array $payload, ?UploadedFile $image = null, bool $removeImage = false): EquipmentType
     {
         $equipmentType = EquipmentType::findOrFailById($equipmentTypeId);
         $validated = $this->validateEquipmentTypePayload($payload, true);
+        if ($image) {
+            $this->equipmentTypeImageStorageService->validate($image);
+        }
 
-        return DB::transaction(function () use ($equipmentType, $validated) {
-            $equipmentType->update([
-                'name' => Arr::get($validated, 'name'),
-                'description' => Arr::get($validated, 'description'),
-                'is_active' => Arr::get($validated, 'is_active', true),
-            ]);
+        $oldImage = [
+            'image_disk' => $equipmentType->image_disk,
+            'image_path' => $equipmentType->image_path,
+        ];
+        $uploadedImageMetadata = null;
+        $shouldDeleteOldImage = false;
 
-            $this->syncFields($equipmentType, Arr::get($validated, 'fields', []));
+        try {
+            $updated = DB::transaction(function () use (
+                $equipmentType,
+                $validated,
+                $image,
+                $removeImage,
+                $oldImage,
+                &$uploadedImageMetadata,
+                &$shouldDeleteOldImage
+            ) {
+                $equipmentType->updateFromPayload([
+                    'name' => Arr::get($validated, 'name'),
+                    'description' => Arr::get($validated, 'description'),
+                    'is_active' => Arr::get($validated, 'is_active', true),
+                ]);
 
-            return $equipmentType->fresh('fields.options');
-        });
+                $this->syncFields($equipmentType, Arr::get($validated, 'fields', []));
+
+                if ($image) {
+                    $uploadedImageMetadata = $this->equipmentTypeImageStorageService->store($image, $equipmentType->id);
+                    $equipmentType->updateFromPayload($uploadedImageMetadata);
+                    $shouldDeleteOldImage = filled(Arr::get($oldImage, 'image_path'));
+                } elseif ($removeImage && filled(Arr::get($oldImage, 'image_path'))) {
+                    $equipmentType->updateFromPayload([
+                        'image_disk' => null,
+                        'image_path' => null,
+                        'image_original_name' => null,
+                        'image_mime_type' => null,
+                        'image_size' => null,
+                    ]);
+                    $shouldDeleteOldImage = true;
+                }
+
+                return $equipmentType->fresh('fields.options');
+            });
+        } catch (\Throwable $exception) {
+            $this->equipmentTypeImageStorageService->delete(
+                Arr::get($uploadedImageMetadata, 'image_disk'),
+                Arr::get($uploadedImageMetadata, 'image_path')
+            );
+
+            throw $exception;
+        }
+
+        if ($shouldDeleteOldImage) {
+            $this->equipmentTypeImageStorageService->delete(
+                Arr::get($oldImage, 'image_disk'),
+                Arr::get($oldImage, 'image_path')
+            );
+        }
+
+        return $updated;
     }
 
     public function reorderFields(string $equipmentTypeId, array $orderedFieldIds): void

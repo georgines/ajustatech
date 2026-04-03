@@ -3,17 +3,21 @@
 namespace Ajustatech\ServiceOrder\Livewire;
 
 use Ajustatech\ServiceOrder\Database\Models\EquipmentType;
+use Ajustatech\ServiceOrder\Services\EquipmentTypeFormService;
+use Ajustatech\ServiceOrder\Services\EquipmentTypeImageStorageService;
 use Ajustatech\ServiceOrder\Services\EquipmentTypeService;
 use Ajustatech\ServiceOrder\Support\EquipmentFieldType;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\WithFileUploads;
 
 #[Layout('core::layouts.app')]
 class EquipmentTypeManagement extends Component
 {
+    use WithFileUploads;
+
     public string $title = 'Cadastro de Tipo de Equipamento';
     public string $mode = 'create';
     public ?string $equipmentTypeId = null;
@@ -21,13 +25,18 @@ class EquipmentTypeManagement extends Component
     public string $name = '';
     public ?string $description = null;
     public bool $is_active = true;
+    public mixed $image = null;
+    public bool $removeImage = false;
+    public ?string $currentImageUrl = null;
+    public string $imageAccept = '.jpg,.jpeg,.png,.webp';
 
     public array $fields = [];
     public array $fieldTypes = [];
     public array $fieldTypeLabels = [];
 
-    public function mount(?string $id = null): void
+    public function mount(EquipmentTypeImageStorageService $imageStorageService, EquipmentTypeFormService $formService, ?string $id = null): void
     {
+        $this->imageAccept = $imageStorageService->acceptAttribute();
         $this->fieldTypes = EquipmentFieldType::values();
         $this->fieldTypeLabels = [
             EquipmentFieldType::PHOTO => 'Foto',
@@ -47,33 +56,8 @@ class EquipmentTypeManagement extends Component
             $this->name = $equipmentType->name;
             $this->description = $equipmentType->description;
             $this->is_active = (bool) $equipmentType->is_active;
-            $this->fields = $equipmentType->fields
-                ->sortBy('sort_order')
-                ->values()
-                ->map(function ($field) {
-                    return [
-                        'id' => $field->id,
-                        'field_type' => $field->field_type,
-                        'name' => $field->name,
-                        'slug' => $field->slug,
-                        'sort_order' => $field->sort_order,
-                        'is_required' => (bool) $field->is_required,
-                        'is_printable' => (bool) $field->is_printable,
-                        'is_active' => (bool) $field->is_active,
-                        'configuration' => $field->configuration ?? [],
-                        'options' => $field->options
-                            ->sortBy('sort_order')
-                            ->values()
-                            ->map(fn ($option) => [
-                                'label' => $option->label,
-                                'value' => $option->value,
-                                'sort_order' => (int) $option->sort_order,
-                                'is_active' => (bool) $option->is_active,
-                            ])
-                            ->all(),
-                    ];
-                })
-                ->all();
+            $this->fields = $formService->hydrateFieldsForEdit($equipmentType);
+            $this->currentImageUrl = $equipmentType->image_url;
 
             return;
         }
@@ -153,7 +137,7 @@ class EquipmentTypeManagement extends Component
         }
 
         $type = $this->fields[$index]['field_type'];
-        $this->fields[$index]['configuration'] = $this->defaultConfigurationForType($type);
+        $this->fields[$index]['configuration'] = app(EquipmentTypeFormService::class)->defaultConfigurationForType($type);
         $this->fields[$index]['is_printable'] = !in_array($type, [EquipmentFieldType::PHOTO, EquipmentFieldType::FILE], true);
         $this->fields[$index]['options'] = EquipmentFieldType::acceptsOptions($type)
             ? [['label' => 'Opcao 1', 'value' => 'opcao_1', 'sort_order' => 1, 'is_active' => true]]
@@ -190,12 +174,27 @@ class EquipmentTypeManagement extends Component
         }
     }
 
-    public function save(EquipmentTypeService $service)
+    public function updatedImage(): void
+    {
+        if ($this->image) {
+            $this->removeImage = false;
+        }
+    }
+
+    public function updatedRemoveImage(bool $value): void
+    {
+        if ($value) {
+            $this->image = null;
+        }
+    }
+
+    public function save(EquipmentTypeService $service, EquipmentTypeFormService $formService)
     {
         $this->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
+            'removeImage' => 'boolean',
             'fields' => 'array|min:1',
             'fields.*.name' => 'required|string|max:255',
             'fields.*.field_type' => 'required|string',
@@ -205,14 +204,14 @@ class EquipmentTypeManagement extends Component
             'name' => $this->name,
             'description' => $this->description,
             'is_active' => (bool) $this->is_active,
-            'fields' => $this->normalizedFields(),
+            'fields' => $formService->normalizeFields($this->fields),
         ];
 
         try {
             if ($this->mode === 'edit' && $this->equipmentTypeId) {
-                $service->update($this->equipmentTypeId, $payload);
+                $service->update($this->equipmentTypeId, $payload, $this->image, $this->removeImage);
             } else {
-                $service->create($payload);
+                $service->create($payload, $this->image);
             }
         } catch (ValidationException $exception) {
             $this->setErrorBag($exception->validator->getMessageBag());
@@ -222,75 +221,9 @@ class EquipmentTypeManagement extends Component
         return redirect()->route('service-order-equipment-types-show');
     }
 
-    private function normalizedFields(): array
-    {
-        $normalized = [];
-
-        foreach ($this->fields as $index => $field) {
-            $type = (string) Arr::get($field, 'field_type', EquipmentFieldType::TEXT);
-            $name = trim((string) Arr::get($field, 'name', ''));
-            $slugInput = trim((string) Arr::get($field, 'slug', ''));
-
-            $item = [
-                'id' => Arr::get($field, 'id'),
-                'field_type' => $type,
-                'name' => $name,
-                'slug' => $slugInput !== '' ? Str::slug($slugInput, '_') : Str::slug($name, '_'),
-                'sort_order' => $index + 1,
-                'is_required' => (bool) Arr::get($field, 'is_required', false),
-                'is_printable' => in_array($type, [EquipmentFieldType::PHOTO, EquipmentFieldType::FILE], true)
-                    ? false
-                    : (bool) Arr::get($field, 'is_printable', false),
-                'is_active' => (bool) Arr::get($field, 'is_active', true),
-                'configuration' => Arr::get($field, 'configuration', []),
-                'options' => [],
-            ];
-
-            if (EquipmentFieldType::acceptsOptions($type)) {
-                $item['options'] = collect(Arr::get($field, 'options', []))
-                    ->values()
-                    ->map(function (array $option, int $optionIndex) {
-                        $label = trim((string) Arr::get($option, 'label', ''));
-                        $value = trim((string) Arr::get($option, 'value', ''));
-
-                        return [
-                            'label' => $label,
-                            'value' => $value !== '' ? Str::slug($value, '_') : Str::slug($label, '_'),
-                            'sort_order' => $optionIndex + 1,
-                            'is_active' => (bool) Arr::get($option, 'is_active', true),
-                        ];
-                    })
-                    ->all();
-            }
-
-            $normalized[] = $item;
-        }
-
-        return $normalized;
-    }
-
     private function defaultConfigurationForType(string $type): array
     {
-        return match ($type) {
-            EquipmentFieldType::PHOTO => [
-                'max_files' => 1,
-                'allowed_extensions' => ['jpg', 'jpeg', 'png'],
-            ],
-            EquipmentFieldType::TEXT => [
-                'placeholder' => '',
-                'help' => '',
-                'max_length' => 500,
-            ],
-            EquipmentFieldType::FILE => [
-                'allowed_extensions' => ['pdf', 'doc', 'docx'],
-                'preview_mode' => 'modal',
-            ],
-            EquipmentFieldType::DOCUMENT => [
-                'template' => 'Cliente: {{cliente_nome}}',
-                'help' => 'Use variaveis disponiveis para montagem do documento final.',
-            ],
-            default => [],
-        };
+        return app(EquipmentTypeFormService::class)->defaultConfigurationForType($type);
     }
 
     private function reindexSortOrder(): void

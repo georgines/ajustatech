@@ -20,6 +20,22 @@
                     <textarea class="form-control" rows="2" wire:model="description"></textarea>
                     @error('description') <small class="text-danger">{{ $message }}</small> @enderror
                 </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Imagem do tipo de equipamento</label>
+                    <input class="form-control" type="file" wire:model="image" accept="{{ $imageAccept }}">
+                    <small class="text-muted">Formatos permitidos: {{ $imageAccept }}</small>
+                    @error('image') <small class="text-danger">{{ $message }}</small> @enderror
+                </div>
+                @if ($currentImageUrl)
+                    <div class="col-12 col-md-6">
+                        <label class="form-label d-block">Imagem atual</label>
+                        <img src="{{ $currentImageUrl }}" alt="Imagem do tipo de equipamento" class="rounded border mb-2" style="max-height: 140px;">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" wire:model="removeImage" id="removeImageSwitch">
+                            <label class="form-check-label" for="removeImageSwitch">Remover imagem atual</label>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>

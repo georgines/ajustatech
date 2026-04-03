@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
 class EquipmentType extends Model
 {
@@ -25,12 +26,18 @@ class EquipmentType extends Model
         'name',
         'description',
         'is_active',
+        'image_disk',
+        'image_path',
+        'image_original_name',
+        'image_mime_type',
+        'image_size',
     ];
 
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
+            'image_size' => 'integer',
         ];
     }
 
@@ -147,6 +154,24 @@ class EquipmentType extends Model
     {
         $this->update(['is_active' => !$this->is_active]);
         static::forgetSelectionCaches();
+    }
+
+    public function hasImage(): bool
+    {
+        return filled($this->image_disk) && filled($this->image_path);
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (!$this->hasImage()) {
+            return null;
+        }
+
+        try {
+            return Storage::disk((string) $this->image_disk)->url((string) $this->image_path);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     private static function forgetSelectionCaches(): void
