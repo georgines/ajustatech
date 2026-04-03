@@ -18,7 +18,10 @@ return new class extends Migration
             $table->string('receipt_channel')->nullable();
             $table->timestamps();
 
-            $table->foreign('financial_payment_method_id')->references('id')->on('financial_payment_methods')->onDelete('cascade');
+            $table->foreign('financial_payment_method_id', 'fpm_costs_payment_method_fk')
+                ->references('id')
+                ->on('financial_payment_methods')
+                ->onDelete('cascade');
         });
     }
 

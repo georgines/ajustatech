@@ -17,7 +17,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('company_cash_id')->references('id')->on('company_cashes')->onDelete('restrict');
-            $table->index(['flow_key', 'payment_method_type', 'is_active']);
+            $table->index(['flow_key', 'payment_method_type', 'is_active'], 'fcfr_flow_paytype_active_idx');
         });
     }
 
