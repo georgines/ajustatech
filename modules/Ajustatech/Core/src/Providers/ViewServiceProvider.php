@@ -3,7 +3,6 @@
 namespace Ajustatech\Core\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
 use Ajustatech\Core\Helpers\MenuManagerInterface;
 use Ajustatech\Core\Helpers\MenuRouteResolverInterface;
@@ -24,8 +23,5 @@ class ViewServiceProvider extends ServiceProvider
 
         $menuData = [$verticalMenu, $horizontalMenu];
         View::share('menuData', $menuData);
-
-        Log::info('ViewServiceProvider: menuData');
-        Log::debug('menuData:', $menuData);        
     }
 }
