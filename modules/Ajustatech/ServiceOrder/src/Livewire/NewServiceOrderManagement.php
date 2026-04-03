@@ -72,7 +72,6 @@ class NewServiceOrderManagement extends Component
         $this->entry_date = $now->toDateString();
         $this->openingDate = $now->format('d/m/Y');
         $this->openingTime = $now->format('H:i');
-        $this->orderNumberPreview = ServiceOrder::countAll() + 1;
         $this->availableEquipmentTypes = EquipmentType::getActiveSelectionList();
 
         $this->refreshAvailableServices();
@@ -81,6 +80,8 @@ class NewServiceOrderManagement extends Component
             $this->loadOrderForEditing($id, $equipmentTypeService);
             return;
         }
+
+        $this->orderNumberPreview = ServiceOrder::countAll() + 1;
 
         if ($this->equipment_type_id) {
             $this->loadFieldsForEquipmentType($equipmentTypeService);

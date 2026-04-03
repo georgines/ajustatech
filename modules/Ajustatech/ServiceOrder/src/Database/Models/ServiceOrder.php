@@ -11,11 +11,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class ServiceOrder extends Model
 {
     use HasFactory;
     use HasUuids;
+
+    private const COUNT_CACHE_KEY = 'service_order:orders:count_all';
+    private const COUNT_CACHE_TTL_SECONDS = 60;
 
     protected $table = 'service_orders';
 
@@ -80,7 +84,11 @@ class ServiceOrder extends Model
 
     public static function countAll(): int
     {
-        return static::query()->count();
+        return (int) Cache::remember(
+            static::COUNT_CACHE_KEY,
+            static::COUNT_CACHE_TTL_SECONDS,
+            fn () => static::query()->count()
+        );
     }
 
     public static function createFromPayload(array $payload): self
@@ -149,6 +157,12 @@ class ServiceOrder extends Model
     public function cancel(): void
     {
         $this->update(['status' => 'canceled']);
+    }
+
+    protected static function booted(): void
+    {
+        static::created(fn () => Cache::forget(static::COUNT_CACHE_KEY));
+        static::deleted(fn () => Cache::forget(static::COUNT_CACHE_KEY));
     }
 
     public function getDocumentFieldsWithValues(): array

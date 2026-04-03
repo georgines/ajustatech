@@ -9,11 +9,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class EquipmentType extends Model
 {
     use HasFactory;
     use HasUuids;
+
+    private const ACTIVE_SELECTION_CACHE_KEY = 'service_order:equipment_types:active_selection';
+    private const ACTIVE_SELECTION_CACHE_TTL_SECONDS = 300;
 
     protected $table = 'equipment_types';
 
@@ -83,12 +87,18 @@ class EquipmentType extends Model
 
     public static function createFromPayload(array $payload): self
     {
-        return static::query()->create($payload);
+        $created = static::query()->create($payload);
+        static::forgetSelectionCaches();
+
+        return $created;
     }
 
     public function updateFromPayload(array $payload): bool
     {
-        return $this->update($payload);
+        $updated = $this->update($payload);
+        static::forgetSelectionCaches();
+
+        return $updated;
     }
 
     public function getFieldIds(): array
@@ -113,12 +123,16 @@ class EquipmentType extends Model
 
     public static function getActiveSelectionList(): array
     {
-        return static::query()
-            ->active()
-            ->orderedByName()
-            ->get(['id', 'name'])
-            ->map(fn (self $item) => ['id' => $item->id, 'name' => $item->name])
-            ->all();
+        return Cache::remember(
+            static::ACTIVE_SELECTION_CACHE_KEY,
+            static::ACTIVE_SELECTION_CACHE_TTL_SECONDS,
+            fn () => static::query()
+                ->active()
+                ->orderedByName()
+                ->get(['id', 'name'])
+                ->map(fn (self $item) => ['id' => $item->id, 'name' => $item->name])
+                ->all()
+        );
     }
 
     public static function getListingWithFieldsCount(): Collection
@@ -132,6 +146,12 @@ class EquipmentType extends Model
     public function toggleActiveStatus(): void
     {
         $this->update(['is_active' => !$this->is_active]);
+        static::forgetSelectionCaches();
+    }
+
+    private static function forgetSelectionCaches(): void
+    {
+        Cache::forget(static::ACTIVE_SELECTION_CACHE_KEY);
     }
 
     protected static function newFactory()

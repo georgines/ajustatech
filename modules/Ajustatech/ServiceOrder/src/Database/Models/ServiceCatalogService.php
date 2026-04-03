@@ -9,11 +9,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class ServiceCatalogService extends Model
 {
     use HasFactory;
     use HasUuids;
+
+    private const REUSABLE_ACTIVE_SELECTION_CACHE_KEY = 'service_order:service_catalog:reusable_active_selection';
+    private const REUSABLE_ACTIVE_SELECTION_CACHE_TTL_SECONDS = 300;
 
     protected $table = 'service_catalog_services';
 
@@ -77,38 +81,50 @@ class ServiceCatalogService extends Model
 
     public static function createFromPayload(array $payload): self
     {
-        return static::query()->create($payload);
+        $created = static::query()->create($payload);
+        static::forgetSelectionCaches();
+
+        return $created;
     }
 
     public function updateFromPayload(array $payload): bool
     {
-        return $this->update($payload);
+        $updated = $this->update($payload);
+        static::forgetSelectionCaches();
+
+        return $updated;
     }
 
     public function replaceSteps(array $steps): void
     {
         $this->steps()->delete();
         $this->steps()->createMany($steps);
+        static::forgetSelectionCaches();
     }
 
     public function toggleActiveStatus(): void
     {
         $this->update(['is_active' => !$this->is_active]);
+        static::forgetSelectionCaches();
     }
 
     public static function getReusableActiveSelectionList(): array
     {
-        return static::query()
-            ->active()
-            ->reusable()
-            ->orderedByName()
-            ->get(['id', 'name', 'base_price'])
-            ->map(fn (self $item) => [
-                'id' => $item->id,
-                'name' => $item->name,
-                'base_price' => (float) $item->base_price,
-            ])
-            ->all();
+        return Cache::remember(
+            static::REUSABLE_ACTIVE_SELECTION_CACHE_KEY,
+            static::REUSABLE_ACTIVE_SELECTION_CACHE_TTL_SECONDS,
+            fn () => static::query()
+                ->active()
+                ->reusable()
+                ->orderedByName()
+                ->get(['id', 'name', 'base_price'])
+                ->map(fn (self $item) => [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'base_price' => (float) $item->base_price,
+                ])
+                ->all()
+        );
     }
 
     public static function getListingWithStepsCount(): Collection
@@ -136,6 +152,11 @@ class ServiceCatalogService extends Model
     public static function findByName(string $name): ?self
     {
         return static::query()->where('name', $name)->first();
+    }
+
+    private static function forgetSelectionCaches(): void
+    {
+        Cache::forget(static::REUSABLE_ACTIVE_SELECTION_CACHE_KEY);
     }
 
     protected static function newFactory()
