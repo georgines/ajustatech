@@ -12,10 +12,10 @@
                         <i class="ti ti-device-laptop me-1"></i> EQUIPAMENTO(S)
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-success" disabled>
-                        <i class="ti ti-tools me-1"></i> SERVICOS / PRODUTOS
+                        <i class="ti ti-stethoscope me-1"></i> SERVICOS DE ANALISE
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-success" disabled>
-                        <i class="ti ti-cash me-1"></i> PAGAMENTOS
+                        <i class="ti ti-cash me-1"></i> ORCAMENTO (POSTERIOR)
                     </button>
                 </div>
                 <span class="badge {{ $customer_id ? 'bg-label-success' : 'bg-label-warning' }}">
@@ -177,7 +177,7 @@
         </div>
 
         <div class="card mb-4">
-            <div class="card-header"><h5 class="m-0">Campos dinamicos do tipo de equipamento</h5></div>
+            <div class="card-header"><h5 class="m-0">Estrutura tecnica dinamica do equipamento</h5></div>
             <div class="card-body">
                 @forelse ($activeFieldSnapshots as $field)
                     @php
@@ -232,14 +232,14 @@
         <div class="card mb-4">
             <div class="card-body">
                 <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-md-center gap-2 mb-3">
-                    <h4 class="mb-0">Produtos e servicos deste Equipamento</h4>
+                    <h4 class="mb-0">Servicos de analise deste equipamento</h4>
                     <button type="button" class="btn btn-primary w-100 w-md-auto" wire:click="openServiceModal">
-                        <i class="ti ti-tool me-1"></i> NOVO PRODUTO / SERVICO
+                        <i class="ti ti-tool me-1"></i> NOVO TIPO DE ANALISE
                     </button>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Produto / Servico cadastrado</label>
+                    <label class="form-label">Tipo de analise cadastrado</label>
                     <div class="input-group">
                         <span class="input-group-text" id="service-catalog-search-addon">
                             <i class="ti ti-search"></i>
@@ -247,8 +247,8 @@
                         <input type="text"
                                class="form-control"
                                wire:model.live.debounce.300ms="serviceCatalogSearch"
-                               placeholder="Busque e selecione um produto/servico"
-                               aria-label="Buscar produto ou servico"
+                               placeholder="Busque e selecione um tipo de analise"
+                               aria-label="Buscar tipo de analise"
                                aria-describedby="service-catalog-search-addon">
                         <button type="button"
                                 class="btn btn-outline-primary"
@@ -265,12 +265,12 @@
                                         class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
                                         wire:click="selectCatalogService('{{ $serviceItem['id'] }}')">
                                     <span>{{ $serviceItem['name'] }}</span>
-                                    <span class="text-muted small">R$ {{ number_format((float) $serviceItem['base_price'], 2, ',', '.') }}</span>
+                                    <span class="text-muted small">Modelo tecnico</span>
                                 </button>
                             @endforeach
                         </div>
                     @elseif (mb_strlen(trim($serviceCatalogSearch)) >= 2)
-                        <small class="text-muted d-block mt-2">Nenhum servico encontrado.</small>
+                        <small class="text-muted d-block mt-2">Nenhum tipo de analise encontrado.</small>
                     @endif
                 </div>
             </div>
@@ -279,57 +279,14 @@
         <div class="card mb-4">
             <div class="card-body p-0">
                 <div class="card mb-0">
-                    <h5 class="card-header">Produtos</h5>
+                    <h5 class="card-header">Servicos de analise</h5>
                     <div class="table-responsive text-nowrap">
                         <table class="table mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Descricao</th>
-                                    <th>Est.</th>
+                                    <th>Tipo de analise</th>
                                     <th>Qtd.</th>
-                                    <th>R$ Unit.</th>
-                                    <th>R$ Desc.</th>
-                                    <th>R$ Total</th>
-                                </tr>
-                            </thead>
-                            <tbody class="table-border-bottom-0">
-                                <tr>
-                                    <td colspan="6" class="text-muted">Sem itens de produto nesta etapa.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="row text-center p-3 pt-2">
-                        <div class="col-12 col-md-4">
-                            <div class="small">Subtotal Bruto de Produtos:</div>
-                            <div class="fw-bold">R$ {{ number_format($this->productSummary['gross'], 2, ',', '.') }}</div>
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <div class="small">Descontos de Produtos:</div>
-                            <div class="fw-bold">R$ {{ number_format($this->productSummary['discount'], 2, ',', '.') }}</div>
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <div class="small">Subtotal Liquido de Produtos:</div>
-                            <div class="fw-bold">R$ {{ number_format($this->productSummary['net'], 2, ',', '.') }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card mb-4">
-            <div class="card-body p-0">
-                <div class="card mb-0">
-                    <h5 class="card-header">Servicos</h5>
-                    <div class="table-responsive text-nowrap">
-                        <table class="table mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Servico</th>
-                                    <th>Qtd.</th>
-                                    <th>R$ Unit.</th>
-                                    <th>R$ Desc.</th>
-                                    <th>R$ Total</th>
+                                    <th>Modelo tecnico</th>
                                     <th class="text-end">Acoes</th>
                                 </tr>
                             </thead>
@@ -338,9 +295,7 @@
                                     <tr>
                                         <td class="fw-semibold">{{ $service['name'] }}</td>
                                         <td>{{ $service['quantity'] }}</td>
-                                        <td>R$ {{ number_format($service['base_price'], 2, ',', '.') }}</td>
-                                        <td>R$ {{ number_format($service['discount'], 2, ',', '.') }}</td>
-                                        <td>R$ {{ number_format($service['line_total'], 2, ',', '.') }}</td>
+                                        <td><span class="badge bg-label-primary">Instancia independente</span></td>
                                         <td class="text-end">
                                             <button type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" wire:click="openServiceEditModal('{{ $service['id'] }}')" title="Editar servico">
                                                 <i class="ti ti-pencil"></i>
@@ -352,44 +307,14 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="text-muted">Nenhum servico adicionado.</td>
+                                        <td colspan="4" class="text-muted">Nenhum servico de analise adicionado.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
-                    <div class="row text-center p-3 pt-2">
-                        <div class="col-12 col-md-4">
-                            <div class="small">Subtotal Bruto de Servicos:</div>
-                            <div class="fw-bold">R$ {{ number_format($this->serviceSummary['gross'], 2, ',', '.') }}</div>
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <div class="small">Descontos de Servicos:</div>
-                            <div class="fw-bold">R$ {{ number_format($this->serviceSummary['discount'], 2, ',', '.') }}</div>
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <div class="small">Subtotal Liquido de Servicos:</div>
-                            <div class="fw-bold">R$ {{ number_format($this->serviceSummary['net'], 2, ',', '.') }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card mb-4">
-            <div class="card-body">
-                <div class="border rounded p-3 text-white" style="background-color: #3f5c00;">
-                    <h5 class="mb-2 text-white">Subtotais deste Equipamento</h5>
-                    <div class="row text-center">
-                        <div class="col-12 col-md-4">
-                            <div>Subtotal Bruto: <strong>R$ {{ number_format($this->equipmentTotals['gross'], 2, ',', '.') }}</strong></div>
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <div>Descontos: <strong>R$ {{ number_format($this->equipmentTotals['discount'], 2, ',', '.') }}</strong></div>
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <div>Subtotal Liquido: <strong>R$ {{ number_format($this->equipmentTotals['net'], 2, ',', '.') }}</strong></div>
-                        </div>
+                    <div class="p-3 pt-2 small text-muted">
+                        Valores financeiros vinculados as acoes tecnicas sao reservados para a etapa posterior de orcamento.
                     </div>
                 </div>
             </div>
@@ -405,7 +330,7 @@
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Cadastrar servico</h5>
+                        <h5 class="modal-title">Cadastrar tipo de analise</h5>
                         <button type="button" class="btn-close" wire:click="closeServiceModal"></button>
                     </div>
                     <div class="modal-body">
@@ -424,12 +349,12 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Editar servico da ordem</h5>
+                        <h5 class="modal-title">Editar servico de analise da ordem</h5>
                         <button type="button" class="btn-close" wire:click="closeServiceEditModal"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label">Servico</label>
+                            <label class="form-label">Tipo de analise</label>
                             <select class="form-select" wire:model.live="editServiceSelectionId">
                                 <option value="">Selecione</option>
                                 @foreach ($availableServices as $serviceOption)
@@ -439,22 +364,13 @@
                             @error('editServiceSelectionId') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Valor unitario</label>
-                            <input class="form-control" type="text" value="R$ {{ number_format($this->editServiceUnitPrice, 2, ',', '.') }}" readonly>
-                        </div>
-                        <div class="mb-3">
                             <label class="form-label">Quantidade</label>
                             <input class="form-control" type="number" min="1" max="100" wire:model.live="editServiceQty">
                             @error('editServiceQty') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Desconto (R$)</label>
-                            <input class="form-control" type="text" wire:model.live="editServiceDiscount" placeholder="Ex.: 10,50">
-                            @error('editServiceDiscount') <small class="text-danger">{{ $message }}</small> @enderror
-                        </div>
                         <div class="mb-0">
-                            <label class="form-label">Total</label>
-                            <input class="form-control" type="text" value="R$ {{ number_format($this->editServiceNetAmount, 2, ',', '.') }}" readonly>
+                            <label class="form-label">Observacao inicial da analise</label>
+                            <input class="form-control" type="text" placeholder="Opcional (sera detalhado durante a execucao)" disabled>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -485,3 +401,4 @@
         </div>
     @endif
 </div>
+

@@ -256,13 +256,13 @@ class NewServiceOrderManagement extends Component
 
         $normalizedDiscount = $this->parseDecimalToFloat($this->editServiceDiscount);
         if ($normalizedDiscount === null) {
-            $this->addError('editServiceDiscount', 'Informe um desconto valido. Ex.: 10,50');
+            $this->addError('editServiceDiscount', 'Valor invalido.');
             return;
         }
 
         $gross = $this->editServiceGrossAmount;
         if ($normalizedDiscount > $gross) {
-            $this->addError('editServiceDiscount', 'O desconto nao pode ser maior que o total do servico.');
+            $this->addError('editServiceDiscount', 'Valor invalido para este servico de analise.');
             return;
         }
 
@@ -270,13 +270,13 @@ class NewServiceOrderManagement extends Component
             $this->editServiceSelectionId !== $this->editingServiceId
             && array_key_exists($this->editServiceSelectionId, $this->selectedServices)
         ) {
-            $this->addError('editServiceSelectionId', 'Este servico ja esta adicionado na ordem.');
+            $this->addError('editServiceSelectionId', 'Este servico de analise ja esta adicionado na ordem.');
             return;
         }
 
         $this->resetErrorBag(['editServiceSelectionId', 'editServiceQty', 'editServiceDiscount']);
 
-        $this->dispatchConfirmation('Confirmar alteracao do servico?')
+        $this->dispatchConfirmation('Confirmar alteracao do servico de analise?')
             ->typeWarning()
             ->setButtonOK('Sim')
             ->setButtonCancel('Nao')
@@ -312,9 +312,9 @@ class NewServiceOrderManagement extends Component
             return;
         }
 
-        $name = (string) Arr::get(collect($this->availableServices)->firstWhere('id', $serviceId), 'name', 'servico');
+        $name = (string) Arr::get(collect($this->availableServices)->firstWhere('id', $serviceId), 'name', 'servico de analise');
 
-        $this->dispatchConfirmation('Confirma remover o servico "' . $name . '" desta ordem?')
+        $this->dispatchConfirmation('Confirma remover o servico de analise "' . $name . '" desta ordem?')
             ->typeWarning()
             ->setButtonOK('Sim')
             ->setButtonCancel('Nao')

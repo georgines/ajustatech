@@ -1,7 +1,7 @@
 <x-slot name="page_title">{{ $title }}</x-slot>
 <div>
     <div class="d-flex justify-content-end mb-3">
-        <a class="btn btn-primary" href="{{ route('service-order-services-create') }}">Novo servico</a>
+        <a class="btn btn-primary" href="{{ route('service-order-analysis-types-create') }}">Novo tipo de analise</a>
     </div>
 
     <div class="card">
@@ -9,11 +9,10 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Servico</th>
-                        <th>Procedimentos</th>
-                        <th>Valor base</th>
+                        <th>Tipo de analise</th>
+                        <th>Secoes</th>
+                        <th>Perguntas</th>
                         <th>Status</th>
-                        <th>Uso futuro</th>
                         <th class="text-end">Acoes</th>
                     </tr>
                 </thead>
@@ -26,13 +25,12 @@
                                     <small class="text-muted">{{ $service->description }}</small>
                                 @endif
                             </td>
-                            <td>{{ $service->steps_count }}</td>
-                            <td>R$ {{ number_format((float) $service->base_price, 2, ',', '.') }}</td>
+                            <td>{{ $service->sections_count }}</td>
+                            <td>{{ $service->sections->sum(fn($section) => $section->questions->count()) }}</td>
                             <td>{{ $service->is_active ? 'Ativo' : 'Inativo' }}</td>
-                            <td>{{ $service->is_reusable ? 'Sim' : 'Nao' }}</td>
                             <td class="text-end">
                                 <a class="btn btn-sm btn-icon btn-text-secondary rounded-pill me-1"
-                                   href="{{ route('service-order-services-edit', ['id' => $service->id]) }}">
+                                   href="{{ route('service-order-analysis-types-edit', ['id' => $service->id]) }}">
                                     <i class="ti ti-pencil"></i>
                                 </a>
                                 <button class="btn btn-sm btn-icon btn-text-secondary rounded-pill"
@@ -44,7 +42,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center text-muted">Nenhum servico cadastrado.</td>
+                            <td colspan="5" class="text-center text-muted">Nenhum tipo de analise cadastrado.</td>
                         </tr>
                     @endforelse
                 </tbody>

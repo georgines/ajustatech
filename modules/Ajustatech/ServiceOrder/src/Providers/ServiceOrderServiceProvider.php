@@ -14,6 +14,8 @@ use Ajustatech\ServiceOrder\Livewire\EditServiceOrderManagement;
 use Ajustatech\ServiceOrder\Livewire\NewServiceOrderManagement;
 use Ajustatech\ServiceOrder\Livewire\EquipmentTypeManagement;
 use Ajustatech\ServiceOrder\Livewire\ServiceCatalogManagement;
+use Ajustatech\ServiceOrder\Livewire\ShowPendingAnalysisServices;
+use Ajustatech\ServiceOrder\Livewire\AnalysisExecutionManagement;
 
 class ServiceOrderServiceProvider extends ServiceProvider
 {
@@ -53,6 +55,8 @@ class ServiceOrderServiceProvider extends ServiceProvider
         Livewire::component('service-order-new-order-management', NewServiceOrderManagement::class);
         Livewire::component('service-order-show-services', ShowServiceCatalog::class);
         Livewire::component('service-order-service-management', ServiceCatalogManagement::class);
+        Livewire::component('service-order-analysis-execution-queue', ShowPendingAnalysisServices::class);
+        Livewire::component('service-order-analysis-execution-management', AnalysisExecutionManagement::class);
     }
 
     private function loadCommands(): void

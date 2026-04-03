@@ -68,6 +68,11 @@ class ServiceOrder extends Model
         return $this->hasMany(ServiceOrderServiceItem::class, 'service_order_id');
     }
 
+    public function analysisServices(): HasMany
+    {
+        return $this->hasMany(ServiceOrderAnalysisService::class, 'service_order_id');
+    }
+
     public function scopeLatestFirst(Builder $query): Builder
     {
         return $query->latest();
@@ -96,31 +101,31 @@ class ServiceOrder extends Model
     public static function findForEditOrFail(string $id): self
     {
         return static::query()
-            ->with(['fieldValues', 'serviceItems'])
+            ->with(['fieldValues', 'serviceItems', 'analysisServices'])
             ->findOrFail($id);
     }
 
     public static function findWithAllRelationsOrFail(string $id): self
     {
         return static::query()
-            ->with(['fieldValues', 'attachments', 'serviceItems'])
+            ->with(['fieldValues', 'attachments', 'serviceItems', 'analysisServices'])
             ->findOrFail($id);
     }
 
     public function freshWithAllRelations(): self
     {
-        return $this->fresh(['fieldValues', 'attachments', 'serviceItems']);
+        return $this->fresh(['fieldValues', 'attachments', 'serviceItems', 'analysisServices']);
     }
 
     public function loadMissingAllRelations(): self
     {
-        return $this->loadMissing('fieldValues', 'attachments', 'serviceItems');
+        return $this->loadMissing('fieldValues', 'attachments', 'serviceItems', 'analysisServices');
     }
 
     public static function getLatestListingWithServiceItems(int $limit = 100): Collection
     {
         return static::query()
-            ->with('serviceItems')
+            ->with(['serviceItems', 'analysisServices'])
             ->latestFirst()
             ->limit($limit)
             ->get();

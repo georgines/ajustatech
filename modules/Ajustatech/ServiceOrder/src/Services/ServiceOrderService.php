@@ -3,6 +3,8 @@
 namespace Ajustatech\ServiceOrder\Services;
 
 use Ajustatech\Customer\Database\Models\Customer;
+use Ajustatech\ServiceOrder\Database\Models\AnalysisSection;
+use Ajustatech\ServiceOrder\Database\Models\AnalysisType;
 use Ajustatech\ServiceOrder\Database\Models\EquipmentType;
 use Ajustatech\ServiceOrder\Database\Models\ServiceCatalogService;
 use Ajustatech\ServiceOrder\Database\Models\ServiceOrder;
@@ -21,7 +23,8 @@ class ServiceOrderService
 {
     public function __construct(
         private readonly EquipmentTypeService $equipmentTypeService,
-        private readonly DocumentTemplateRenderer $documentTemplateRenderer
+        private readonly DocumentTemplateRenderer $documentTemplateRenderer,
+        private readonly AnalysisExecutionService $analysisExecutionService
     ) {
     }
 
@@ -81,6 +84,7 @@ class ServiceOrderService
 
         DB::transaction(function () use ($order, $items, $catalogServices) {
             $order->deleteAllServiceItems();
+            $order->analysisServices()->delete();
 
             foreach ($items as $item) {
                 $validated = Validator::make($item, [
@@ -130,6 +134,16 @@ class ServiceOrderService
                         ])->values()->all(),
                     ],
                 ]);
+
+                $analysisType = $this->ensureAnalysisTypeFromCatalogService($catalogService);
+                for ($index = 1; $index <= $quantity; $index++) {
+                    $this->analysisExecutionService->createAnalysisServiceInstance(
+                        $order,
+                        $analysisType->id,
+                        null,
+                        'Instancia gerada automaticamente pela ordem de servico.'
+                    );
+                }
             }
         });
 
@@ -399,5 +413,70 @@ class ServiceOrderService
             'data_entrada' => optional($order->entry_date)->format('Y-m-d'),
             'defeito_relatado' => $order->reported_issue,
         ];
+    }
+
+    private function ensureAnalysisTypeFromCatalogService(ServiceCatalogService $catalogService): AnalysisType
+    {
+        $slug = 'service-catalog-' . $catalogService->id;
+        $analysisType = AnalysisType::query()->firstOrCreate(
+            ['slug' => $slug],
+            [
+                'name' => $catalogService->name,
+                'description' => $catalogService->description,
+                'is_active' => true,
+            ]
+        );
+
+        $analysisType->update([
+            'name' => $catalogService->name,
+            'description' => $catalogService->description,
+            'is_active' => (bool) $catalogService->is_active,
+        ]);
+
+        $analysisType->sections()->delete();
+        /** @var AnalysisSection $section */
+        $section = $analysisType->sections()->create([
+            'name' => 'Execucao tecnica',
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+
+        foreach ($catalogService->steps()->where('is_active', true)->orderBy('sort_order')->get() as $step) {
+            $question = $section->questions()->create([
+                'code' => 'STEP-' . $step->sort_order,
+                'prompt' => $step->name,
+                'answer_type' => 'text',
+                'sort_order' => $step->sort_order,
+                'is_required' => (bool) $step->is_required,
+                'is_repeatable' => false,
+                'is_active' => true,
+            ]);
+
+            $question->complementaryFields()->create([
+                'name' => 'observacao_tecnica',
+                'label' => $step->technician_report_label ?: 'Observacao tecnica',
+                'field_type' => 'text',
+                'sort_order' => 1,
+                'is_required' => (bool) $step->is_required,
+                'is_active' => true,
+                'configuration' => ['max_length' => 2000],
+            ]);
+
+            if ((bool) $step->requires_image_proof) {
+                $question->complementaryFields()->create([
+                    'name' => 'evidencia_foto',
+                    'label' => 'Foto de evidencia',
+                    'field_type' => 'photo',
+                    'sort_order' => 2,
+                    'is_required' => true,
+                    'is_active' => true,
+                    'configuration' => [
+                        'allowed_extensions' => ['jpg', 'jpeg', 'png', 'webp'],
+                    ],
+                ]);
+            }
+        }
+
+        return $analysisType->fresh('sections.questions.complementaryFields');
     }
 }

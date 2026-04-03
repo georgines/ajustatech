@@ -11,8 +11,9 @@ class ServiceOrderModuleSeeder extends Seeder
         $this->call([
             EquipmentTypesSeeder::class,
             ServiceCatalogSeeder::class,
+            AnalysisTypesSeeder::class,
             ServiceOrderDemoSeeder::class,
+            AnalysisExecutionDemoSeeder::class,
         ]);
     }
 }
-

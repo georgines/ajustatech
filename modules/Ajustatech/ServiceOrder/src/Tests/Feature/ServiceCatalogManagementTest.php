@@ -2,7 +2,7 @@
 
 namespace Ajustatech\ServiceOrder\Tests\Feature;
 
-use Ajustatech\ServiceOrder\Database\Models\ServiceCatalogService;
+use Ajustatech\ServiceOrder\Database\Models\AnalysisType;
 use Ajustatech\ServiceOrder\Livewire\ServiceCatalogManagement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -12,93 +12,88 @@ class ServiceCatalogManagementTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_cannot_add_new_step_when_current_step_name_is_empty(): void
+    public function test_can_create_analysis_type_with_question_options_complementary_rules_and_consequences(): void
     {
-        Livewire::test(ServiceCatalogManagement::class)
-            ->assertCount('steps', 1)
-            ->call('addStep')
-            ->assertHasErrors(['steps'])
-            ->assertCount('steps', 1);
-    }
+        $component = Livewire::test(ServiceCatalogManagement::class)
+            ->set('name', 'Analise de Notebook')
+            ->set('description', 'Modelo tecnico')
+            ->set('sections.0.name', 'Inspecao fisica')
+            ->set('sections.0.questions.0.prompt', 'Carcaca quebrada?')
+            ->set('sections.0.questions.0.answer_type', 'single_select')
+            ->set('sections.0.questions.0.options.0.label', 'Nao')
+            ->set('sections.0.questions.0.options.0.value', 'nao')
+            ->set('sections.0.questions.0.options.1.label', 'Sim')
+            ->set('sections.0.questions.0.options.1.value', 'sim')
+            ->call('addComplementaryField', 0, 0)
+            ->set('sections.0.questions.0.complementary_fields.0.name', 'foto_evidencia')
+            ->set('sections.0.questions.0.complementary_fields.0.label', 'Foto de evidencia')
+            ->set('sections.0.questions.0.complementary_fields.0.field_type', 'photo');
 
-    public function test_add_step_keeps_form_and_existing_step_state(): void
-    {
-        Livewire::test(ServiceCatalogManagement::class)
-            ->set('name', 'Analise de notebook')
-            ->set('base_price', 90)
-            ->set('description', 'Analise inicial')
-            ->set('steps.0.name', 'Teste de ligar')
-            ->set('steps.0.help_text', 'Verificar imagem na tela')
-            ->call('addStep')
-            ->assertHasNoErrors()
-            ->assertCount('steps', 2)
-            ->assertSet('name', 'Analise de notebook')
-            ->assertSet('base_price', 90)
-            ->assertSet('description', 'Analise inicial')
-            ->assertSet('steps.0.name', 'Teste de ligar')
-            ->assertSet('steps.0.help_text', 'Verificar imagem na tela')
-            ->assertSet('steps.1.sort_order', 2);
-    }
+        $yesOptionTempId = $component->get('sections.0.questions.0.options.1.temp_id');
+        $photoFieldTempId = $component->get('sections.0.questions.0.complementary_fields.0.temp_id');
 
-    public function test_move_step_reindexes_without_corrupting_steps(): void
-    {
-        Livewire::test(ServiceCatalogManagement::class)
-            ->set('steps.0.name', 'Procedimento A')
-            ->call('addStep')
-            ->set('steps.1.name', 'Procedimento B')
-            ->call('moveStepUp', 1)
-            ->assertSet('steps.0.name', 'Procedimento B')
-            ->assertSet('steps.0.sort_order', 1)
-            ->assertSet('steps.1.name', 'Procedimento A')
-            ->assertSet('steps.1.sort_order', 2)
-            ->call('moveStepDown', 0)
-            ->assertSet('steps.0.name', 'Procedimento A')
-            ->assertSet('steps.0.sort_order', 1)
-            ->assertSet('steps.1.name', 'Procedimento B')
-            ->assertSet('steps.1.sort_order', 2);
-    }
-
-    public function test_can_save_service_with_ordered_steps(): void
-    {
-        Livewire::test(ServiceCatalogManagement::class)
-            ->set('name', 'Analise de notebook')
-            ->set('description', 'Analise inicial completa')
-            ->set('base_price', 90)
-            ->set('is_active', true)
-            ->set('is_reusable', true)
-            ->set('steps.0.name', 'Teste de ligar')
-            ->set('steps.0.help_text', 'Verificar imagem na tela')
-            ->set('steps.0.technician_report_label', 'Relato do teste de ligar')
-            ->set('steps.0.is_required', true)
-            ->set('steps.0.requires_image_proof', true)
-            ->call('addStep')
-            ->set('steps.1.name', 'Inspecao visual')
-            ->set('steps.1.technician_report_label', 'Relato da inspecao')
+        $component
+            ->call('addConditionalRule', 0, 0)
+            ->set('sections.0.questions.0.conditional_rules.0.expected_option_temp_id', $yesOptionTempId)
+            ->set('sections.0.questions.0.conditional_rules.0.target_field_temp_id', $photoFieldTempId)
+            ->set('sections.0.questions.0.conditional_rules.0.effect', 'require')
+            ->call('addConsequence', 0, 0)
+            ->set('sections.0.questions.0.consequences.0.expected_option_temp_id', $yesOptionTempId)
+            ->set('sections.0.questions.0.consequences.0.severity', 'critical')
+            ->set('sections.0.questions.0.consequences.0.description', 'Dano estrutural identificado')
+            ->set('sections.0.questions.0.consequences.0.technical_action_name', 'Substituicao de carcaca')
+            ->set('sections.0.questions.0.consequences.0.should_generate_budget', true)
             ->call('save')
             ->assertHasNoErrors();
 
-        $service = ServiceCatalogService::query()->where('name', 'Analise de notebook')->first();
-        $this->assertNotNull($service);
+        $type = AnalysisType::query()->where('name', 'Analise de Notebook')->first();
+        $this->assertNotNull($type);
 
-        $this->assertDatabaseHas('service_catalog_services', [
-            'id' => $service->id,
-            'name' => 'Analise de notebook',
-            'is_active' => true,
-            'is_reusable' => true,
+        $this->assertDatabaseHas('analysis_sections', [
+            'analysis_type_id' => $type->id,
+            'name' => 'Inspecao fisica',
         ]);
 
-        $this->assertDatabaseHas('service_catalog_service_steps', [
-            'service_catalog_service_id' => $service->id,
-            'name' => 'Teste de ligar',
-            'sort_order' => 1,
-            'is_required' => true,
-            'requires_image_proof' => true,
+        $question = $type->sections()->first()->questions()->first();
+        $this->assertNotNull($question);
+
+        $this->assertDatabaseHas('analysis_question_options', [
+            'analysis_question_id' => $question->id,
+            'value' => 'sim',
         ]);
 
-        $this->assertDatabaseHas('service_catalog_service_steps', [
-            'service_catalog_service_id' => $service->id,
-            'name' => 'Inspecao visual',
-            'sort_order' => 2,
+        $this->assertDatabaseHas('analysis_question_complementary_fields', [
+            'analysis_question_id' => $question->id,
+            'name' => 'foto_evidencia',
+            'field_type' => 'photo',
         ]);
+
+        $this->assertDatabaseHas('analysis_conditional_rules', [
+            'analysis_question_id' => $question->id,
+            'effect' => 'require',
+            'target_type' => 'complementary_field',
+        ]);
+
+        $this->assertDatabaseHas('analysis_consequences', [
+            'analysis_question_id' => $question->id,
+            'severity' => 'critical',
+            'description' => 'Dano estrutural identificado',
+            'should_generate_budget' => true,
+        ]);
+    }
+
+    public function test_blocks_saving_select_question_without_two_valid_options(): void
+    {
+        Livewire::test(ServiceCatalogManagement::class)
+            ->set('name', 'Analise de Desktop')
+            ->set('sections.0.name', 'Teste inicial')
+            ->set('sections.0.questions.0.prompt', 'Liga corretamente?')
+            ->set('sections.0.questions.0.answer_type', 'single_select')
+            ->set('sections.0.questions.0.options.0.label', 'Sim')
+            ->set('sections.0.questions.0.options.0.value', 'sim')
+            ->set('sections.0.questions.0.options.1.label', '')
+            ->set('sections.0.questions.0.options.1.value', '')
+            ->call('save')
+            ->assertHasErrors(['sections.0.questions.0.options']);
     }
 }

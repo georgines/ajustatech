@@ -22,10 +22,17 @@
                 },
                 {
                     "url": "",
-                    "name": "Servicos",
-                    "slug": "service-order-services-show"
+                    "name": "Tipos de Analise",
+                    "slug": "service-order-analysis-types-show"
+                },
+                {
+                    "url": "",
+                    "name": "Analises a Realizar",
+                    "slug": "service-order-analysis-execution-queue"
                 }
             ]
         }
     ]
 }
+
+

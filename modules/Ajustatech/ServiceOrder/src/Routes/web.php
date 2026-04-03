@@ -8,6 +8,8 @@ use Ajustatech\ServiceOrder\Livewire\ShowEquipmentTypes;
 use Ajustatech\ServiceOrder\Livewire\NewServiceOrderManagement;
 use Ajustatech\ServiceOrder\Livewire\EquipmentTypeManagement;
 use Ajustatech\ServiceOrder\Livewire\ServiceCatalogManagement;
+use Ajustatech\ServiceOrder\Livewire\ShowPendingAnalysisServices;
+use Ajustatech\ServiceOrder\Livewire\AnalysisExecutionManagement;
 
 Route::middleware(['web'])->group(function () {
     Route::get('/os/tipos-equipamento', ShowEquipmentTypes::class)
@@ -31,6 +33,22 @@ Route::middleware(['web'])->group(function () {
     Route::get('/os/ordens-servico/{id}/documentos', ShowServiceOrderDocuments::class)
         ->name('service-order-orders-documents');
 
+    Route::get('/os/tipos-analise', ShowServiceCatalog::class)
+        ->name('service-order-analysis-types-show');
+
+    Route::get('/os/tipos-analise/cadastro', ServiceCatalogManagement::class)
+        ->name('service-order-analysis-types-create');
+
+    Route::get('/os/tipos-analise/{id}/editar', ServiceCatalogManagement::class)
+        ->name('service-order-analysis-types-edit');
+
+    Route::get('/os/analises/execucao', ShowPendingAnalysisServices::class)
+        ->name('service-order-analysis-execution-queue');
+
+    Route::get('/os/analises/execucao/{id}/comecar', AnalysisExecutionManagement::class)
+        ->name('service-order-analysis-execution-start');
+
+    // Backward-compatibility aliases (legacy "servicos")
     Route::get('/os/servicos', ShowServiceCatalog::class)
         ->name('service-order-services-show');
 

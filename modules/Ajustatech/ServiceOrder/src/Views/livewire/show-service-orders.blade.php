@@ -11,7 +11,7 @@
                         <th>Data</th>
                         <th>Cliente</th>
                         <th>Equipamento</th>
-                        <th>Servicos</th>
+                        <th>Servicos de Analise</th>
                         <th>Status</th>
                         <th class="text-end">Acoes</th>
                     </tr>
@@ -26,7 +26,7 @@
                             <td>{{ optional($order->entry_date)->format('d/m/Y') }}</td>
                             <td>{{ $order->customer_name }}</td>
                             <td>{{ $order->equipment_name }}</td>
-                            <td>{{ $order->serviceItems->count() }}</td>
+                            <td>{{ $order->analysisServices->count() }}</td>
                             <td>{{ $statusLabels[$order->status] ?? $order->status }}</td>
                             <td class="text-end">
                                 <a class="btn btn-sm btn-icon btn-text-secondary rounded-pill me-1"
