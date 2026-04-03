@@ -24,6 +24,7 @@ class ServiceOrder extends Model
     protected $table = 'service_orders';
 
     protected $fillable = [
+        'order_number',
         'equipment_type_id',
         'customer_id',
         'customer_name',
@@ -41,6 +42,7 @@ class ServiceOrder extends Model
     protected function casts(): array
     {
         return [
+            'order_number' => 'integer',
             'entry_date' => 'date',
             'equipment_type_snapshot' => 'array',
             'fields_snapshot' => 'array',
@@ -93,7 +95,16 @@ class ServiceOrder extends Model
 
     public static function createFromPayload(array $payload): self
     {
+        if (!isset($payload['order_number']) || (int) $payload['order_number'] <= 0) {
+            $payload['order_number'] = static::nextOrderNumberPreview();
+        }
+
         return static::query()->create($payload);
+    }
+
+    public static function nextOrderNumberPreview(): int
+    {
+        return ((int) static::query()->max('order_number')) + 1;
     }
 
     public static function findOrFailById(string $id): self
@@ -161,6 +172,12 @@ class ServiceOrder extends Model
 
     protected static function booted(): void
     {
+        static::creating(function (self $model): void {
+            if (!$model->order_number) {
+                $model->order_number = static::nextOrderNumberPreview();
+            }
+        });
+
         static::created(fn () => Cache::forget(static::COUNT_CACHE_KEY));
         static::deleted(fn () => Cache::forget(static::COUNT_CACHE_KEY));
     }

@@ -4,6 +4,7 @@ namespace Ajustatech\ServiceOrder\Database\Seeders;
 
 use Ajustatech\ServiceOrder\Database\Models\AnalysisTechnicalAction;
 use Ajustatech\ServiceOrder\Database\Models\AnalysisType;
+use Ajustatech\ServiceOrder\Database\Models\ServiceCatalogService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -16,6 +17,7 @@ class AnalysisTypesSeeder extends Seeder
             $actions = $this->seedTechnicalActions();
             $this->seedNotebookAnalysis($actions);
             $this->seedComputerAnalysis($actions);
+            $this->syncServiceCatalogWithAnalysisTypes();
         });
     }
 
@@ -468,5 +470,34 @@ class AnalysisTypesSeeder extends Seeder
             ],
         ]);
     }
-}
 
+    private function syncServiceCatalogWithAnalysisTypes(): void
+    {
+        $types = AnalysisType::query()
+            ->whereIn('slug', ['analise-notebook-completa', 'analise-computador-completa'])
+            ->get()
+            ->keyBy('slug');
+
+        $catalogMap = [
+            'analise-notebook-completa' => 120.00,
+            'analise-computador-completa' => 140.00,
+        ];
+
+        foreach ($catalogMap as $slug => $basePrice) {
+            $type = $types->get($slug);
+            if (!$type) {
+                continue;
+            }
+
+            ServiceCatalogService::query()->updateOrCreate(
+                ['name' => $type->name],
+                [
+                    'description' => $type->description,
+                    'base_price' => $basePrice,
+                    'is_active' => (bool) $type->is_active,
+                    'is_reusable' => true,
+                ]
+            );
+        }
+    }
+}

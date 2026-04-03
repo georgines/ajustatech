@@ -81,7 +81,7 @@ class NewServiceOrderManagement extends Component
             return;
         }
 
-        $this->orderNumberPreview = ServiceOrder::countAll() + 1;
+        $this->orderNumberPreview = ServiceOrder::nextOrderNumberPreview();
 
         if ($this->equipment_type_id) {
             $this->loadFieldsForEquipmentType($equipmentTypeService);

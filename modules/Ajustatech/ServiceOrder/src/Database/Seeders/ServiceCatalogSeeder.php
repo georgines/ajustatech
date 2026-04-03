@@ -10,7 +10,8 @@ class ServiceCatalogSeeder extends Seeder
     public function run(): void
     {
         $defaults = [
-            ['name' => 'Analise de notebook', 'description' => 'Analise completa do notebook.', 'base_price' => 80, 'is_active' => true, 'is_reusable' => true],
+            ['name' => 'Analise de Notebook', 'description' => 'Analise completa do notebook.', 'base_price' => 120, 'is_active' => true, 'is_reusable' => true],
+            ['name' => 'Analise de Computador', 'description' => 'Analise completa do computador/desktop.', 'base_price' => 140, 'is_active' => true, 'is_reusable' => true],
             ['name' => 'Diagnostico tecnico', 'description' => 'Analise completa do equipamento.', 'base_price' => 80, 'is_active' => true, 'is_reusable' => true],
             ['name' => 'Formatacao e backup', 'description' => 'Formatacao do sistema com backup basico.', 'base_price' => 180, 'is_active' => true, 'is_reusable' => true],
             ['name' => 'Troca de tela', 'description' => 'Substituicao de display danificado.', 'base_price' => 350, 'is_active' => true, 'is_reusable' => true],

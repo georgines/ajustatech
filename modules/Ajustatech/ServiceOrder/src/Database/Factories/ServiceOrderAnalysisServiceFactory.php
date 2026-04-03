@@ -18,18 +18,25 @@ class ServiceOrderAnalysisServiceFactory extends Factory
             'id' => (string) Str::uuid(),
             'service_order_id' => ServiceOrder::factory(),
             'analysis_type_id' => AnalysisType::factory(),
-            'analysis_type_snapshot' => [
-                'id' => null,
-                'name' => 'Analise de Notebook',
-                'slug' => 'analise-de-notebook',
-                'description' => 'Snapshot de tipo de analise',
-            ],
+            'analysis_type_snapshot' => fn (array $attributes) => $this->buildAnalysisTypeSnapshot((string) $attributes['analysis_type_id']),
             'technician_id' => null,
             'initial_notes' => $this->faker->sentence(),
             'status' => $this->faker->randomElement(['pending', 'in_progress', 'finalized']),
             'started_at' => null,
             'completed_at' => null,
             'reviewed_at' => null,
+        ];
+    }
+
+    private function buildAnalysisTypeSnapshot(string $analysisTypeId): array
+    {
+        $analysisType = AnalysisType::query()->find($analysisTypeId);
+
+        return [
+            'id' => $analysisType?->id,
+            'name' => $analysisType?->name ?? 'Analise',
+            'slug' => $analysisType?->slug ?? 'analise',
+            'description' => $analysisType?->description,
         ];
     }
 }

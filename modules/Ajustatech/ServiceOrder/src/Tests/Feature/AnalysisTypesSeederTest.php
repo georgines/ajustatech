@@ -29,6 +29,7 @@ class AnalysisTypesSeederTest extends TestCase
         $this->assertDatabaseHas('analysis_conditional_rules', ['target_type' => 'complementary_field', 'effect' => 'require']);
         $this->assertDatabaseHas('analysis_consequences', ['should_generate_budget' => true]);
         $this->assertDatabaseHas('analysis_questions', ['is_repeatable' => true]);
+        $this->assertDatabaseHas('service_catalog_services', ['name' => 'Analise de Notebook', 'base_price' => 120.00, 'is_reusable' => true]);
+        $this->assertDatabaseHas('service_catalog_services', ['name' => 'Analise de Computador', 'base_price' => 140.00, 'is_reusable' => true]);
     }
 }
-

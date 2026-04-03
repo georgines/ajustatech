@@ -16,6 +16,7 @@ class ServiceOrderFactory extends Factory
     {
         return [
             'id' => (string) Str::uuid(),
+            'order_number' => null,
             'equipment_type_id' => EquipmentType::factory(),
             'customer_id' => null,
             'customer_name' => $this->faker->name(),

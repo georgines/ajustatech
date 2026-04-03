@@ -8,6 +8,7 @@ use Ajustatech\ServiceOrder\Database\Models\ServiceCatalogService;
 use Ajustatech\ServiceOrder\Database\Models\ServiceOrder;
 use Ajustatech\ServiceOrder\Database\Models\ServiceOrderAttachment;
 use Ajustatech\ServiceOrder\Database\Models\ServiceOrderFieldValue;
+use Ajustatech\ServiceOrder\Database\Models\ServiceOrderAnalysisService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -129,5 +130,17 @@ class ServiceOrderModelQueryTest extends TestCase
             'service_order_id' => $order->id,
             'field_slug' => 'foto_frontal',
         ]);
+    }
+
+    public function test_service_order_uses_sequential_order_number_and_analysis_factory_snapshot_matches_type(): void
+    {
+        $first = ServiceOrder::factory()->create();
+        $second = ServiceOrder::factory()->create();
+
+        $this->assertNotNull($first->order_number);
+        $this->assertSame($first->order_number + 1, $second->order_number);
+
+        $analysisService = ServiceOrderAnalysisService::factory()->create();
+        $this->assertSame($analysisService->analysis_type_id, data_get($analysisService->analysis_type_snapshot, 'id'));
     }
 }

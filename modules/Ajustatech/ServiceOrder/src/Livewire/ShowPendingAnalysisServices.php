@@ -15,6 +15,10 @@ class ShowPendingAnalysisServices extends Component
     {
         $analysisServices = ServiceOrderAnalysisService::query()
             ->with(['order', 'analysisType'])
+            ->withCount([
+                'questions as total_questions_count' => fn ($query) => $query->where('is_active', true),
+                'responses as answered_questions_count',
+            ])
             ->whereIn('status', ['pending', 'in_progress'])
             ->latest()
             ->get();
@@ -30,4 +34,3 @@ class ShowPendingAnalysisServices extends Component
         ]);
     }
 }
-
