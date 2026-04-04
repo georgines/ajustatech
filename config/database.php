@@ -109,6 +109,12 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        'mongodb' => [
+            'driver' => 'mongodb',
+            'dsn' => env('MONGODB_URI', 'mongodb://127.0.0.1:27020'),
+            'database' => env('MONGODB_DATABASE', 'ajustatech'),
+        ],
+
     ],
 
     /*
