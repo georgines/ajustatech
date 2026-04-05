@@ -24,7 +24,10 @@ Aplicar padrao de separacao por funcionalidade dentro do modulo e enforce de Ser
 6. Registrar binds no `register()` do provider da funcionalidade.
 7. Registrar provider da funcionalidade no provider do modulo pai.
 8. Em comandos de modulo (seed/wipe), chamar comandos de feature manualmente com `$this->call(...)`, sem auto-descoberta dinamica.
-9. Validar testes e imports apos reorganizacao.
+9. Garantir que consultas de dados fiquem nos Models, nao no Service.
+10. Otimizar queries de exibicao, carregamento, edicao e exclusao (sem query em loop).
+11. Em fluxo de upload, garantir limpeza de arquivos temporarios apos salvar.
+12. Validar testes, imports e testes de requisicoes/performance apos reorganizacao.
 
 ## Exemplo de composicao
 - Modulo pai: `ServiceOrder`
@@ -39,3 +42,4 @@ Aplicar padrao de separacao por funcionalidade dentro do modulo e enforce de Ser
 - Nao criar service sem interface correspondente.
 - Nao criar contrato de feature nova fora da pasta da funcionalidade.
 - Nao depender de descoberta automatica para orquestrar comandos de feature no fluxo principal.
+- Nao concentrar consulta de dados no Service quando ela pertencer ao Model.

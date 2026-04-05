@@ -40,7 +40,10 @@ Implementacoes reais devem ocorrer em `resources/*` e `modules/Ajustatech/*`.
 12. Garantir rotas nomeadas no modulo.
 13. Garantir menus (`Menu/*.json`) com `slug` alinhado as rotas.
 14. Garantir Livewire components registrados no provider correto (modulo ou funcionalidade).
-15. Adicionar/ajustar testes de modulo/funcionalidade.
+15. Centralizar consultas de dados nos Models; Services devem orquestrar.
+16. Otimizar queries de exibicao, carregamento, edicao e exclusao.
+17. Em uploads, limpar arquivos temporarios apos salvar.
+18. Adicionar/ajustar testes de modulo/funcionalidade, incluindo testes de requisicoes/performance.
 
 ## Padroes obrigatorios
 - Namespace `Ajustatech\<Modulo>\...`.

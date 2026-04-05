@@ -17,11 +17,14 @@ Forcar padrao de modelo no lugar correto, impedir logica de modelo fora de `Data
 ## Checklist Operacional
 1. Confirmar que o modelo esta em `Database/Models`.
 2. Remover logica de modelo de componentes/services/controllers quando houver.
-3. Garantir migration, factory e seeder para o modelo.
-4. Aplicar o fluxo de testes conforme guidelines oficiais (Feature + cobertura complementar).
-5. Executar suite relevante e validar resultado.
+3. Garantir que consultas de dados (exibir, carregar, editar e excluir) fiquem nos Models, nao no Service.
+4. Otimizar queries e eliminar query em loop.
+5. Garantir migration, factory e seeder para o modelo.
+6. Aplicar o fluxo de testes conforme guidelines oficiais (Feature + cobertura complementar).
+7. Executar suite relevante, incluindo testes de requisicoes/performance, e validar resultado.
 
 ## Nao fazer
 - Nao colocar regra de modelo em arquivos de orquestracao (Livewire/Service/Controller).
+- Nao deixar consulta de banco no Service quando pertencer ao Model.
 - Nao entregar modelo sem migration, factory e seeder.
 - Nao duplicar regras de teste nesta skill: seguir os guidelines oficiais de testes/factories.

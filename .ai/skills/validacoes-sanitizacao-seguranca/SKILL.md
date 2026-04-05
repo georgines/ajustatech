@@ -17,15 +17,18 @@ Garantir que toda feature nova tenha entrada de dados protegida e consistente.
 3. Definir validacao backend por campo.
 4. Definir validacoes/restricoes de frontend (HTML/JS) quando aplicavel.
 5. Implementar regras condicionais da regra de negocio.
-6. Criar/ajustar testes para casos validos e invalidos.
+6. Em fluxo de upload, limpar arquivos temporarios apos salvar os definitivos.
+7. Criar/ajustar testes para casos validos, invalidos e limpeza de temporarios.
 
 ## Criterios de aceite
 - Nenhum campo relevante sem validacao backend.
 - Sanitizacao aplicada antes de salvar.
 - Frontend com restricoes basicas de entrada.
 - Sem persistencia de entrada insegura.
+- Sem acumulo de arquivo temporario apos salvar.
 
 ## Nao fazer
 - Nao confiar somente em validacao frontend.
 - Nao salvar input cru sem sanitizacao.
 - Nao deixar regra condicional apenas na interface.
+- Nao manter temporario de upload sem necessidade apos persistencia.

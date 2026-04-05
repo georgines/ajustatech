@@ -31,9 +31,15 @@ Toda entrada do usuario deve passar por:
 - Evitar interpolacao insegura em scripts/atributos; usar helpers de escape/serializacao.
 - Nao executar conteudo de entrada do usuario no cliente.
 
+## Uploads e arquivos temporarios (obrigatorio)
+- Todo fluxo de upload deve prever limpeza de temporarios apos salvar os arquivos definitivos.
+- Nao manter arquivo temporario sem necessidade depois da persistencia.
+- Validar periodicamente se nao ha acumulo de lixo em storage temporario da feature.
+
 ## Checklist de conclusao
 1. Todo campo recebeu sanitizacao no backend?
 2. Todo campo recebeu validacao no backend?
 3. Campos de frontend possuem restricoes basicas?
 4. Regras condicionais de negocio estao cobertas?
 5. Testes cobrem casos validos e invalidos principais?
+6. Fluxos de upload limpam os temporarios apos salvar?

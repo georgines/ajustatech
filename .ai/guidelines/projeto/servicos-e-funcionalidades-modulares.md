@@ -59,6 +59,11 @@ Padrao recomendado:
 Alternativa aceita em modulo legado:
 - Interface e implementacao na mesma pasta de `Services`, mantendo nomenclatura clara.
 
+## Regra 3.1: Consultas no Model, nao no Service
+- Toda consulta de banco (listagem, busca por ID, filtros e leituras relacionadas) deve ser encapsulada em Model (`Database/Models`), via scopes ou metodos de dominio.
+- Services devem atuar como orquestradores de caso de uso, sem concentrar query SQL/Eloquent de leitura.
+- Nao duplicar regra de consulta em Service, Livewire ou Controller quando ela pertencer ao dominio do modelo.
+
 ## Regra 4: Resolucao via container (bind)
 Services devem ser consumidos por interface e resolvidos via container do Laravel.
 Nao injetar implementacao concreta diretamente em controllers, Livewire ou jobs.
@@ -96,6 +101,13 @@ Em comandos de modulo que orquestram features:
 - Interface: sufixo `Interface`
 - Implementacao: sufixo `Service`
 - Nome por contexto de negocio, evitando nomes genericos como `MainService`.
+
+## Regra 6: Otimizacao obrigatoria de consultas e limpeza de temporarios
+- Em exibicao, carregamento, edicao e exclusao, reduzir ao maximo a quantidade de queries.
+- Evitar N+1 com carregamento apropriado de relacoes e consultas em lote.
+- Nao executar query dentro de loop.
+- Em fluxo com upload, ao salvar definitivamente o arquivo, limpar/remover temporarios do processo para evitar acumulo de lixo em storage temporario.
+- Cobrir os fluxos com testes de requisicoes/performance para validar que as otimizacoes foram aplicadas.
 
 ## Validacao final antes de concluir task
 1. Existe separacao por funcionalidade nas pastas padrao?

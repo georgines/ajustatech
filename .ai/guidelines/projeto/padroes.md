@@ -45,8 +45,11 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
 - Todo service deve possuir interface correspondente.
 - Services devem ser resolvidos por interface via bind no provider do modulo (metodo `register()`).
 - Toda feature que usa armazenamento deve gravar em pasta propria por modulo/funcionalidade no disco local e/ou remoto (evitar pastas genericas compartilhadas).
+- Ao salvar upload, remover/limpar arquivos temporarios usados no processo para evitar lixo acumulado.
 - Priorizar `early return` para simplificar fluxo e evitar blocos `else` desnecessarios.
 - Nao executar chamadas ao banco dentro de loops; buscar os dados primeiro e depois iterar em memoria.
+- Consultas de dados devem ficar nos Models (`Database/Models`); Services devem apenas orquestrar fluxo.
+- Em exibicao, carregamento, edicao e exclusao, otimizar sempre a quantidade de consultas ao banco.
 - Nao concentrar implementacao completa de um recurso em um unico arquivo quando houver responsabilidades distintas; dividir em arquivos/classes por responsabilidade.
 - Fonte de verdade:
   - `/.ai/guidelines/projeto/servicos-e-funcionalidades-modulares.md`.
@@ -124,6 +127,7 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
 - Toda funcionalidade nova deve otimizar quantidade de solicitacoes HTTP/Livewire.
 - Fluxos visuais (ajuda, abrir modal, preview) devem evitar request ao backend quando os dados ja estiverem disponiveis.
 - Acoes de negocio (salvar, editar, excluir) devem buscar fluxo de 1 solicitacao efetiva por acao confirmada.
+- Sempre executar testes de requisicoes/performance dos fluxos principais (exibir, carregar, editar e excluir), registrando a contagem de requests/queries e validando reducao de desperdicio.
 - Fonte de verdade:
   - `/.ai/guidelines/projeto/otimizacao-solicitacoes.md`.
 

@@ -19,6 +19,14 @@ Responsabilidades de modelo (relacionamentos, casts, scopes, accessors/mutators 
 
 Services, componentes e controllers podem orquestrar fluxo, mas nao devem replicar comportamento interno do modelo.
 
+Inclui obrigatoriamente:
+- consultas de leitura/listagem;
+- consultas para carregamento de dados de edicao;
+- consultas para fluxo de exclusao;
+- consultas para carregamento de relacoes.
+
+Services nao devem concentrar consultas de dados; devem chamar metodos/scopes do Model.
+
 ## Regra 3: Todo modelo deve ser completo
 Para cada modelo novo ou relevante do modulo, garantir:
 1. Migration correspondente.

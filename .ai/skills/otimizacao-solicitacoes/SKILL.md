@@ -23,15 +23,19 @@ Aplicar padrao de eficiencia de requisicoes em toda funcionalidade nova.
    - mover estado visual para cliente quando possivel
    - manter 1 chamada por acao de negocio confirmada
 4. Revisar lista para evitar N+1.
-5. Validar comportamento final em testes e navegacao real.
+5. Medir e otimizar queries de banco em exibir, carregar, editar e excluir.
+6. Validar comportamento final em testes e navegacao real.
+7. Executar testes de requisicoes/performance para comprovar otimizacao.
 
 ## Criterios de aceite
 - Carregamento inicial com solicitacao minima necessaria.
 - Acoes de apoio visual sem request desnecessario.
 - Excluir/editar/salvar com fluxo enxuto.
 - Sem degradacao funcional ou regressao de UX.
+- Evidencia de teste de requisicoes/performance validando melhora.
 
 ## Nao fazer
 - Nao disparar request para abrir modal com dados ja disponiveis.
 - Nao usar dois eventos para uma unica confirmacao simples.
 - Nao aceitar N+1 em listagens novas.
+- Nao considerar otimizado sem medir requests/queries em teste.
