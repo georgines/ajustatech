@@ -1,5 +1,69 @@
 <x-slot name="page_title">{{ $title }}</x-slot>
-<div>
+<div
+    x-data="{
+        selectedHelp: {
+            name: '',
+            description: '',
+            help_text: '',
+            help_image_url: '',
+            help_video_url: '',
+        },
+        openHelp(payload) {
+            this.selectedHelp = payload ?? {
+                name: '',
+                description: '',
+                help_text: '',
+                help_image_url: '',
+                help_video_url: '',
+            };
+        },
+        confirmDelete(id) {
+            const runDelete = () => $wire.deleteProcedure(id);
+
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: @js(trans('service-order::messages.procedure_confirm_delete')),
+                    showCancelButton: true,
+                    confirmButtonText: @js(trans('service-order::messages.confirm_yes')),
+                    cancelButtonText: @js(trans('service-order::messages.confirm_no')),
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-danger'
+                    },
+                    buttonsStyling: false
+                }).then(result => {
+                    if (result.isConfirmed) runDelete();
+                });
+                return;
+            }
+
+            if (confirm(@js(trans('service-order::messages.procedure_confirm_delete')))) {
+                runDelete();
+            }
+        },
+        getVideoEmbedUrl(url) {
+            if (!url) return null;
+            try {
+                const parsed = new URL(url);
+                const host = parsed.hostname.toLowerCase();
+
+                if (host.includes('youtu.be')) {
+                    const id = parsed.pathname.replaceAll('/', '');
+                    return id ? `https://www.youtube.com/embed/${id}` : null;
+                }
+
+                if (host.includes('youtube.com')) {
+                    const id = parsed.searchParams.get('v');
+                    return id ? `https://www.youtube.com/embed/${id}` : null;
+                }
+
+                return url;
+            } catch (e) {
+                return url;
+            }
+        }
+    }">
     <div class="d-flex justify-content-end mb-3">
         <a class="btn btn-primary" href="{{ route('service-order-procedures-create') }}">
             {{ trans('service-order::messages.new_procedure') }}
@@ -20,12 +84,18 @@
                 <tbody>
                     @forelse ($procedures as $procedure)
                         <tr>
-                            <td>{{ $procedure->name }}</td>
-                            <td>R$ {{ number_format((float) $procedure->value, 2, ',', '.') }}</td>
+                            <td>{{ $procedure['name'] }}</td>
+                            <td>R$ {{ number_format((float) $procedure['value'], 2, ',', '.') }}</td>
                             <td>
                                 <button type="button"
                                     class="btn btn-sm btn-icon"
-                                    wire:click="showHelp('{{ $procedure->id }}')"
+                                    x-on:click="openHelp({
+                                        name: @js($procedure['name']),
+                                        description: @js($procedure['description']),
+                                        help_text: @js($procedure['help_text']),
+                                        help_image_url: @js($procedure['help_image_url']),
+                                        help_video_url: @js($procedure['help_video_url'])
+                                    })"
                                     data-bs-toggle="modal"
                                     data-bs-target="#procedureHelpModal"
                                     title="{{ trans('service-order::messages.procedure_help_open') }}"
@@ -35,7 +105,7 @@
                             </td>
                             <td>
                                 <a class="btn btn-sm btn-icon"
-                                    href="{{ route('service-order-procedures-edit', ['id' => $procedure->id]) }}"
+                                    href="{{ route('service-order-procedures-edit', ['id' => $procedure['id']]) }}"
                                     data-bs-toggle="tooltip"
                                     data-bs-placement="top"
                                     title="{{ trans('service-order::messages.edit') }}"
@@ -44,7 +114,7 @@
                                 </a>
                                 <button type="button"
                                     class="btn btn-sm btn-icon"
-                                    wire:click="confirmDelete('{{ $procedure->id }}')"
+                                    x-on:click="confirmDelete('{{ $procedure['id'] }}')"
                                     data-bs-toggle="tooltip"
                                     data-bs-placement="top"
                                     title="{{ trans('service-order::messages.delete') }}"
@@ -68,49 +138,49 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <div>
-                        <h5 class="modal-title mb-1 text-start">{{ $selectedHelp->name ?? trans('service-order::messages.procedure_help_title') }}</h5>
-                        @if (!empty($selectedHelp?->description))
-                            <p class="small text-muted mb-0 text-start">{{ $selectedHelp->description }}</p>
-                        @endif
+                        <h5 class="modal-title mb-1 text-start" x-text="selectedHelp.name || @js(trans('service-order::messages.procedure_help_title'))"></h5>
+                        <template x-if="selectedHelp.description">
+                            <p class="small text-muted mb-0 text-start" x-text="selectedHelp.description"></p>
+                        </template>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    @if (empty($selectedHelp))
-                        <p class="text-muted mb-0">{{ trans('service-order::messages.no_help_registered') }}</p>
-                    @else
-                        @if (!empty($selectedHelp->help_image_url))
+                    <template x-if="selectedHelp.help_image_url">
+                        <div>
                             <img
-                                src="{{ $selectedHelp->help_image_url }}"
-                                alt="{{ $selectedHelp->name }}"
+                                :src="selectedHelp.help_image_url"
+                                :alt="selectedHelp.name"
                                 class="img-fluid rounded border mb-2"
                                 style="max-height: 220px; object-fit: cover;">
-                            @if (!empty($selectedHelp->help_text))
-                                <p class="small mb-3">{{ $selectedHelp->help_text }}</p>
-                            @endif
-                        @endif
+                            <template x-if="selectedHelp.help_text">
+                                <p class="small mb-3" x-text="selectedHelp.help_text"></p>
+                            </template>
+                        </div>
+                    </template>
 
-                        @if (!empty($selectedHelp->help_video_url))
+                    <template x-if="selectedHelp.help_video_url">
+                        <div>
                             <div class="ratio ratio-16x9 mb-2">
                                 <iframe
-                                    src="{{ $this->getVideoEmbedUrl($selectedHelp->help_video_url) }}"
-                                    title="{{ $selectedHelp->name }}"
+                                    :src="getVideoEmbedUrl(selectedHelp.help_video_url)"
+                                    :title="selectedHelp.name"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                     allowfullscreen></iframe>
                             </div>
-                            @if (!empty($selectedHelp->help_text))
-                                <p class="small mb-0">{{ $selectedHelp->help_text }}</p>
-                            @endif
-                        @endif
+                            <template x-if="selectedHelp.help_text">
+                                <p class="small mb-0" x-text="selectedHelp.help_text"></p>
+                            </template>
+                        </div>
+                    </template>
 
-                        @if (empty($selectedHelp->help_image_url) && empty($selectedHelp->help_video_url) && !empty($selectedHelp->help_text))
-                            <p class="small mb-0">{{ $selectedHelp->help_text }}</p>
-                        @endif
+                    <template x-if="!selectedHelp.help_image_url && !selectedHelp.help_video_url && selectedHelp.help_text">
+                        <p class="small mb-0" x-text="selectedHelp.help_text"></p>
+                    </template>
 
-                        @if (empty($selectedHelp->help_image_url) && empty($selectedHelp->help_video_url) && empty($selectedHelp->help_text))
-                            <p class="text-muted mb-0">{{ trans('service-order::messages.no_help_registered') }}</p>
-                        @endif
-                    @endif
+                    <template x-if="!selectedHelp.help_image_url && !selectedHelp.help_video_url && !selectedHelp.help_text">
+                        <p class="text-muted mb-0">{{ trans('service-order::messages.no_help_registered') }}</p>
+                    </template>
                 </div>
             </div>
         </div>

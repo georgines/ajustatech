@@ -35,7 +35,8 @@ class ProcedureService implements ProcedureServiceInterface
 
     public function deleteProcedure(string $id): void
     {
-        $procedure = $this->findProcedure($id);
-        $procedure->delete();
+        ServiceOrderProcedure::query()
+            ->whereKey($id)
+            ->delete();
     }
 }

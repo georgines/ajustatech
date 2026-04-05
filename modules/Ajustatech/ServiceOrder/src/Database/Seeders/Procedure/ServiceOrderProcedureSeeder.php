@@ -4,6 +4,7 @@ namespace Ajustatech\ServiceOrder\Database\Seeders\Procedure;
 
 use Ajustatech\ServiceOrder\Database\Models\Procedure\ServiceOrderProcedure;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class ServiceOrderProcedureSeeder extends Seeder
 {
@@ -92,11 +93,21 @@ class ServiceOrderProcedureSeeder extends Seeder
             ],
         ];
 
-        foreach ($procedures as $procedure) {
-            ServiceOrderProcedure::query()->updateOrCreate(
-                ['name' => $procedure['name']],
-                $procedure
-            );
-        }
+        $now = now();
+        $rows = collect($procedures)
+            ->map(fn (array $procedure) => [
+                'id' => (string) Str::uuid(),
+                'name' => $procedure['name'],
+                'description' => $procedure['description'],
+                'value' => $procedure['value'],
+                'help_text' => $procedure['help_text'],
+                'help_image_url' => $procedure['help_image_url'],
+                'help_video_url' => $procedure['help_video_url'],
+                'created_at' => $now,
+                'updated_at' => $now,
+            ])
+            ->all();
+
+        ServiceOrderProcedure::query()->insert($rows);
     }
 }
