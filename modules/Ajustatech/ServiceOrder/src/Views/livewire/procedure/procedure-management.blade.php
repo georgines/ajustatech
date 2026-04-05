@@ -132,11 +132,6 @@
                     {{ trans('service-order::messages.procedure_add_media') }}
                 </button>
             </div>
-            @error('newMediaType') <small class="text-danger d-block mb-2">{{ $message }}</small> @enderror
-            @error('newMediaName') <small class="text-danger d-block mb-2">{{ $message }}</small> @enderror
-            @error('newMediaDescription') <small class="text-danger d-block mb-2">{{ $message }}</small> @enderror
-            @error('newMediaUrl') <small class="text-danger d-block mb-2">{{ $message }}</small> @enderror
-            @error('newMediaFile') <small class="text-danger d-block mb-2">{{ $message }}</small> @enderror
 
             <div class="row g-3">
                 @foreach ($existingMedia as $media)
@@ -334,6 +329,7 @@
                                 <option value="video">{{ trans('service-order::messages.procedure_help_videos') }}</option>
                                 <option value="pdf">{{ trans('service-order::messages.procedure_help_pdfs') }}</option>
                             </select>
+                            @error('newMediaType') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                         </div>
                         <div class="col-12 col-md-8">
                             <label class="form-label">{{ trans('service-order::messages.procedure_help_media_name') }}</label>
@@ -342,14 +338,16 @@
                                 maxlength="255"
                                 wire:model.blur="newMediaName"
                                 placeholder="{{ trans('service-order::messages.procedure_help_media_name_placeholder') }}">
+                            @error('newMediaName') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                         </div>
                         <div class="col-12">
                             <label class="form-label">{{ trans('service-order::messages.procedure_help_media_text') }}</label>
-                            <input class="form-control"
-                                type="text"
+                            <textarea class="form-control"
+                                rows="3"
                                 maxlength="500"
                                 wire:model.blur="newMediaDescription"
-                                placeholder="{{ trans('service-order::messages.procedure_help_media_text_placeholder') }}">
+                                placeholder="{{ trans('service-order::messages.procedure_help_media_text_placeholder') }}"></textarea>
+                            @error('newMediaDescription') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                         </div>
 
                         @if ($newMediaType === 'video')
@@ -360,16 +358,19 @@
                                     maxlength="1000"
                                     wire:model.blur="newMediaUrl"
                                     placeholder="https://...">
+                                @error('newMediaUrl') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                             </div>
                         @elseif ($newMediaType === 'image')
                             <div class="col-12">
                                 <label class="form-label">{{ trans('service-order::messages.procedure_help_image') }}</label>
                                 <input class="form-control" type="file" accept="image/*" wire:model="newMediaFile">
+                                @error('newMediaFile') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                             </div>
                         @else
                             <div class="col-12">
                                 <label class="form-label">{{ trans('service-order::messages.procedure_help_pdf') }}</label>
                                 <input class="form-control" type="file" accept="application/pdf" wire:model="newMediaFile">
+                                @error('newMediaFile') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                             </div>
                         @endif
                     </div>
@@ -407,6 +408,13 @@
                     document.body.classList.add('modal-open');
                 }
             });
+
+            const addMediaModalEl = document.getElementById('procedureAddMediaModal');
+            if (addMediaModalEl) {
+                addMediaModalEl.addEventListener('hidden.bs.modal', () => {
+                    $wire.resetAddMediaForm();
+                });
+            }
 
             Livewire.on('procedure-media-added', () => {
                 const modalEl = document.getElementById('procedureAddMediaModal');

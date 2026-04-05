@@ -190,6 +190,11 @@ class ProcedureManagement extends Component
         $this->dispatch('procedure-media-added');
     }
 
+    public function resetAddMediaForm(): void
+    {
+        $this->resetNewMediaForm();
+    }
+
     public function addVideoItem(): void
     {
         $this->videoItems[] = ['url' => '', 'name' => '', 'description' => ''];

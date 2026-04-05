@@ -100,4 +100,19 @@ class ProcedureManagementTest extends TestCase
             'help_video_url' => null,
         ]);
     }
+
+    public function test_resets_add_media_form_to_default_values(): void
+    {
+        Livewire::test(ProcedureManagement::class)
+            ->set('newMediaType', 'video')
+            ->set('newMediaName', 'Video apoio')
+            ->set('newMediaDescription', 'Descricao temporaria')
+            ->set('newMediaUrl', 'https://example.com/video')
+            ->call('resetAddMediaForm')
+            ->assertSet('newMediaType', 'image')
+            ->assertSet('newMediaName', '')
+            ->assertSet('newMediaDescription', '')
+            ->assertSet('newMediaUrl', '')
+            ->assertSet('newMediaFile', null);
+    }
 }
