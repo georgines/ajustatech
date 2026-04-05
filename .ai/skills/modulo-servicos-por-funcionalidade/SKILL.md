@@ -16,7 +16,7 @@ Aplicar padrao de separacao por funcionalidade dentro do modulo e enforce de Ser
 1. Identificar funcionalidades que devem virar pastas dedicadas.
 2. Reorganizar pastas padrao por funcionalidade (Livewire, Views, Tests, Database quando aplicavel).
 3. Garantir existencia de `Services/` no modulo.
-4. Criar interface para cada service novo.
+4. Criar interface para cada service novo dentro da propria funcionalidade (`Services/<Funcionalidade>/Contracts`), sem usar `Services/Contracts` global para feature nova.
 5. Garantir que consumidores usem a interface (DI).
 6. Registrar binds no `register()` do provider do modulo.
 7. Validar testes e imports apos reorganizacao.
@@ -25,3 +25,4 @@ Aplicar padrao de separacao por funcionalidade dentro do modulo e enforce de Ser
 - Nao misturar multiplas funcionalidades em uma unica pasta sem separacao.
 - Nao injetar service concreto diretamente em componentes/controladores.
 - Nao criar service sem interface correspondente.
+- Nao criar contrato de feature nova fora da pasta da funcionalidade.

@@ -22,8 +22,9 @@ Todo modulo deve possuir a pasta:
 Cada service concreto deve possuir sua interface correspondente.
 
 Padrao recomendado:
-- Interface em `Services/Contracts/<NomeService>Interface.php`
+- Interface em `Services/<Funcionalidade>/Contracts/<NomeService>Interface.php`
 - Implementacao em `Services/<Funcionalidade>/<NomeService>.php`
+- Regra obrigatoria para funcionalidades novas: contrato deve ficar dentro da pasta da funcionalidade e nao em `Services/Contracts` global.
 
 Alternativa aceita em modulo legado:
 - Interface e implementacao na mesma pasta de `Services`, mantendo nomenclatura clara.
