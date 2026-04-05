@@ -49,6 +49,7 @@ return [
     'add' => 'Add',
     'cancel' => 'Cancel',
     'open_in_new_tab' => 'Open image in new tab',
+    'open_video_destination' => 'Open video at source',
     'open_pdf_same_screen' => 'Open PDF in this screen',
     'open_pdf_new_tab' => 'Open PDF in new tab',
     'procedure_confirm_delete' => 'Do you want to delete this procedure?',

@@ -18,6 +18,27 @@
         }
 
         bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    },
+    getVideoEmbedUrl(url) {
+        if (!url) return null;
+        try {
+            const parsed = new URL(url);
+            const host = parsed.hostname.toLowerCase();
+
+            if (host.includes('youtu.be')) {
+                const id = parsed.pathname.replaceAll('/', '');
+                return id ? `https://www.youtube.com/embed/${id}` : null;
+            }
+
+            if (host.includes('youtube.com')) {
+                const id = parsed.searchParams.get('v');
+                return id ? `https://www.youtube.com/embed/${id}` : null;
+            }
+
+            return url;
+        } catch (e) {
+            return url;
+        }
     }
 }">
     <div class="card mb-4">
@@ -128,7 +149,19 @@
                                 </button>
                             </div>
                             @if ($media['type'] === 'video')
-                                <div class="small text-break">{{ $media['url'] }}</div>
+                                <div class="ratio ratio-16x9 mb-2">
+                                    <iframe
+                                        :src="getVideoEmbedUrl(@js($media['url']))"
+                                        title="video"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowfullscreen></iframe>
+                                </div>
+                                <a href="{{ $media['url'] }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="btn btn-sm btn-outline-primary">
+                                    {{ trans('service-order::messages.open_video_destination') }}
+                                </a>
                             @elseif ($media['type'] === 'image' && $media['public_url'])
                                 <button type="button"
                                     class="btn p-0 border-0 bg-transparent"
@@ -136,11 +169,20 @@
                                     <img src="{{ $media['public_url'] }}" alt="media" class="img-fluid rounded border">
                                 </button>
                             @elseif ($media['type'] === 'pdf' && $media['public_url'])
+                                <div class="ratio ratio-16x9 mb-2">
+                                    <iframe src="{{ $media['public_url'] }}" title="pdf" class="w-100 h-100"></iframe>
+                                </div>
                                 <button type="button"
-                                    class="btn btn-sm btn-outline-primary"
+                                    class="btn btn-sm btn-outline-primary me-2 mb-2"
                                     x-on:click="openFullscreen('pdf', @js($media['public_url']), @js($media['display_name'] ?? 'PDF'), 'procedureManagementMediaFullscreenModal')">
-                                    {{ $media['display_name'] ?? 'PDF' }}
+                                    {{ trans('service-order::messages.open_pdf_same_screen') }}
                                 </button>
+                                <a href="{{ $media['public_url'] }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="btn btn-sm btn-outline-primary mb-2">
+                                    {{ trans('service-order::messages.open_pdf_new_tab') }}
+                                </a>
                             @endif
                             @if ($media['display_name'])
                                 <div class="small fw-semibold mt-2">{{ $media['display_name'] }}</div>
@@ -176,6 +218,14 @@
 
                 @foreach ($pdfItems as $index => $item)
                     @if (($item['file'] ?? null))
+                        @php
+                            $pdfPreviewUrl = null;
+                            try {
+                                $pdfPreviewUrl = $item['file']->temporaryUrl();
+                            } catch (\Throwable $exception) {
+                                $pdfPreviewUrl = null;
+                            }
+                        @endphp
                         <div class="col-12 col-md-6">
                             <div class="border rounded p-3">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
@@ -184,7 +234,12 @@
                                         <i class="text-primary ti ti-trash"></i>
                                     </button>
                                 </div>
-                                <div class="small">{{ $item['file']->getClientOriginalName() }}</div>
+                                @if ($pdfPreviewUrl)
+                                    <div class="ratio ratio-16x9 mb-2">
+                                        <iframe src="{{ $pdfPreviewUrl }}" title="pdf" class="w-100 h-100"></iframe>
+                                    </div>
+                                @endif
+                                <div class="small mb-2">{{ $item['file']->getClientOriginalName() }}</div>
                                 @if (!empty($item['name']))
                                     <div class="small fw-semibold mt-2">{{ $item['name'] }}</div>
                                 @endif
@@ -207,6 +262,19 @@
                                     </button>
                                 </div>
                                 <div class="small text-break">{{ $item['url'] }}</div>
+                                <div class="ratio ratio-16x9 my-2">
+                                    <iframe
+                                        :src="getVideoEmbedUrl(@js($item['url']))"
+                                        title="video"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowfullscreen></iframe>
+                                </div>
+                                <a href="{{ $item['url'] }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="btn btn-sm btn-outline-primary mb-2">
+                                    {{ trans('service-order::messages.open_video_destination') }}
+                                </a>
                                 @if (!empty($item['name']))
                                     <div class="small fw-semibold mt-2">{{ $item['name'] }}</div>
                                 @endif

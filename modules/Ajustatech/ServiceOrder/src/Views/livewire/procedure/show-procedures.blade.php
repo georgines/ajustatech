@@ -196,7 +196,7 @@
                     </template>
 
                     <template x-for="(video, videoIndex) in selectedHelp.videos" :key="'video-'+videoIndex">
-                        <div>
+                        <div class="mb-3">
                             <div class="ratio ratio-16x9 mb-2">
                                 <iframe
                                     :src="getVideoEmbedUrl(video.url)"
@@ -204,6 +204,12 @@
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                     allowfullscreen></iframe>
                             </div>
+                            <a :href="video.url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="btn btn-sm btn-outline-primary mb-2">
+                                {{ trans('service-order::messages.open_video_destination') }}
+                            </a>
                             <template x-if="video.description">
                                 <p class="small mb-3" x-text="video.description"></p>
                             </template>
