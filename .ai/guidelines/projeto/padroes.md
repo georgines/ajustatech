@@ -32,6 +32,7 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
   - `Show<Entidade>`
   - `<Entidade>Management`
 - Em fluxos com modal sobre modal, manter o modal anterior aberto e exibir o novo na frente (stack), salvo quando houver requisito explicito para fechar o anterior.
+- Todo formulario/modal de entrada deve retornar aos valores padrao quando for fechado sem salvar/atualizar (incluindo fechar por `X`, botao cancelar, ESC e clique no backdrop).
 - Rotas tipicas:
   - listagem/show
   - cadastro

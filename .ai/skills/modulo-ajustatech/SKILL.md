@@ -44,6 +44,7 @@ Implementacoes reais devem ocorrer em `resources/*` e `modules/Ajustatech/*`.
 16. Otimizar queries de exibicao, carregamento, edicao e exclusao.
 17. Em uploads, limpar arquivos temporarios apos salvar.
 18. Adicionar/ajustar testes de modulo/funcionalidade, incluindo testes de requisicoes/performance.
+19. Em formularios/modais, ao fechar sem salvar/atualizar, resetar estado para valores padrao (fechamento por `X`, cancelar, ESC e backdrop).
 
 ## Padroes obrigatorios
 - Namespace `Ajustatech\<Modulo>\...`.
