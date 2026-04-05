@@ -26,6 +26,15 @@ class SeedServiceOrderCommand extends Command
             return self::FAILURE;
         }
 
+        $this->info('Running command: feature:seed-service-order-analysis');
+        $exitCode = $this->call('feature:seed-service-order-analysis');
+
+        if ($exitCode !== self::SUCCESS) {
+            $this->error('Command failed: feature:seed-service-order-analysis');
+
+            return self::FAILURE;
+        }
+
         return self::SUCCESS;
     }
 }

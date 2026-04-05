@@ -53,8 +53,12 @@ class DevModuleSeedCommand extends BaseCommand
             return self::FAILURE;
         }
 
-        if ($this->executeCommand('module:seed-service-order-old') !== self::SUCCESS) {
-            return self::FAILURE;
+        if ($this->commandExists('module:seed-service-order-old')) {
+            if ($this->executeCommand('module:seed-service-order-old') !== self::SUCCESS) {
+                return self::FAILURE;
+            }
+        } else {
+            $this->warn('Skipping optional command: module:seed-service-order-old (not registered).');
         }
 
         $this->info('All module seed commands were executed.');
@@ -72,5 +76,10 @@ class DevModuleSeedCommand extends BaseCommand
         }
 
         return $exitCode;
+    }
+
+    private function commandExists(string $command): bool
+    {
+        return $this->getApplication()?->has($command) ?? false;
     }
 }

@@ -7,6 +7,7 @@ use Illuminate\Support\ServiceProvider;
 use Ajustatech\Core\Helpers\MenuManagerInterface;
 use Ajustatech\ServiceOrder\Commands\SeedServiceOrderCommand;
 use Ajustatech\ServiceOrder\Commands\WipeServiceOrderMediaCommand;
+use Ajustatech\ServiceOrder\Providers\Analysis\AnalysisServiceProvider;
 use Ajustatech\ServiceOrder\Livewire\ServiceOrder\ServiceOrderManagement;
 use Ajustatech\ServiceOrder\Livewire\ServiceOrder\ShowServiceOrder;
 use Ajustatech\ServiceOrder\Providers\Procedure\ProcedureServiceProvider;
@@ -19,6 +20,7 @@ class ServiceOrderServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->register(ProcedureServiceProvider::class);
+        $this->app->register(AnalysisServiceProvider::class);
     }
 
     public function boot(): void

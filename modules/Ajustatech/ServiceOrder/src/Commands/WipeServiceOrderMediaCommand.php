@@ -20,6 +20,15 @@ class WipeServiceOrderMediaCommand extends Command
             return self::FAILURE;
         }
 
+        $this->info('Running command: feature:wipe-media-service-order-analysis');
+        $exitCode = $this->call('feature:wipe-media-service-order-analysis');
+
+        if ($exitCode !== self::SUCCESS) {
+            $this->error('Command failed: feature:wipe-media-service-order-analysis');
+
+            return self::FAILURE;
+        }
+
         return self::SUCCESS;
     }
 }
