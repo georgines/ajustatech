@@ -3,6 +3,18 @@
 ## Objetivo
 Padronizar a organizacao interna dos modulos quando houver mais de uma funcionalidade de negocio, facilitando manutencao, escalabilidade e testes.
 
+## Modelo de composicao (Modulo -> Funcionalidades)
+Padrao recomendado: manter um modulo pai e criar funcionalidades (submodulos de recurso) dentro dele.
+
+Exemplo real de referencia:
+- Modulo pai: `ServiceOrder`
+- Funcionalidade/recurso: `Procedure`
+
+Fluxo de registro:
+1. O provider do modulo pai registra o provider da funcionalidade no `register()`.
+2. O provider da funcionalidade carrega rotas, migrations, bindings, comandos e componentes da propria funcionalidade.
+3. O provider do modulo pai continua responsavel pelos itens centrais do modulo (menus, rotas base, views base, comandos de modulo).
+
 ## Regra 1: Separacao por funcionalidade
 Quando um modulo tiver duas ou mais funcionalidades, separar por pasta de funcionalidade dentro das pastas padrao do modulo.
 
@@ -14,11 +26,23 @@ Exemplos esperados:
 - `Database/Migrations/<Funcionalidade>/...` (quando aplicavel)
 - `Database/Seeders/<Funcionalidade>/...` (quando aplicavel)
 - `Database/Factories/<Funcionalidade>/...` (quando aplicavel)
+- `Providers/<Funcionalidade>/<Funcionalidade>ServiceProvider.php` (quando aplicavel)
+- `Commands/<Funcionalidade>/...` (quando aplicavel)
 - `storage/<disco>/<modulo>/<funcionalidade>/...` para arquivos de upload (quando aplicavel), incluindo disco local e remoto.
 
 Regra de armazenamento:
 - Cada modulo/funcionalidade com upload deve ter pasta propria de armazenamento no disco local e/ou remoto utilizado.
 - Nao usar pasta raiz compartilhada entre funcionalidades diferentes.
+
+## Regra 1.1: Tudo da funcionalidade dentro da pasta da funcionalidade
+Para recurso novo, concentrar artefatos da feature na propria pasta de funcionalidade dentro do modulo:
+- migration da feature em `Database/Migrations/<Funcionalidade>/`
+- factory da feature em `Database/Factories/<Funcionalidade>/`
+- seeder da feature em `Database/Seeders/<Funcionalidade>/`
+- comandos da feature em `Commands/<Funcionalidade>/`
+- provider da feature em `Providers/<Funcionalidade>/`
+
+Depois, registrar no provider do modulo pai.
 
 ## Regra 2: Pasta Services obrigatoria
 Todo modulo deve possuir a pasta:
@@ -54,6 +78,20 @@ public function register(): void
 }
 ```
 
+## Regra 4.1: Providers de funcionalidade
+Provider da funcionalidade deve:
+1. Fazer binds da funcionalidade no `register()`.
+2. Registrar configuracoes de diretorios da funcionalidade (ex.: midia) no `register()`.
+3. Carregar `Routes/<funcionalidade>.php` e `Database/Migrations/<Funcionalidade>` no `boot()`.
+4. Registrar comandos da funcionalidade no `boot()`.
+5. Registrar componentes Livewire da funcionalidade no `boot()`.
+
+## Regra 4.2: Comandos em cadeia (manual)
+Em comandos de modulo que orquestram features:
+- Chamar comandos da feature explicitamente com `$this->call('feature:...')`.
+- Evitar auto-descoberta dinamica de comandos via loop em `Artisan::all()` para fluxo principal.
+- Em seeds de modulo, chamar explicitamente o seeder do modulo e depois os comandos de seed das features.
+
 ## Regra 5: Convencao de nomes
 - Interface: sufixo `Interface`
 - Implementacao: sufixo `Service`
@@ -65,3 +103,5 @@ public function register(): void
 3. Todo service novo tem interface?
 4. Binding interface -> implementacao foi registrado no provider?
 5. Consumo em codigo esta por interface (DI), nao por classe concreta?
+6. Provider do modulo pai registra providers das funcionalidades?
+7. Cada funcionalidade registra seus proprios comandos/migrations/rotas no provider proprio?

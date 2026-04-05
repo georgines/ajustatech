@@ -9,26 +9,38 @@ Implementacoes reais devem ocorrer em `resources/*` e `modules/Ajustatech/*`.
 
 ## Quando usar
 - Criar modulo novo.
-- Criar entidade nova dentro de modulo existente.
+- Criar entidade/funcionalidade (submodulo de recurso) dentro de modulo existente.
 - Ajustar provider, rotas, menus, composer/autoload e testes modulares.
 
 ## Checklist Operacional
 1. Confirmar nome do modulo/entidade.
-2. Preferir comandos do Core:
+2. Se for funcionalidade dentro de modulo existente, manter no mesmo modulo pai e separar por pasta de funcionalidade.
+3. Criar provider proprio da funcionalidade em `Providers/<Funcionalidade>/<Funcionalidade>ServiceProvider.php`.
+4. Registrar provider da funcionalidade no provider do modulo pai.
+5. Colocar artefatos da funcionalidade em pastas proprias:
+   - `Commands/<Funcionalidade>/`
+   - `Database/Migrations/<Funcionalidade>/`
+   - `Database/Factories/<Funcionalidade>/`
+   - `Database/Seeders/<Funcionalidade>/`
+   - `Livewire/<Funcionalidade>/`
+   - `Views/livewire/<funcionalidade-kebab-case>/`
+   - `Routes/<funcionalidade>.php`
+6. Em comandos de modulo (`module:seed-*`, `module:wipe-media-*`), chamar comandos da funcionalidade (`feature:*`) manualmente com `$this->call(...)`.
+7. Preferir comandos do Core:
    - `php artisan make:module <Nome>`
    - `php artisan dev:clear`
    - `php artisan dev:migrate`
    - `php artisan dev:seed`
    - `php artisan module:seed`
    - `php artisan make:module-model <Nome> <path>` (uso avancado, quando aplicavel)
-3. Conferir estrutura criada em `modules/Ajustatech/<Modulo>/src`.
-4. Registrar provider no `CoreServiceProvider`.
-5. Registrar namespace PSR-4 no `composer.json` raiz.
-6. Rodar `composer dumpautoload`.
-7. Garantir rotas nomeadas no modulo.
-8. Garantir menus (`Menu/*.json`) com `slug` alinhado as rotas.
-9. Garantir Livewire components registrados no provider do modulo.
-10. Adicionar/ajustar testes de modulo.
+8. Conferir estrutura criada em `modules/Ajustatech/<Modulo>/src`.
+9. Registrar provider do modulo no `CoreServiceProvider`.
+10. Registrar namespace PSR-4 no `composer.json` raiz.
+11. Rodar `composer dumpautoload`.
+12. Garantir rotas nomeadas no modulo.
+13. Garantir menus (`Menu/*.json`) com `slug` alinhado as rotas.
+14. Garantir Livewire components registrados no provider correto (modulo ou funcionalidade).
+15. Adicionar/ajustar testes de modulo/funcionalidade.
 
 ## Padroes obrigatorios
 - Namespace `Ajustatech\<Modulo>\...`.
