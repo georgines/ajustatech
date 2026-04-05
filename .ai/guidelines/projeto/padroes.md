@@ -31,6 +31,7 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
 - Par de componentes por entidade:
   - `Show<Entidade>`
   - `<Entidade>Management`
+- Em fluxos com modal sobre modal, manter o modal anterior aberto e exibir o novo na frente (stack), salvo quando houver requisito explicito para fechar o anterior.
 - Rotas tipicas:
   - listagem/show
   - cadastro
@@ -43,6 +44,9 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
 - Todo modulo deve possuir pasta `Services/`.
 - Todo service deve possuir interface correspondente.
 - Services devem ser resolvidos por interface via bind no provider do modulo (metodo `register()`).
+- Priorizar `early return` para simplificar fluxo e evitar blocos `else` desnecessarios.
+- Nao executar chamadas ao banco dentro de loops; buscar os dados primeiro e depois iterar em memoria.
+- Nao concentrar implementacao completa de um recurso em um unico arquivo quando houver responsabilidades distintas; dividir em arquivos/classes por responsabilidade.
 - Fonte de verdade:
   - `/.ai/guidelines/projeto/servicos-e-funcionalidades-modulares.md`.
 
