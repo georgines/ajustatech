@@ -11,10 +11,9 @@ interface ProcedureServiceInterface
 
     public function findProcedure(string $id): ServiceOrderProcedure;
 
-    public function createProcedure(array $data): ServiceOrderProcedure;
+    public function createProcedure(array $data, array $media = []): ServiceOrderProcedure;
 
-    public function updateProcedure(string $id, array $data): ServiceOrderProcedure;
+    public function updateProcedure(string $id, array $data, array $media = [], array $deleteMediaIds = []): ServiceOrderProcedure;
 
     public function deleteProcedure(string $id): void;
 }
-

@@ -5,6 +5,7 @@ namespace Ajustatech\ServiceOrder\Tests\Feature\Livewire\Procedure;
 use Ajustatech\ServiceOrder\Database\Models\Procedure\ServiceOrderProcedure;
 use Ajustatech\ServiceOrder\Livewire\Procedure\ProcedureManagement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -20,8 +21,12 @@ class ProcedureManagementTest extends TestCase
             ->set('value', '149.90')
             ->set('hasHelp', true)
             ->set('helpText', 'Use pincel antiestatico.')
-            ->set('helpImageUrl', 'https://example.com/imagem.jpg')
-            ->set('helpVideoUrl', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+            ->set('videoItems.0.url', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+            ->set('videoItems.0.description', 'Video de apoio.')
+            ->set('imageItems.0.file', UploadedFile::fake()->image('procedimento.jpg'))
+            ->set('imageItems.0.description', 'Imagem de apoio.')
+            ->set('pdfItems.0.file', UploadedFile::fake()->create('manual.pdf', 200, 'application/pdf'))
+            ->set('pdfItems.0.description', 'PDF com orientacoes.')
             ->call('save')
             ->assertRedirect(route('service-order-procedures-show'));
 
@@ -30,8 +35,22 @@ class ProcedureManagementTest extends TestCase
             'description' => 'Limpeza de poeira e conectores',
             'value' => '149.90',
             'help_text' => 'Use pincel antiestatico.',
-            'help_image_url' => 'https://example.com/imagem.jpg',
-            'help_video_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        ]);
+
+        $this->assertDatabaseHas('service_order_procedure_media', [
+            'type' => 'video',
+            'url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            'description' => 'Video de apoio.',
+        ]);
+
+        $this->assertDatabaseHas('service_order_procedure_media', [
+            'type' => 'image',
+            'description' => 'Imagem de apoio.',
+        ]);
+
+        $this->assertDatabaseHas('service_order_procedure_media', [
+            'type' => 'pdf',
+            'description' => 'PDF com orientacoes.',
         ]);
     }
 
@@ -67,8 +86,7 @@ class ProcedureManagementTest extends TestCase
             ->set('value', '79.90')
             ->set('hasHelp', false)
             ->set('helpText', 'Texto que nao deve ser salvo')
-            ->set('helpImageUrl', 'https://example.com/help.jpg')
-            ->set('helpVideoUrl', 'https://example.com/help.mp4')
+            ->set('videoItems.0.url', 'https://example.com/help.mp4')
             ->call('save')
             ->assertRedirect(route('service-order-procedures-show'));
 

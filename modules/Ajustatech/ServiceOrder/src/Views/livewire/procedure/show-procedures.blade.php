@@ -5,16 +5,18 @@
             name: '',
             description: '',
             help_text: '',
-            help_image_url: '',
-            help_video_url: '',
+            images: [],
+            videos: [],
+            pdfs: [],
         },
         openHelp(payload) {
             this.selectedHelp = payload ?? {
                 name: '',
                 description: '',
                 help_text: '',
-                help_image_url: '',
-                help_video_url: '',
+                images: [],
+                videos: [],
+                pdfs: [],
             };
         },
         confirmDelete(id) {
@@ -91,14 +93,15 @@
                                     <button type="button"
                                         class="btn btn-sm btn-icon"
                                         x-on:click="openHelp({
-                                            name: @js($procedure['name']),
-                                            description: @js($procedure['description']),
-                                            help_text: @js($procedure['help_text']),
-                                            help_image_url: @js($procedure['help_image_url']),
-                                            help_video_url: @js($procedure['help_video_url'])
-                                        })"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#procedureHelpModal"
+                                        name: @js($procedure['name']),
+                                        description: @js($procedure['description']),
+                                        help_text: @js($procedure['help_text']),
+                                        images: @js($procedure['images']),
+                                        videos: @js($procedure['videos']),
+                                        pdfs: @js($procedure['pdfs'])
+                                    })"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#procedureHelpModal"
                                         title="{{ trans('service-order::messages.procedure_help_open') }}"
                                         aria-label="{{ trans('service-order::messages.procedure_help_open') }}">
                                         <i class="text-primary ti ti-help-circle"></i>
@@ -150,39 +153,62 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <template x-if="selectedHelp.help_image_url">
-                        <div>
-                            <img
-                                :src="selectedHelp.help_image_url"
-                                :alt="selectedHelp.name"
-                                class="img-fluid rounded border mb-2"
-                                style="max-height: 220px; object-fit: cover;">
-                            <template x-if="selectedHelp.help_text">
-                                <p class="small mb-3" x-text="selectedHelp.help_text"></p>
+                    <template x-for="(image, imageIndex) in selectedHelp.images" :key="'img-'+imageIndex">
+                        <div class="mb-3">
+                            <a :href="image.url" target="_blank" rel="noopener noreferrer">
+                                <img
+                                    :src="image.url"
+                                    :alt="selectedHelp.name"
+                                    class="img-fluid rounded border mb-2"
+                                    style="max-height: 220px; object-fit: cover;">
+                            </a>
+                            <a :href="image.url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="btn btn-sm btn-outline-primary mb-2">
+                                {{ trans('service-order::messages.open_in_new_tab') }}
+                            </a>
+                            <template x-if="image.description">
+                                <p class="small mb-3" x-text="image.description"></p>
                             </template>
                         </div>
                     </template>
 
-                    <template x-if="selectedHelp.help_video_url">
+                    <template x-for="(video, videoIndex) in selectedHelp.videos" :key="'video-'+videoIndex">
                         <div>
                             <div class="ratio ratio-16x9 mb-2">
                                 <iframe
-                                    :src="getVideoEmbedUrl(selectedHelp.help_video_url)"
+                                    :src="getVideoEmbedUrl(video.url)"
                                     :title="selectedHelp.name"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                     allowfullscreen></iframe>
                             </div>
-                            <template x-if="selectedHelp.help_text">
-                                <p class="small mb-0" x-text="selectedHelp.help_text"></p>
+                            <template x-if="video.description">
+                                <p class="small mb-3" x-text="video.description"></p>
                             </template>
                         </div>
                     </template>
 
-                    <template x-if="!selectedHelp.help_image_url && !selectedHelp.help_video_url && selectedHelp.help_text">
+                    <template x-for="(pdf, pdfIndex) in selectedHelp.pdfs" :key="'pdf-'+pdfIndex">
+                        <div class="mb-3">
+                            <div class="ratio ratio-16x9 mb-2">
+                                <iframe :src="pdf.url" :title="pdf.name"></iframe>
+                            </div>
+                            <a :href="pdf.url" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary mb-2">
+                                {{ trans('service-order::messages.open_pdf_new_tab') }}
+                            </a>
+                            <a :href="pdf.url" target="_blank" rel="noopener noreferrer" class="small d-inline-block mb-1" x-text="pdf.name"></a>
+                            <template x-if="pdf.description">
+                                <p class="small mb-0" x-text="pdf.description"></p>
+                            </template>
+                        </div>
+                    </template>
+
+                    <template x-if="selectedHelp.help_text">
                         <p class="small mb-0" x-text="selectedHelp.help_text"></p>
                     </template>
 
-                    <template x-if="!selectedHelp.help_image_url && !selectedHelp.help_video_url && !selectedHelp.help_text">
+                    <template x-if="selectedHelp.images.length === 0 && selectedHelp.videos.length === 0 && selectedHelp.pdfs.length === 0 && !selectedHelp.help_text">
                         <p class="text-muted mb-0">{{ trans('service-order::messages.no_help_registered') }}</p>
                     </template>
                 </div>

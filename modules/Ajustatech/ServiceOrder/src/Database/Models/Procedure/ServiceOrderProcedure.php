@@ -6,6 +6,7 @@ use Ajustatech\ServiceOrder\Database\Factories\Procedure\ServiceOrderProcedureFa
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ServiceOrderProcedure extends Model
 {
@@ -31,5 +32,11 @@ class ServiceOrderProcedure extends Model
     {
         return ServiceOrderProcedureFactory::new();
     }
-}
 
+    public function media(): HasMany
+    {
+        return $this->hasMany(ServiceOrderProcedureMedia::class, 'procedure_id')
+            ->orderBy('sort_order')
+            ->orderBy('created_at');
+    }
+}

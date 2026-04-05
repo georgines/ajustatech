@@ -2,13 +2,18 @@
 
 namespace Ajustatech\ServiceOrder\Livewire\Procedure;
 
+use Ajustatech\ServiceOrder\Database\Models\Procedure\ServiceOrderProcedureMedia;
 use Ajustatech\ServiceOrder\Services\Procedure\Contracts\ProcedureServiceInterface;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\Features\SupportFileUploads\WithFileUploads;
 
 #[Layout('core::layouts.app')]
 class ProcedureManagement extends Component
 {
+    use WithFileUploads;
+
     public $title;
     public $mode = 'create';
     public $procedureId = null;
@@ -18,12 +23,19 @@ class ProcedureManagement extends Component
     public $value = null;
     public bool $hasHelp = false;
     public $helpText = '';
-    public $helpImageUrl = '';
-    public $helpVideoUrl = '';
+
+    public array $videoItems = [];
+    public array $imageItems = [];
+    public array $pdfItems = [];
+    public array $existingMedia = [];
+    public array $deleteMediaIds = [];
 
     public function mount(ProcedureServiceInterface $service, ?string $id = null): void
     {
         $this->title = trans('service-order::messages.procedure_create_title');
+        $this->videoItems = [['url' => '', 'description' => '']];
+        $this->imageItems = [['file' => null, 'description' => '']];
+        $this->pdfItems = [['file' => null, 'description' => '']];
 
         if (!$id) {
             return;
@@ -36,13 +48,19 @@ class ProcedureManagement extends Component
         $this->description = (string) $procedure->description;
         $this->value = (float) $procedure->value;
         $this->helpText = (string) $procedure->help_text;
-        $this->helpImageUrl = (string) $procedure->help_image_url;
-        $this->helpVideoUrl = (string) $procedure->help_video_url;
-        $this->hasHelp = $this->hasHelpContent(
-            $this->helpText,
-            $this->helpImageUrl,
-            $this->helpVideoUrl
-        );
+        $this->existingMedia = $procedure->media
+            ->map(fn ($media) => [
+                'id' => $media->id,
+                'type' => $media->type,
+                'url' => $media->url,
+                'disk' => $media->disk,
+                'path' => $media->path,
+                'description' => $media->description,
+                'original_name' => $media->original_name,
+                'public_url' => $media->path ? route('service-order-procedures-media-file', ['id' => $media->id]) : null,
+            ])
+            ->toArray();
+        $this->hasHelp = $this->hasHelpContent();
         $this->title = trans('service-order::messages.procedure_edit_title');
     }
 
@@ -56,28 +74,34 @@ class ProcedureManagement extends Component
             'value' => 'required|numeric|min:0|max:999999.99',
             'hasHelp' => 'required|boolean',
             'helpText' => 'nullable|string|max:2000',
-            'helpImageUrl' => 'nullable|url|max:1000',
-            'helpVideoUrl' => 'nullable|url|max:1000',
+            'videoItems.*.url' => 'nullable|url|max:1000',
+            'videoItems.*.description' => 'nullable|string|max:500',
+            'imageItems.*.file' => 'nullable|image|max:5120',
+            'imageItems.*.description' => 'nullable|string|max:500',
+            'pdfItems.*.file' => 'nullable|file|mimes:pdf|max:10240',
+            'pdfItems.*.description' => 'nullable|string|max:500',
         ], [], $this->validationAttributes());
 
-        if ($this->hasHelp && !$this->hasHelpContent($this->helpText, $this->helpImageUrl, $this->helpVideoUrl)) {
+        if ($this->hasHelp && !$this->hasHelpContent()) {
             $this->addError('hasHelp', trans('service-order::messages.procedure_help_required'));
             return;
         }
+
+        $media = $this->buildMediaPayload();
 
         $payload = [
             'name' => $this->name,
             'description' => $this->nullableValue($this->description),
             'value' => $this->value,
             'help_text' => $this->hasHelp ? $this->nullableValue($this->helpText) : null,
-            'help_image_url' => $this->hasHelp ? $this->nullableValue($this->helpImageUrl) : null,
-            'help_video_url' => $this->hasHelp ? $this->nullableValue($this->helpVideoUrl) : null,
+            'help_image_url' => null,
+            'help_video_url' => null,
         ];
 
         if ($this->mode === 'edit' && $this->procedureId) {
-            $service->updateProcedure($this->procedureId, $payload);
+            $service->updateProcedure($this->procedureId, $payload, $media, $this->deleteMediaIds);
         } else {
-            $service->createProcedure($payload);
+            $service->createProcedure($payload, $media);
         }
 
         return redirect()->route('service-order-procedures-show');
@@ -90,9 +114,172 @@ class ProcedureManagement extends Component
         }
 
         $this->helpText = '';
-        $this->helpImageUrl = '';
-        $this->helpVideoUrl = '';
-        $this->resetValidation(['hasHelp', 'helpText', 'helpImageUrl', 'helpVideoUrl']);
+        $this->videoItems = [['url' => '', 'description' => '']];
+        $this->imageItems = [['file' => null, 'description' => '']];
+        $this->pdfItems = [['file' => null, 'description' => '']];
+        $this->deleteMediaIds = array_merge($this->deleteMediaIds, array_column($this->existingMedia, 'id'));
+        $this->existingMedia = [];
+        $this->resetValidation();
+    }
+
+    public function addVideoItem(): void
+    {
+        $this->videoItems[] = ['url' => '', 'description' => ''];
+    }
+
+    public function removeVideoItem(int $index): void
+    {
+        if (!isset($this->videoItems[$index])) {
+            return;
+        }
+
+        unset($this->videoItems[$index]);
+        $this->videoItems = array_values($this->videoItems);
+    }
+
+    public function addImageItem(): void
+    {
+        $this->imageItems[] = ['file' => null, 'description' => ''];
+    }
+
+    public function removeImageItem(int $index): void
+    {
+        if (!isset($this->imageItems[$index])) {
+            return;
+        }
+
+        unset($this->imageItems[$index]);
+        $this->imageItems = array_values($this->imageItems);
+    }
+
+    public function addPdfItem(): void
+    {
+        $this->pdfItems[] = ['file' => null, 'description' => ''];
+    }
+
+    public function removePdfItem(int $index): void
+    {
+        if (!isset($this->pdfItems[$index])) {
+            return;
+        }
+
+        unset($this->pdfItems[$index]);
+        $this->pdfItems = array_values($this->pdfItems);
+    }
+
+    public function removeExistingMedia(string $mediaId): void
+    {
+        $this->deleteMediaIds[] = $mediaId;
+        $this->deleteMediaIds = array_values(array_unique($this->deleteMediaIds));
+        $this->existingMedia = array_values(array_filter(
+            $this->existingMedia,
+            fn (array $media) => $media['id'] !== $mediaId
+        ));
+    }
+
+    private function buildMediaPayload(): array
+    {
+        if (!$this->hasHelp) {
+            return [];
+        }
+
+        $media = [];
+        $sortOrder = 0;
+
+        foreach ($this->videoItems as $video) {
+            $url = $this->nullableValue((string) ($video['url'] ?? ''));
+            $description = $this->nullableValue((string) ($video['description'] ?? ''));
+
+            if (!$url) {
+                continue;
+            }
+
+            $media[] = [
+                'type' => ServiceOrderProcedureMedia::TYPE_VIDEO,
+                'url' => $url,
+                'description' => $description,
+                'sort_order' => $sortOrder++,
+            ];
+        }
+
+        foreach ($this->imageItems as $item) {
+            $file = $item['file'] ?? null;
+            $description = $this->nullableValue((string) ($item['description'] ?? ''));
+
+            if (!$file instanceof TemporaryUploadedFile) {
+                continue;
+            }
+
+            $path = $file->store('service-order/procedures/images', 'public');
+
+            $media[] = [
+                'type' => ServiceOrderProcedureMedia::TYPE_IMAGE,
+                'disk' => 'public',
+                'path' => $path,
+                'original_name' => $file->getClientOriginalName(),
+                'mime_type' => $file->getMimeType(),
+                'extension' => strtolower((string) $file->getClientOriginalExtension()),
+                'size' => $file->getSize(),
+                'description' => $description,
+                'sort_order' => $sortOrder++,
+            ];
+        }
+
+        foreach ($this->pdfItems as $item) {
+            $file = $item['file'] ?? null;
+            $description = $this->nullableValue((string) ($item['description'] ?? ''));
+
+            if (!$file instanceof TemporaryUploadedFile) {
+                continue;
+            }
+
+            $path = $file->store('service-order/procedures/pdfs', 'public');
+
+            $media[] = [
+                'type' => ServiceOrderProcedureMedia::TYPE_PDF,
+                'disk' => 'public',
+                'path' => $path,
+                'original_name' => $file->getClientOriginalName(),
+                'mime_type' => $file->getMimeType(),
+                'extension' => strtolower((string) $file->getClientOriginalExtension()),
+                'size' => $file->getSize(),
+                'description' => $description,
+                'sort_order' => $sortOrder++,
+            ];
+        }
+
+        return $media;
+    }
+
+    private function hasHelpContent(): bool
+    {
+        if ($this->nullableValue($this->helpText) !== null) {
+            return true;
+        }
+
+        if (!empty($this->existingMedia)) {
+            return true;
+        }
+
+        foreach ($this->videoItems as $video) {
+            if ($this->nullableValue((string) ($video['url'] ?? '')) !== null) {
+                return true;
+            }
+        }
+
+        foreach ($this->imageItems as $item) {
+            if (($item['file'] ?? null) instanceof TemporaryUploadedFile) {
+                return true;
+            }
+        }
+
+        foreach ($this->pdfItems as $item) {
+            if (($item['file'] ?? null) instanceof TemporaryUploadedFile) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function sanitizeInputs(): void
@@ -100,8 +287,19 @@ class ProcedureManagement extends Component
         $this->name = $this->sanitizeText($this->name, 255);
         $this->description = $this->sanitizeText($this->description, 1000);
         $this->helpText = $this->sanitizeText($this->helpText, 2000);
-        $this->helpImageUrl = $this->sanitizeUrl($this->helpImageUrl);
-        $this->helpVideoUrl = $this->sanitizeUrl($this->helpVideoUrl);
+
+        foreach ($this->videoItems as $index => $video) {
+            $this->videoItems[$index]['url'] = $this->sanitizeUrl((string) ($video['url'] ?? ''));
+            $this->videoItems[$index]['description'] = $this->sanitizeText((string) ($video['description'] ?? ''), 500);
+        }
+
+        foreach ($this->imageItems as $index => $item) {
+            $this->imageItems[$index]['description'] = $this->sanitizeText((string) ($item['description'] ?? ''), 500);
+        }
+
+        foreach ($this->pdfItems as $index => $item) {
+            $this->pdfItems[$index]['description'] = $this->sanitizeText((string) ($item['description'] ?? ''), 500);
+        }
 
         if ($this->value !== null && $this->value !== '') {
             $this->value = round((float) $this->value, 2);
@@ -118,17 +316,7 @@ class ProcedureManagement extends Component
 
     private function sanitizeUrl(?string $value): string
     {
-        $normalized = trim((string) $value);
-        $withoutTags = strip_tags($normalized);
-
-        return mb_substr($withoutTags, 0, 1000);
-    }
-
-    private function hasHelpContent(?string $text, ?string $imageUrl, ?string $videoUrl): bool
-    {
-        return $this->nullableValue($text) !== null
-            || $this->nullableValue($imageUrl) !== null
-            || $this->nullableValue($videoUrl) !== null;
+        return mb_substr(strip_tags(trim((string) $value)), 0, 1000);
     }
 
     private function nullableValue(?string $value): ?string
@@ -146,8 +334,12 @@ class ProcedureManagement extends Component
             'value' => trans('service-order::messages.procedure_value'),
             'hasHelp' => trans('service-order::messages.procedure_help_switch'),
             'helpText' => trans('service-order::messages.procedure_help_text'),
-            'helpImageUrl' => trans('service-order::messages.procedure_help_image'),
-            'helpVideoUrl' => trans('service-order::messages.procedure_help_video'),
+            'videoItems.*.url' => trans('service-order::messages.procedure_help_video'),
+            'videoItems.*.description' => trans('service-order::messages.procedure_help_media_text'),
+            'imageItems.*.file' => trans('service-order::messages.procedure_help_image'),
+            'imageItems.*.description' => trans('service-order::messages.procedure_help_media_text'),
+            'pdfItems.*.file' => trans('service-order::messages.procedure_help_pdf'),
+            'pdfItems.*.description' => trans('service-order::messages.procedure_help_media_text'),
         ];
     }
 

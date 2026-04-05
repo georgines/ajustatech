@@ -27,18 +27,62 @@ class ShowProcedures extends Component
     private function mapProcedures(ProcedureServiceInterface $service): array
     {
         return $service->listProcedures()
-            ->map(fn ($procedure) => [
-                'id' => $procedure->id,
-                'name' => $procedure->name,
-                'description' => $procedure->description,
-                'value' => (float) $procedure->value,
-                'help_text' => $procedure->help_text,
-                'help_image_url' => $procedure->help_image_url,
-                'help_video_url' => $procedure->help_video_url,
-                'has_help' => !empty($procedure->help_text)
-                    || !empty($procedure->help_image_url)
-                    || !empty($procedure->help_video_url),
-            ])
+            ->map(function ($procedure) {
+                $images = $procedure->media
+                    ->where('type', 'image')
+                    ->map(fn ($media) => [
+                        'url' => $media->path ? route('service-order-procedures-media-file', ['id' => $media->id]) : null,
+                        'description' => $media->description,
+                    ])
+                    ->values()
+                    ->all();
+                $videos = $procedure->media
+                    ->where('type', 'video')
+                    ->map(fn ($media) => [
+                        'url' => $media->url,
+                        'description' => $media->description,
+                    ])
+                    ->values()
+                    ->all();
+                $pdfs = $procedure->media
+                    ->where('type', 'pdf')
+                    ->map(fn ($media) => [
+                        'url' => $media->path ? route('service-order-procedures-media-file', ['id' => $media->id]) : null,
+                        'description' => $media->description,
+                        'name' => $media->original_name ?: 'PDF',
+                    ])
+                    ->values()
+                    ->all();
+
+                if (!empty($procedure->help_image_url)) {
+                    $images[] = [
+                        'url' => $procedure->help_image_url,
+                        'description' => null,
+                    ];
+                }
+
+                if (!empty($procedure->help_video_url)) {
+                    $videos[] = [
+                        'url' => $procedure->help_video_url,
+                        'description' => null,
+                    ];
+                }
+
+                return [
+                    'id' => $procedure->id,
+                    'name' => $procedure->name,
+                    'description' => $procedure->description,
+                    'value' => (float) $procedure->value,
+                    'help_text' => $procedure->help_text,
+                    'images' => $images,
+                    'videos' => $videos,
+                    'pdfs' => $pdfs,
+                    'has_help' => !empty($procedure->help_text)
+                        || !empty($images)
+                        || !empty($videos)
+                        || !empty($pdfs),
+                ];
+            })
             ->all();
     }
 
