@@ -1,5 +1,14 @@
 <x-slot name="page_title">{{ $title }}</x-slot>
-<div>
+<div x-data="{
+    previewMedia: {
+        type: '',
+        url: '',
+        name: '',
+    },
+    openFullscreen(type, url, name = '') {
+        this.previewMedia = { type, url, name };
+    }
+}">
     <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">{{ trans('service-order::messages.procedure_form_title') }}</h5>
@@ -96,9 +105,21 @@
                                 @if ($media['type'] === 'video')
                                     <div class="small text-break">{{ $media['url'] }}</div>
                                 @elseif ($media['type'] === 'image' && $media['public_url'])
-                                    <img src="{{ $media['public_url'] }}" alt="media" class="img-fluid rounded border">
+                                    <button type="button"
+                                        class="btn p-0 border-0 bg-transparent"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#procedureManagementMediaFullscreenModal"
+                                        x-on:click="openFullscreen('image', @js($media['public_url']), @js($media['original_name'] ?? 'Imagem'))">
+                                        <img src="{{ $media['public_url'] }}" alt="media" class="img-fluid rounded border">
+                                    </button>
                                 @elseif ($media['type'] === 'pdf' && $media['public_url'])
-                                    <a href="{{ $media['public_url'] }}" target="_blank" class="small">{{ $media['original_name'] ?? 'PDF' }}</a>
+                                    <button type="button"
+                                        class="btn btn-sm btn-outline-primary"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#procedureManagementMediaFullscreenModal"
+                                        x-on:click="openFullscreen('pdf', @js($media['public_url']), @js($media['original_name'] ?? 'PDF'))">
+                                        {{ $media['original_name'] ?? 'PDF' }}
+                                    </button>
                                 @endif
                                 @if ($media['description'])
                                     <div class="small text-muted mt-2">{{ $media['description'] }}</div>
@@ -240,5 +261,27 @@
             {{ $mode === 'edit' ? trans('service-order::messages.update') : trans('service-order::messages.save') }}
         </button>
     </div>
-</div>
 
+    <div wire:ignore.self class="modal fade" id="procedureManagementMediaFullscreenModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" x-text="previewMedia.name"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body bg-dark">
+                    <template x-if="previewMedia.type === 'image'">
+                        <div class="h-100 d-flex justify-content-center align-items-center">
+                            <img :src="previewMedia.url" :alt="previewMedia.name" class="img-fluid" style="max-height: 92vh;">
+                        </div>
+                    </template>
+                    <template x-if="previewMedia.type === 'pdf'">
+                        <div class="h-100">
+                            <iframe :src="previewMedia.url" :title="previewMedia.name" class="w-100 h-100 border-0"></iframe>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

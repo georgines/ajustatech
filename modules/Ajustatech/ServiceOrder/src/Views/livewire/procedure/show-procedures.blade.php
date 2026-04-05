@@ -9,6 +9,11 @@
             videos: [],
             pdfs: [],
         },
+        previewMedia: {
+            type: '',
+            url: '',
+            name: '',
+        },
         openHelp(payload) {
             this.selectedHelp = payload ?? {
                 name: '',
@@ -18,6 +23,9 @@
                 videos: [],
                 pdfs: [],
             };
+        },
+        openFullscreen(type, url, name = '') {
+            this.previewMedia = { type, url, name };
         },
         confirmDelete(id) {
             const runDelete = () => $wire.deleteProcedure(id);
@@ -155,13 +163,17 @@
                 <div class="modal-body">
                     <template x-for="(image, imageIndex) in selectedHelp.images" :key="'img-'+imageIndex">
                         <div class="mb-3">
-                            <a :href="image.url" target="_blank" rel="noopener noreferrer">
+                            <button type="button"
+                                class="btn p-0 border-0 bg-transparent d-block"
+                                data-bs-toggle="modal"
+                                data-bs-target="#procedureMediaFullscreenModal"
+                                x-on:click="openFullscreen('image', image.url, selectedHelp.name)">
                                 <img
                                     :src="image.url"
                                     :alt="selectedHelp.name"
                                     class="img-fluid rounded border mb-2"
                                     style="max-height: 220px; object-fit: cover;">
-                            </a>
+                            </button>
                             <a :href="image.url"
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -192,12 +204,18 @@
                     <template x-for="(pdf, pdfIndex) in selectedHelp.pdfs" :key="'pdf-'+pdfIndex">
                         <div class="mb-3">
                             <div class="ratio ratio-16x9 mb-2">
-                                <iframe :src="pdf.url" :title="pdf.name"></iframe>
+                                <iframe :src="pdf.url" :title="pdf.name" class="w-100 h-100"></iframe>
                             </div>
+                            <button type="button"
+                                class="btn btn-sm btn-outline-primary mb-2 me-2"
+                                data-bs-toggle="modal"
+                                data-bs-target="#procedureMediaFullscreenModal"
+                                x-on:click="openFullscreen('pdf', pdf.url, pdf.name)">
+                                {{ trans('service-order::messages.open_pdf_same_screen') }}
+                            </button>
                             <a :href="pdf.url" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary mb-2">
                                 {{ trans('service-order::messages.open_pdf_new_tab') }}
                             </a>
-                            <a :href="pdf.url" target="_blank" rel="noopener noreferrer" class="small d-inline-block mb-1" x-text="pdf.name"></a>
                             <template x-if="pdf.description">
                                 <p class="small mb-0" x-text="pdf.description"></p>
                             </template>
@@ -210,6 +228,29 @@
 
                     <template x-if="selectedHelp.images.length === 0 && selectedHelp.videos.length === 0 && selectedHelp.pdfs.length === 0 && !selectedHelp.help_text">
                         <p class="text-muted mb-0">{{ trans('service-order::messages.no_help_registered') }}</p>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div wire:ignore.self class="modal fade" id="procedureMediaFullscreenModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" x-text="previewMedia.name || selectedHelp.name"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body bg-dark">
+                    <template x-if="previewMedia.type === 'image'">
+                        <div class="h-100 d-flex justify-content-center align-items-center">
+                            <img :src="previewMedia.url" :alt="previewMedia.name" class="img-fluid" style="max-height: 92vh;">
+                        </div>
+                    </template>
+                    <template x-if="previewMedia.type === 'pdf'">
+                        <div class="h-100">
+                            <iframe :src="previewMedia.url" :title="previewMedia.name" class="w-100 h-100 border-0"></iframe>
+                        </div>
                     </template>
                 </div>
             </div>

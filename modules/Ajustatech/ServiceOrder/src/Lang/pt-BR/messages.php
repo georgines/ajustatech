@@ -42,6 +42,7 @@ return [
     'procedure_help_open' => 'Visualizar ajuda',
     'add' => 'Adicionar',
     'open_in_new_tab' => 'Ampliar / abrir em nova aba',
+    'open_pdf_same_screen' => 'Abrir PDF nesta tela',
     'open_pdf_new_tab' => 'Abrir PDF em nova aba',
     'procedure_confirm_delete' => 'Deseja excluir este procedimento?',
     'no_help_registered' => 'Sem ajuda cadastrada.',
