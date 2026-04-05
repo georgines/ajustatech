@@ -29,6 +29,8 @@ Exemplos:
 - Cada modulo deve ter seus seeders em `Database/Seeders`.
 - Cada modulo deve expor comando `module:seed-*`.
 - O comando global `module:seed` deve conseguir executar todos os seeds de modulos.
+- Para seeders com multiplos registros, seguir performance em lote:
+  - `/.ai/guidelines/projeto/seeds-em-lote-performance.md`.
 
 ## Execucao obrigatoria apos criar/alterar recurso
 Sempre rodar:

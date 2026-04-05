@@ -100,8 +100,10 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
 - Antes de implementar, criar teste de **Feature** e comprovar falha inicial.
 - Implementar somente depois da falha validada.
 - Concluir apenas com teste de Feature passando.
+- Apos executar testes, rodar obrigatoriamente `php artisan dev:reinstall` para reconstruir e preencher o banco local.
 - Fonte de verdade para esse fluxo:
   - `/.ai/guidelines/projeto/testes-feature-tdd.md`.
+  - `/.ai/guidelines/projeto/pos-testes-dev-reinstall.md`.
 - Factories + Seeds + Testes:
   - `/.ai/guidelines/projeto/factories-para-seeds-e-testes.md`.
 
@@ -110,6 +112,13 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
 - Depois ajustar e validar a experiencia completa para desktop/PC.
 - Toda tela, componente e fluxo novo deve funcionar nos dois modos de exibicao: movel e desktop.
 - Nao considerar implementacao concluida sem verificacao visual e funcional em ambos os contextos.
+
+## Convencoes de performance de solicitacoes (obrigatorio)
+- Toda funcionalidade nova deve otimizar quantidade de solicitacoes HTTP/Livewire.
+- Fluxos visuais (ajuda, abrir modal, preview) devem evitar request ao backend quando os dados ja estiverem disponiveis.
+- Acoes de negocio (salvar, editar, excluir) devem buscar fluxo de 1 solicitacao efetiva por acao confirmada.
+- Fonte de verdade:
+  - `/.ai/guidelines/projeto/otimizacao-solicitacoes.md`.
 
 ## Referencias Vuexy (somente referencia)
 - Use `templete/Vuexy/resources` para copiar padrao visual e blocos Blade/SCSS/JS.
