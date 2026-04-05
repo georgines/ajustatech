@@ -12,7 +12,7 @@ class ProcedureMediaController
 
     public function __invoke(string $id): Response
     {
-        $media = ServiceOrderProcedureMedia::query()->findOrFail($id);
+        $media = ServiceOrderProcedureMedia::findOrFailById($id);
 
         if (!$media->disk || !$media->path) {
             abort(404);
@@ -25,4 +25,3 @@ class ProcedureMediaController
         );
     }
 }
-

@@ -19,10 +19,13 @@ class ShowProcedures extends Component
         $this->procedures = $this->mapProcedures($service, $presenter);
     }
 
-    public function deleteProcedure(string $id, ProcedureServiceInterface $service, ProcedureListPresenter $presenter): void
+    public function deleteProcedure(string $id, ProcedureServiceInterface $service): void
     {
         $service->deleteProcedure($id);
-        $this->procedures = $this->mapProcedures($service, $presenter);
+        $this->procedures = array_values(array_filter(
+            $this->procedures,
+            fn (array $procedure) => ($procedure['id'] ?? null) !== $id
+        ));
     }
 
     private function mapProcedures(ProcedureServiceInterface $service, ProcedureListPresenter $presenter): array
