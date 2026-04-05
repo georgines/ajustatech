@@ -3,6 +3,7 @@
 namespace Ajustatech\ServiceOrder\Livewire\Procedure;
 
 use Ajustatech\ServiceOrder\Services\Procedure\Contracts\ProcedureServiceInterface;
+use Ajustatech\ServiceOrder\Support\Procedure\ProcedureListPresenter;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -12,78 +13,23 @@ class ShowProcedures extends Component
     public $title;
     public $procedures = [];
 
-    public function mount(ProcedureServiceInterface $service): void
+    public function mount(ProcedureServiceInterface $service, ProcedureListPresenter $presenter): void
     {
         $this->title = trans('service-order::messages.procedures_title');
-        $this->procedures = $this->mapProcedures($service);
+        $this->procedures = $this->mapProcedures($service, $presenter);
     }
 
-    public function deleteProcedure(string $id, ProcedureServiceInterface $service): void
+    public function deleteProcedure(string $id, ProcedureServiceInterface $service, ProcedureListPresenter $presenter): void
     {
         $service->deleteProcedure($id);
-        $this->procedures = $this->mapProcedures($service);
+        $this->procedures = $this->mapProcedures($service, $presenter);
     }
 
-    private function mapProcedures(ProcedureServiceInterface $service): array
+    private function mapProcedures(ProcedureServiceInterface $service, ProcedureListPresenter $presenter): array
     {
-        return $service->listProcedures()
-            ->map(function ($procedure) {
-                $images = $procedure->media
-                    ->where('type', 'image')
-                    ->map(fn ($media) => [
-                        'url' => $media->path ? route('service-order-procedures-media-file', ['id' => $media->id]) : null,
-                        'description' => $media->description,
-                    ])
-                    ->values()
-                    ->all();
-                $videos = $procedure->media
-                    ->where('type', 'video')
-                    ->map(fn ($media) => [
-                        'url' => $media->url,
-                        'description' => $media->description,
-                    ])
-                    ->values()
-                    ->all();
-                $pdfs = $procedure->media
-                    ->where('type', 'pdf')
-                    ->map(fn ($media) => [
-                        'url' => $media->path ? route('service-order-procedures-media-file', ['id' => $media->id]) : null,
-                        'description' => $media->description,
-                        'name' => $media->original_name ?: 'PDF',
-                    ])
-                    ->values()
-                    ->all();
+        $procedures = $service->listProcedures();
 
-                if (!empty($procedure->help_image_url)) {
-                    $images[] = [
-                        'url' => $procedure->help_image_url,
-                        'description' => null,
-                    ];
-                }
-
-                if (!empty($procedure->help_video_url)) {
-                    $videos[] = [
-                        'url' => $procedure->help_video_url,
-                        'description' => null,
-                    ];
-                }
-
-                return [
-                    'id' => $procedure->id,
-                    'name' => $procedure->name,
-                    'description' => $procedure->description,
-                    'value' => (float) $procedure->value,
-                    'help_text' => $procedure->help_text,
-                    'images' => $images,
-                    'videos' => $videos,
-                    'pdfs' => $pdfs,
-                    'has_help' => !empty($procedure->help_text)
-                        || !empty($images)
-                        || !empty($videos)
-                        || !empty($pdfs),
-                ];
-            })
-            ->all();
+        return $presenter->map($procedures);
     }
 
     public function render()

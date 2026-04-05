@@ -157,34 +157,35 @@ class ProcedureManagement extends Component
 
         if ($this->newMediaType === 'video') {
             $rules['newMediaUrl'] = 'required|url|max:1000';
-        } elseif ($this->newMediaType === 'image') {
+        }
+
+        if ($this->newMediaType === 'image') {
             $rules['newMediaFile'] = 'required|image|max:5120';
-        } else {
+        }
+
+        if ($this->newMediaType === 'pdf') {
             $rules['newMediaFile'] = 'required|file|mimes:pdf|max:10240';
         }
 
         $this->validate($rules, [], $this->validationAttributes());
 
         if ($this->newMediaType === 'video') {
-            $this->videoItems[] = [
-                'url' => $this->newMediaUrl,
-                'name' => $this->newMediaName,
-                'description' => $this->newMediaDescription,
-            ];
-        } elseif ($this->newMediaType === 'image') {
-            $this->imageItems[] = [
-                'file' => $this->newMediaFile,
-                'name' => $this->newMediaName,
-                'description' => $this->newMediaDescription,
-            ];
-        } else {
-            $this->pdfItems[] = [
-                'file' => $this->newMediaFile,
-                'name' => $this->newMediaName,
-                'description' => $this->newMediaDescription,
-            ];
+            $this->videoItems[] = $this->newVideoMediaItem();
+            $this->resetNewMediaForm();
+            $this->dispatch('procedure-media-added');
+
+            return;
         }
 
+        if ($this->newMediaType === 'image') {
+            $this->imageItems[] = $this->newFileMediaItem();
+            $this->resetNewMediaForm();
+            $this->dispatch('procedure-media-added');
+
+            return;
+        }
+
+        $this->pdfItems[] = $this->newFileMediaItem();
         $this->resetNewMediaForm();
         $this->dispatch('procedure-media-added');
     }
@@ -433,6 +434,24 @@ class ProcedureManagement extends Component
         $this->newMediaUrl = '';
         $this->newMediaFile = null;
         $this->resetValidation(['newMediaType', 'newMediaName', 'newMediaDescription', 'newMediaUrl', 'newMediaFile']);
+    }
+
+    private function newVideoMediaItem(): array
+    {
+        return [
+            'url' => $this->newMediaUrl,
+            'name' => $this->newMediaName,
+            'description' => $this->newMediaDescription,
+        ];
+    }
+
+    private function newFileMediaItem(): array
+    {
+        return [
+            'file' => $this->newMediaFile,
+            'name' => $this->newMediaName,
+            'description' => $this->newMediaDescription,
+        ];
     }
 
     public function render()
