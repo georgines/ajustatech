@@ -92,8 +92,10 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
 - Validacoes reutilizaveis devem ser centralizadas em:
   - `modules/Ajustatech/Core/src/Rules`
 - Quando nao existir regra pronta, criar no Core e reutilizar no modulo que precisar.
+- Toda feature nova deve aplicar sanitizacao + validacao backend e restricoes de frontend quando houver input.
 - Fonte de verdade:
   - `/.ai/guidelines/projeto/validacoes-core-reutilizaveis.md`.
+  - `/.ai/guidelines/projeto/validacoes-sanitizacao-seguranca.md`.
 
 ## Convencoes de testes (obrigatorio)
 - Fluxo TDD para feature: RED -> GREEN -> REFACTOR.
