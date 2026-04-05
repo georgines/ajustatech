@@ -15,6 +15,7 @@ Aplicar padrao de separacao por funcionalidade dentro do modulo e enforce de Ser
 ## Checklist Operacional
 1. Identificar funcionalidades que devem virar pastas dedicadas.
 2. Reorganizar pastas padrao por funcionalidade (Livewire, Views, Tests, Database quando aplicavel).
+   - Inclui migrations em `Database/Migrations/<Funcionalidade>/...` para funcionalidades novas.
 3. Garantir existencia de `Services/` no modulo.
 4. Criar interface para cada service novo dentro da propria funcionalidade (`Services/<Funcionalidade>/Contracts`), sem usar `Services/Contracts` global para feature nova.
 5. Garantir que consumidores usem a interface (DI).

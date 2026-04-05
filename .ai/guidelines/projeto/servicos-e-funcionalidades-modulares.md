@@ -11,6 +11,7 @@ Exemplos esperados:
 - `Views/livewire/<funcionalidade-kebab-case>/...`
 - `Tests/Feature/Livewire/<Funcionalidade>/...`
 - `Tests/Feature/Database/<Funcionalidade>/...` (quando aplicavel)
+- `Database/Migrations/<Funcionalidade>/...` (quando aplicavel)
 - `Database/Seeders/<Funcionalidade>/...` (quando aplicavel)
 - `Database/Factories/<Funcionalidade>/...` (quando aplicavel)
 
