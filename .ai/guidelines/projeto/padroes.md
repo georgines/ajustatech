@@ -58,6 +58,8 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
 - Modelos do modulo devem ficar em `Database/Models`.
 - Nao colocar codigo de modelo em componentes, services, controllers ou arquivos nao responsaveis por modelo.
 - Todo modelo deve possuir migration, factory e seeder.
+- Factories e seeders devem respeitar os relacionamentos do dominio e preencher dados relacionais corretamente.
+- Seeds e testes devem cobrir todas as funcionalidades do modulo e submodulos (features da funcionalidade), nao apenas fluxo parcial.
 - Fonte de verdade:
   - `/.ai/guidelines/projeto/modelos-separacao-e-cobertura.md`.
   - `/.ai/guidelines/projeto/testes-feature-tdd.md`.

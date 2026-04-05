@@ -15,13 +15,18 @@ Aplicar insercao em lote em seeders para reduzir solicitacoes ao banco.
 2. Montar array de registros finais com `id` e timestamps.
 3. Substituir por `Model::query()->insert($rows)`.
 4. Manter dados reais e coerentes com o dominio.
-5. Validar com testes e `php artisan dev:reinstall`.
+5. Manter integridade relacional (FKs e dependencias) mesmo com insercao em lote.
+6. Cobrir funcionalidades do modulo/submodulo impactadas pelo seeder.
+7. Validar com testes e `php artisan dev:reinstall`.
 
 ## Criterios de aceite
 - Seeder de volume executa em lote.
 - Menor numero de queries sem perda funcional.
+- Relacionamentos preservados corretamente no lote.
+- Funcionalidades do modulo/submodulo abastecidas com dados consistentes.
 - Banco reconstruido e preenchido corretamente.
 
 ## Nao fazer
 - Nao manter loop de escrita quando lote resolve.
+- Nao quebrar relacionamento por montar lote sem dependencias necessarias.
 - Nao usar `upsert` sem chave unica apropriada.

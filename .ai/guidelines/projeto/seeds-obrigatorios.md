@@ -24,6 +24,8 @@ Exemplos:
 - Casos comuns de uso.
 - Casos de borda relevantes para o recurso.
 - Relacionamentos entre entidades, quando existirem.
+- Relacionamentos devem ser preenchidos de forma correta e consistente (FKs validas, cardinalidade esperada e coerencia de negocio).
+- Cobertura completa das funcionalidades do modulo e submodulos (features), incluindo fluxos relacionais entre elas.
 
 ## Regras por modulo
 - Cada modulo deve ter seus seeders em `Database/Seeders`.
@@ -43,4 +45,6 @@ Ou, quando necessario:
 ## Criterio de pronto
 Uma feature/modulo so e considerada pronta quando:
 - seeds cobrindo cenarios relevantes foram criados/atualizados;
+- seeds cobrem dados relacionais corretamente;
+- seeds contemplam todas as funcionalidades do modulo/submodulo;
 - o povoamento global dos modulos foi executado com sucesso.
