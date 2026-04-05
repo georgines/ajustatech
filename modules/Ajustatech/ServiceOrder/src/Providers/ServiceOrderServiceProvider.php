@@ -30,11 +30,27 @@ class ServiceOrderServiceProvider extends ServiceProvider
     {
         $this->loadRoutesFrom("$this->path/Routes/web.php");
         $this->loadViewsFrom("$this->path/Views", "service-order");
-        $this->loadMigrationsFrom("$this->path/Database/migrations");
+        $this->loadMigrationsFrom($this->migrationPaths());
         $this->loadTranslationsFrom("$this->path/Lang", "service-order");
         $this->loadCommands();
         $this->initializeMenus();
         $this->initializeLivewireComponents();
+    }
+
+    private function migrationPaths(): array
+    {
+        $basePath = "$this->path/Database/Migrations";
+
+        if (!is_dir($basePath)) {
+            return [];
+        }
+
+        $subDirectories = glob($basePath . '/*', GLOB_ONLYDIR) ?: [];
+
+        return array_values(array_unique([
+            $basePath,
+            ...$subDirectories,
+        ]));
     }
 
     private function initializeMenus()
