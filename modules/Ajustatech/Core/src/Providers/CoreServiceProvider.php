@@ -19,7 +19,7 @@ class CoreServiceProvider extends ServiceProvider
         $this->app->register(CustomerServiceProvider::class);
         $this->app->register(FinancialServiceProvider::class);
         $this->app->register(ServiceOrderServiceProvider::class);
-        $this->app->register(ServiceOrderOldServiceProvider::class);
+        // $this->app->register(ServiceOrderOldServiceProvider::class);
         $this->app->register(ViewServiceProvider::class);
     }
 
