@@ -60,8 +60,20 @@
                     <div class="border rounded p-3">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div class="d-flex align-items-center gap-2">
-                                <strong>{{ trans('service-order::messages.question') }} #{{ $index + 1 }}</strong>
+                                <strong>
+                                    @if ($question['is_subquestion'] ?? false)
+                                        {{ trans('service-order::messages.analysis_subquestion_title', ['sub' => $this->getSubquestionNumberInParent($index), 'question' => $this->getSubquestionParentMainNumber($index)]) }}
+                                    @else
+                                        {{ trans('service-order::messages.question') }} #{{ $this->getMainQuestionNumber($index) }}
+                                    @endif
+                                </strong>
                                 <span class="badge bg-label-primary text-uppercase">{{ $question['question_type'] === 'yes_no' ? trans('service-order::messages.analysis_type_yes_no') : trans('service-order::messages.analysis_type_select') }}</span>
+                                @if ($question['is_subquestion'] ?? false)
+                                    @php $triggerLabel = $this->getSubquestionTriggerLabel($index); @endphp
+                                    @if ($triggerLabel !== '')
+                                        <span class="badge bg-label-secondary">{{ trans('service-order::messages.analysis_subquestion_when') }}: {{ $triggerLabel }}</span>
+                                    @endif
+                                @endif
                                 @if ($question['is_required'] ?? false)
                                     <span class="badge bg-label-secondary">{{ trans('service-order::messages.analysis_question_required') }}</span>
                                 @endif
@@ -198,8 +210,33 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="d-flex flex-column gap-3">
+                        <div class="d-flex flex-column gap-3">
+                        @php
+                            $subquestionOptions = $editingQuestionIndex === null
+                                ? $this->getNewSubquestionTriggerOptions()
+                                : $this->getSubquestionTriggerOptionsForEdit($editingQuestionIndex);
+                        @endphp
                         <div class="d-flex flex-column gap-2">
+                            <label class="switch mb-0">
+                                <input wire:model.live="newQuestionDraft.is_subquestion" class="switch-input" type="checkbox" />
+                                <span class="switch-toggle-slider">
+                                    <span class="switch-on"></span>
+                                    <span class="switch-off"></span>
+                                </span>
+                                <span class="switch-label">{{ trans('service-order::messages.analysis_subquestion_from_previous') }}</span>
+                            </label>
+                            @if ($newQuestionDraft['is_subquestion'] ?? false)
+                                <div>
+                                    <label class="form-label">{{ trans('service-order::messages.analysis_question_condition_value') }}</label>
+                                    <select class="form-select" wire:model.live="newQuestionDraft.condition_value">
+                                        <option value="">{{ trans('service-order::messages.analysis_subquestion_trigger_placeholder') }}</option>
+                                        @foreach ($subquestionOptions as $option)
+                                            <option value="{{ $option['value'] }}">{{ $option['label'] }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('newQuestionDraft.condition_value') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
+                                </div>
+                            @endif
                             <label class="switch mb-0">
                                 <input wire:model.live="newQuestionDraft.is_required" class="switch-input" type="checkbox" />
                                 <span class="switch-toggle-slider">
