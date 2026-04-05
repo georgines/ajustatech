@@ -18,6 +18,7 @@ class ProcedureManagementTest extends TestCase
             ->set('name', 'Limpeza interna')
             ->set('description', 'Limpeza de poeira e conectores')
             ->set('value', '149.90')
+            ->set('hasHelp', true)
             ->set('helpText', 'Use pincel antiestatico.')
             ->set('helpImageUrl', 'https://example.com/imagem.jpg')
             ->set('helpVideoUrl', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
@@ -45,6 +46,7 @@ class ProcedureManagementTest extends TestCase
             ->set('name', 'Troca de pasta termica premium')
             ->set('description', 'Inclui limpeza e aplicacao da pasta')
             ->set('value', '119.90')
+            ->set('hasHelp', true)
             ->set('helpText', 'Aplicar camada fina e uniforme.')
             ->call('save')
             ->assertRedirect(route('service-order-procedures-show'));
@@ -56,5 +58,25 @@ class ProcedureManagementTest extends TestCase
             'help_text' => 'Aplicar camada fina e uniforme.',
         ]);
     }
-}
 
+    public function test_does_not_persist_help_when_switch_is_disabled(): void
+    {
+        Livewire::test(ProcedureManagement::class)
+            ->set('name', 'Atualizacao de driver')
+            ->set('description', 'Atualizacao de drivers essenciais')
+            ->set('value', '79.90')
+            ->set('hasHelp', false)
+            ->set('helpText', 'Texto que nao deve ser salvo')
+            ->set('helpImageUrl', 'https://example.com/help.jpg')
+            ->set('helpVideoUrl', 'https://example.com/help.mp4')
+            ->call('save')
+            ->assertRedirect(route('service-order-procedures-show'));
+
+        $this->assertDatabaseHas('service_order_procedures', [
+            'name' => 'Atualizacao de driver',
+            'help_text' => null,
+            'help_image_url' => null,
+            'help_video_url' => null,
+        ]);
+    }
+}

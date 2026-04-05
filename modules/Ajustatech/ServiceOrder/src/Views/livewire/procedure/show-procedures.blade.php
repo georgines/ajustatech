@@ -77,7 +77,7 @@
                     <tr>
                         <th>{{ trans('service-order::messages.procedure_name') }}</th>
                         <th>{{ trans('service-order::messages.procedure_value') }}</th>
-                        <th>{{ trans('service-order::messages.procedure_help_title') }}</th>
+                        <th>{{ trans('service-order::messages.procedure_help_short') }}</th>
                         <th>{{ trans('service-order::messages.actions') }}</th>
                     </tr>
                 </thead>
@@ -87,21 +87,25 @@
                             <td>{{ $procedure['name'] }}</td>
                             <td>R$ {{ number_format((float) $procedure['value'], 2, ',', '.') }}</td>
                             <td>
-                                <button type="button"
-                                    class="btn btn-sm btn-icon"
-                                    x-on:click="openHelp({
-                                        name: @js($procedure['name']),
-                                        description: @js($procedure['description']),
-                                        help_text: @js($procedure['help_text']),
-                                        help_image_url: @js($procedure['help_image_url']),
-                                        help_video_url: @js($procedure['help_video_url'])
-                                    })"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#procedureHelpModal"
-                                    title="{{ trans('service-order::messages.procedure_help_open') }}"
-                                    aria-label="{{ trans('service-order::messages.procedure_help_open') }}">
-                                    <i class="text-primary ti ti-help-circle"></i>
-                                </button>
+                                @if ($procedure['has_help'])
+                                    <button type="button"
+                                        class="btn btn-sm btn-icon"
+                                        x-on:click="openHelp({
+                                            name: @js($procedure['name']),
+                                            description: @js($procedure['description']),
+                                            help_text: @js($procedure['help_text']),
+                                            help_image_url: @js($procedure['help_image_url']),
+                                            help_video_url: @js($procedure['help_video_url'])
+                                        })"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#procedureHelpModal"
+                                        title="{{ trans('service-order::messages.procedure_help_open') }}"
+                                        aria-label="{{ trans('service-order::messages.procedure_help_open') }}">
+                                        <i class="text-primary ti ti-help-circle"></i>
+                                    </button>
+                                @else
+                                    <span class="text-muted small">-</span>
+                                @endif
                             </td>
                             <td>
                                 <a class="btn btn-sm btn-icon"

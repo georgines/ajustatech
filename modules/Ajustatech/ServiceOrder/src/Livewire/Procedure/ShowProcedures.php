@@ -35,6 +35,9 @@ class ShowProcedures extends Component
                 'help_text' => $procedure->help_text,
                 'help_image_url' => $procedure->help_image_url,
                 'help_video_url' => $procedure->help_video_url,
+                'has_help' => !empty($procedure->help_text)
+                    || !empty($procedure->help_image_url)
+                    || !empty($procedure->help_video_url),
             ])
             ->all();
     }
