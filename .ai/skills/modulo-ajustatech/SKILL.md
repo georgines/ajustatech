@@ -30,7 +30,7 @@ Implementacoes reais devem ocorrer em `resources/*` e `modules/Ajustatech/*`.
 9. Garantir Livewire components registrados no provider do modulo.
 10. Adicionar/ajustar testes de modulo.
 
-## Padrões obrigatorios
+## Padroes obrigatorios
 - Namespace `Ajustatech\<Modulo>\...`.
 - `#[Layout('core::layouts.app')]` em componentes Livewire de modulo.
 - Traducoes em `Lang/en` e `Lang/pt-BR`.
@@ -47,3 +47,8 @@ Implementacoes reais devem ocorrer em `resources/*` e `modules/Ajustatech/*`.
 - Nao quebrar padrao de provider final (`ViewServiceProvider` por ultimo no Core).
 - Nao deixar modulo sem `composer.json` proprio e sem registro PSR-4 no composer raiz.
 - Nao usar comandos `make:module-*` internos sem entender os argumentos obrigatorios de scaffolding.
+
+## Guidelines complementares
+- `/.ai/guidelines/projeto/padroes.md` (fonte principal consolidada).
+- `/.ai/guidelines/projeto/servicos-e-funcionalidades-modulares.md` (quando houver multiplas funcionalidades no modulo).
+- `/.ai/guidelines/projeto/modelos-separacao-e-cobertura.md` (modelos em `Database/Models` e cobertura minima).

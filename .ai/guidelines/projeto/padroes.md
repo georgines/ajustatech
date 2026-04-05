@@ -38,6 +38,23 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
 - Para telas de listagem em tabela, seguir:
   - `/.ai/guidelines/projeto/filtros-tabelas-modulo.md`.
 
+## Convencoes de arquitetura por funcionalidade (obrigatorio)
+- Quando houver mais de uma funcionalidade no mesmo modulo, separar por pasta de funcionalidade dentro das pastas padrao do modulo.
+- Todo modulo deve possuir pasta `Services/`.
+- Todo service deve possuir interface correspondente.
+- Services devem ser resolvidos por interface via bind no provider do modulo (metodo `register()`).
+- Fonte de verdade:
+  - `/.ai/guidelines/projeto/servicos-e-funcionalidades-modulares.md`.
+
+## Convencoes de modelos e cobertura (obrigatorio)
+- Modelos do modulo devem ficar em `Database/Models`.
+- Nao colocar codigo de modelo em componentes, services, controllers ou arquivos nao responsaveis por modelo.
+- Todo modelo deve possuir migration, factory e seeder.
+- Fonte de verdade:
+  - `/.ai/guidelines/projeto/modelos-separacao-e-cobertura.md`.
+  - `/.ai/guidelines/projeto/testes-feature-tdd.md`.
+  - `/.ai/guidelines/projeto/factories-para-seeds-e-testes.md`.
+
 ## Convencoes de comandos internos
 - Seeds modulares: `module:seed-*`.
 - Orquestracao de seeds:
