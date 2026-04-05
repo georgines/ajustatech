@@ -24,6 +24,7 @@ Toda entrada do usuario deve passar por:
   - `maxlength`, `min`, `max`, `step`, `inputmode`, `type` adequado.
 - Em JS puro (sem Livewire para aquele input), sanitizar no cliente antes de enviar.
 - Mensagens de erro devem ser claras e alinhadas ao campo.
+- Toda mensagem de validacao deve ser renderizada imediatamente abaixo do campo correspondente (evitar bloco de erros global no topo/rodape do formulario).
 
 ## Seguranca
 - Evitar persistir HTML bruto quando nao necessario.
