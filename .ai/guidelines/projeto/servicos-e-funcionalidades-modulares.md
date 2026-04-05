@@ -14,6 +14,11 @@ Exemplos esperados:
 - `Database/Migrations/<Funcionalidade>/...` (quando aplicavel)
 - `Database/Seeders/<Funcionalidade>/...` (quando aplicavel)
 - `Database/Factories/<Funcionalidade>/...` (quando aplicavel)
+- `storage/<disco>/<modulo>/<funcionalidade>/...` para arquivos de upload (quando aplicavel), incluindo disco local e remoto.
+
+Regra de armazenamento:
+- Cada modulo/funcionalidade com upload deve ter pasta propria de armazenamento no disco local e/ou remoto utilizado.
+- Nao usar pasta raiz compartilhada entre funcionalidades diferentes.
 
 ## Regra 2: Pasta Services obrigatoria
 Todo modulo deve possuir a pasta:

@@ -44,6 +44,7 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
 - Todo modulo deve possuir pasta `Services/`.
 - Todo service deve possuir interface correspondente.
 - Services devem ser resolvidos por interface via bind no provider do modulo (metodo `register()`).
+- Toda feature que usa armazenamento deve gravar em pasta propria por modulo/funcionalidade no disco local e/ou remoto (evitar pastas genericas compartilhadas).
 - Priorizar `early return` para simplificar fluxo e evitar blocos `else` desnecessarios.
 - Nao executar chamadas ao banco dentro de loops; buscar os dados primeiro e depois iterar em memoria.
 - Nao concentrar implementacao completa de um recurso em um unico arquivo quando houver responsabilidades distintas; dividir em arquivos/classes por responsabilidade.
