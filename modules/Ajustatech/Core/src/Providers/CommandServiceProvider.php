@@ -5,6 +5,7 @@ namespace Ajustatech\Core\Providers;
 use Ajustatech\Core\Commands\DevClearCachesCommand;
 use Ajustatech\Core\Commands\DevMigrateCommand;
 use Ajustatech\Core\Commands\DevModuleSeedCommand;
+use Ajustatech\Core\Commands\DevReinstallCommand;
 use Ajustatech\Core\Commands\DevSeedCommand;
 use Illuminate\Support\ServiceProvider;
 use Ajustatech\Core\Commands\MakeModuleCommand;
@@ -28,6 +29,7 @@ class CommandServiceProvider extends ServiceProvider
             DevClearCachesCommand::class,
             DevMigrateCommand::class,
             DevModuleSeedCommand::class,
+            DevReinstallCommand::class,
             DevSeedCommand::class,
             MakeModuleCommand::class,
             MakeModuleMenuCommand::class,
