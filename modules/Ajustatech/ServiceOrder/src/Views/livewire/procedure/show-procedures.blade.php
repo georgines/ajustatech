@@ -26,6 +26,17 @@
         },
         openFullscreen(type, url, name = '') {
             this.previewMedia = { type, url, name };
+
+            if (!window.bootstrap) {
+                return;
+            }
+
+            const modalEl = document.getElementById('procedureMediaFullscreenModal');
+            if (!modalEl) {
+                return;
+            }
+
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
         },
         confirmDelete(id) {
             const runDelete = () => $wire.deleteProcedure(id);
@@ -165,8 +176,6 @@
                         <div class="mb-3">
                             <button type="button"
                                 class="btn p-0 border-0 bg-transparent d-block"
-                                data-bs-toggle="modal"
-                                data-bs-target="#procedureMediaFullscreenModal"
                                 x-on:click="openFullscreen('image', image.url, selectedHelp.name)">
                                 <img
                                     :src="image.url"
@@ -208,8 +217,6 @@
                             </div>
                             <button type="button"
                                 class="btn btn-sm btn-outline-primary mb-2 me-2"
-                                data-bs-toggle="modal"
-                                data-bs-target="#procedureMediaFullscreenModal"
                                 x-on:click="openFullscreen('pdf', pdf.url, pdf.name)">
                                 {{ trans('service-order::messages.open_pdf_same_screen') }}
                             </button>
@@ -257,3 +264,31 @@
         </div>
     </div>
 </div>
+
+@script
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            document.addEventListener('show.bs.modal', event => {
+                const visibleModals = document.querySelectorAll('.modal.show');
+                const zIndex = 1055 + (visibleModals.length * 10);
+
+                event.target.style.zIndex = zIndex;
+
+                setTimeout(() => {
+                    const backdrops = document.querySelectorAll('.modal-backdrop:not(.modal-stack)');
+                    const backdrop = backdrops[backdrops.length - 1];
+                    if (!backdrop) return;
+
+                    backdrop.style.zIndex = zIndex - 1;
+                    backdrop.classList.add('modal-stack');
+                }, 0);
+            });
+
+            document.addEventListener('hidden.bs.modal', () => {
+                if (document.querySelectorAll('.modal.show').length > 0) {
+                    document.body.classList.add('modal-open');
+                }
+            });
+        });
+    </script>
+@endscript

@@ -5,8 +5,19 @@
         url: '',
         name: '',
     },
-    openFullscreen(type, url, name = '') {
+    openFullscreen(type, url, name = '', modalId = null) {
         this.previewMedia = { type, url, name };
+
+        if (!modalId || !window.bootstrap) {
+            return;
+        }
+
+        const modalEl = document.getElementById(modalId);
+        if (!modalEl) {
+            return;
+        }
+
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
     }
 }">
     <div class="card mb-4">
@@ -121,17 +132,13 @@
                             @elseif ($media['type'] === 'image' && $media['public_url'])
                                 <button type="button"
                                     class="btn p-0 border-0 bg-transparent"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#procedureManagementMediaFullscreenModal"
-                                    x-on:click="openFullscreen('image', @js($media['public_url']), @js($media['display_name'] ?? 'Imagem'))">
+                                    x-on:click="openFullscreen('image', @js($media['public_url']), @js($media['display_name'] ?? 'Imagem'), 'procedureManagementMediaFullscreenModal')">
                                     <img src="{{ $media['public_url'] }}" alt="media" class="img-fluid rounded border">
                                 </button>
                             @elseif ($media['type'] === 'pdf' && $media['public_url'])
                                 <button type="button"
                                     class="btn btn-sm btn-outline-primary"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#procedureManagementMediaFullscreenModal"
-                                    x-on:click="openFullscreen('pdf', @js($media['public_url']), @js($media['display_name'] ?? 'PDF'))">
+                                    x-on:click="openFullscreen('pdf', @js($media['public_url']), @js($media['display_name'] ?? 'PDF'), 'procedureManagementMediaFullscreenModal')">
                                     {{ $media['display_name'] ?? 'PDF' }}
                                 </button>
                             @endif
@@ -311,6 +318,28 @@
 @script
     <script>
         document.addEventListener('livewire:initialized', () => {
+            document.addEventListener('show.bs.modal', event => {
+                const visibleModals = document.querySelectorAll('.modal.show');
+                const zIndex = 1055 + (visibleModals.length * 10);
+
+                event.target.style.zIndex = zIndex;
+
+                setTimeout(() => {
+                    const backdrops = document.querySelectorAll('.modal-backdrop:not(.modal-stack)');
+                    const backdrop = backdrops[backdrops.length - 1];
+                    if (!backdrop) return;
+
+                    backdrop.style.zIndex = zIndex - 1;
+                    backdrop.classList.add('modal-stack');
+                }, 0);
+            });
+
+            document.addEventListener('hidden.bs.modal', () => {
+                if (document.querySelectorAll('.modal.show').length > 0) {
+                    document.body.classList.add('modal-open');
+                }
+            });
+
             Livewire.on('procedure-media-added', () => {
                 const modalEl = document.getElementById('procedureAddMediaModal');
                 if (!modalEl) return;
