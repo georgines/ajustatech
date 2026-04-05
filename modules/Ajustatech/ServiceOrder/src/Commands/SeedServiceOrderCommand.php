@@ -9,12 +9,23 @@ class SeedServiceOrderCommand extends Command
 
     protected $signature = 'module:seed-service-order';
 
-    protected $description = 'Seeds the database with service-order data';
+    protected $description = 'Seed Service Order module data and run feature seed commands';
 
-    public function handle()
+    public function handle(): int
     {
         $this->call('db:seed', [
-            '--class'=>'Ajustatech\ServiceOrder\Database\Seeders\ServiceOrderSeeder'
+            '--class' => 'Ajustatech\\ServiceOrder\\Database\\Seeders\\ServiceOrder\\ServiceOrderSeeder',
         ]);
+
+        $this->info('Running command: feature:seed-service-order-procedure');
+        $exitCode = $this->call('feature:seed-service-order-procedure');
+
+        if ($exitCode !== self::SUCCESS) {
+            $this->error('Command failed: feature:seed-service-order-procedure');
+
+            return self::FAILURE;
+        }
+
+        return self::SUCCESS;
     }
 }

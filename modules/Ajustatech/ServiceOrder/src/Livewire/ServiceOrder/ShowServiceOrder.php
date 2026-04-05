@@ -1,6 +1,6 @@
 <?php
 
-namespace Ajustatech\ServiceOrder\Livewire;
+namespace Ajustatech\ServiceOrder\Livewire\ServiceOrder;
 
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -17,6 +17,6 @@ class ShowServiceOrder extends Component
 
     public function render()
     {
-        return view('service-order::livewire.show-service-order');
+        return view('service-order::livewire.service-order.show-service-order');
     }
 }

@@ -1,8 +1,8 @@
 <?php
 
-namespace Ajustatech\ServiceOrder\Database\Models;
+namespace Ajustatech\ServiceOrder\Database\Models\ServiceOrder;
 
-use Ajustatech\ServiceOrder\Database\Factories\ServiceOrderFactory;
+use Ajustatech\ServiceOrder\Database\Factories\ServiceOrder\ServiceOrderFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;

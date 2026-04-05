@@ -12,6 +12,7 @@ class DevReinstallCommand extends BaseCommand
     public function handle()
     {
         Artisan::call('db:wipe', [], $this->getOutput());
+        Artisan::call('dev:wipe-media', [], $this->getOutput());
         Artisan::call('dev:migrate', [], $this->getOutput());
         Artisan::call('dev:clear', [], $this->getOutput());
         Artisan::call('dev:seed', [], $this->getOutput());

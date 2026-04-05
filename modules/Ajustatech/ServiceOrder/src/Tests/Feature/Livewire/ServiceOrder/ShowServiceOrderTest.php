@@ -2,7 +2,7 @@
 
 namespace Ajustatech\ServiceOrder\Tests\Feature\Livewire\ServiceOrder;
 
-use Ajustatech\ServiceOrder\Livewire\ShowServiceOrder;
+use Ajustatech\ServiceOrder\Livewire\ServiceOrder\ShowServiceOrder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;

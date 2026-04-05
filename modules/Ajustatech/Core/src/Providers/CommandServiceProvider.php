@@ -4,9 +4,11 @@ namespace Ajustatech\Core\Providers;
 
 use Ajustatech\Core\Commands\DevClearCachesCommand;
 use Ajustatech\Core\Commands\DevMigrateCommand;
+use Ajustatech\Core\Commands\DevModuleWipeMediaCommand;
 use Ajustatech\Core\Commands\DevModuleSeedCommand;
 use Ajustatech\Core\Commands\DevReinstallCommand;
 use Ajustatech\Core\Commands\DevSeedCommand;
+use Ajustatech\Core\Commands\DevWipeMediaCommand;
 use Illuminate\Support\ServiceProvider;
 use Ajustatech\Core\Commands\MakeModuleCommand;
 use Ajustatech\Core\Commands\MakeModuleMenuCommand;
@@ -28,9 +30,11 @@ class CommandServiceProvider extends ServiceProvider
         $this->commands([
             DevClearCachesCommand::class,
             DevMigrateCommand::class,
+            DevModuleWipeMediaCommand::class,
             DevModuleSeedCommand::class,
             DevReinstallCommand::class,
             DevSeedCommand::class,
+            DevWipeMediaCommand::class,
             MakeModuleCommand::class,
             MakeModuleMenuCommand::class,
             MakeModuleModelCommand::class,

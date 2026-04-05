@@ -1,8 +1,8 @@
 <?php
 
-namespace Ajustatech\ServiceOrder\Database\Factories;
+namespace Ajustatech\ServiceOrder\Database\Factories\ServiceOrder;
 
-use Ajustatech\ServiceOrder\Database\Models\ServiceOrder;
+use Ajustatech\ServiceOrder\Database\Models\ServiceOrder\ServiceOrder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ServiceOrderFactory extends Factory

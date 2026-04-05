@@ -2,7 +2,7 @@
 
 namespace Ajustatech\ServiceOrder\Tests\Feature\Database;
 
-use Ajustatech\ServiceOrder\Database\Models\ServiceOrder;
+use Ajustatech\ServiceOrder\Database\Models\ServiceOrder\ServiceOrder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
