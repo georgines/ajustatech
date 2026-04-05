@@ -22,10 +22,13 @@ class ProcedureManagementTest extends TestCase
             ->set('hasHelp', true)
             ->set('helpText', 'Use pincel antiestatico.')
             ->set('videoItems.0.url', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+            ->set('videoItems.0.name', 'Video de limpeza')
             ->set('videoItems.0.description', 'Video de apoio.')
             ->set('imageItems.0.file', UploadedFile::fake()->image('procedimento.jpg'))
+            ->set('imageItems.0.name', 'Imagem interna')
             ->set('imageItems.0.description', 'Imagem de apoio.')
             ->set('pdfItems.0.file', UploadedFile::fake()->create('manual.pdf', 200, 'application/pdf'))
+            ->set('pdfItems.0.name', 'Manual de limpeza')
             ->set('pdfItems.0.description', 'PDF com orientacoes.')
             ->call('save')
             ->assertRedirect(route('service-order-procedures-show'));

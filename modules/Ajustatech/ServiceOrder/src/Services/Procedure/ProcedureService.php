@@ -76,6 +76,7 @@ class ProcedureService implements ProcedureServiceInterface
                     'id' => (string) Str::uuid(),
                     'procedure_id' => $procedure->id,
                     'type' => $item['type'],
+                    'display_name' => $item['display_name'] ?? null,
                     'url' => $item['url'] ?? null,
                     'disk' => $item['disk'] ?? null,
                     'path' => $item['path'] ?? null,

@@ -22,6 +22,7 @@ class ServiceOrderProcedureMedia extends Model
     protected $fillable = [
         'procedure_id',
         'type',
+        'display_name',
         'url',
         'disk',
         'path',
