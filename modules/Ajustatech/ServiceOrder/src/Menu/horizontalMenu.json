@@ -9,6 +9,11 @@
 					"url": "",
 					"name": "Ordens de Servico",
 					"slug": "service-order-show"
+				},
+				{
+					"url": "",
+					"name": "Procedimentos",
+					"slug": "service-order-procedures-show"
 				}
 			]
 		}

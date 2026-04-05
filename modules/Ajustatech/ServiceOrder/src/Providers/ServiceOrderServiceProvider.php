@@ -7,7 +7,11 @@ use Illuminate\Support\ServiceProvider;
 use Ajustatech\Core\Helpers\MenuManagerInterface;
 use Ajustatech\ServiceOrder\Livewire\ShowServiceOrder;
 use Ajustatech\ServiceOrder\Livewire\ServiceOrderManagement;
+use Ajustatech\ServiceOrder\Livewire\Procedure\ShowProcedures;
+use Ajustatech\ServiceOrder\Livewire\Procedure\ProcedureManagement;
 use Ajustatech\ServiceOrder\Commands\SeedServiceOrderCommand;
+use Ajustatech\ServiceOrder\Services\Procedure\ProcedureService;
+use Ajustatech\ServiceOrder\Services\Procedure\Contracts\ProcedureServiceInterface;
 
 class ServiceOrderServiceProvider extends ServiceProvider
 {
@@ -16,7 +20,10 @@ class ServiceOrderServiceProvider extends ServiceProvider
 
     public function register()
     {
-
+        $this->app->bind(
+            ProcedureServiceInterface::class,
+            ProcedureService::class
+        );
     }
 
     public function boot()
@@ -44,6 +51,8 @@ class ServiceOrderServiceProvider extends ServiceProvider
     {
 		Livewire::component('show-service-order', ShowServiceOrder::class);
 		Livewire::component('service-order-management', ServiceOrderManagement::class);
+		Livewire::component('show-procedures', ShowProcedures::class);
+		Livewire::component('procedure-management', ProcedureManagement::class);
     }
 
     private function loadCommands(){
