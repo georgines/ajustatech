@@ -1,0 +1,16 @@
+{
+	"menu": [
+		{
+			"name": "Ordem de Servico",
+			"icon": "menu-icon tf-icons ti ti-receipt-2",
+			"slug": "service-order",
+			"submenu": [
+				{
+					"url": "",
+					"name": "Ordens de Servico",
+					"slug": "service-order-show"
+				}
+			]
+		}
+	]
+}

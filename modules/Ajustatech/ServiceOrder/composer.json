@@ -1,0 +1,21 @@
+{
+    "name": "georgines/service-order",
+    "description": "Module ServiceOrder",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Georgines Bezerra Pereira",
+            "email": "geoginae.p2@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Ajustatech\\ServiceOrder\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ajustatech\\ServiceOrder\\Tests\\": "modules/Ajustatech/ServiceOrder/src/Tests/"
+        }
+    }
+}
