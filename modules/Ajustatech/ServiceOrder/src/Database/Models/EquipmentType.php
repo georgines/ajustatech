@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
 
 class EquipmentType extends Model
 {
@@ -168,7 +167,10 @@ class EquipmentType extends Model
         }
 
         try {
-            return Storage::disk((string) $this->image_disk)->url((string) $this->image_path);
+            return route('service-order-equipment-types-image', [
+                'id' => $this->id,
+                'v' => $this->updated_at?->timestamp,
+            ], false);
         } catch (\Throwable) {
             return null;
         }

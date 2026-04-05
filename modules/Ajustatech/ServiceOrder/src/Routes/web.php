@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Ajustatech\ServiceOrder\Http\Controllers\EquipmentTypeImageController;
 use Ajustatech\ServiceOrder\Livewire\ShowServiceOrders;
 use Ajustatech\ServiceOrder\Livewire\ShowServiceOrderDocuments;
 use Ajustatech\ServiceOrder\Livewire\ShowServiceCatalog;
@@ -20,6 +21,9 @@ Route::middleware(['web'])->group(function () {
 
     Route::get('/os/tipos-equipamento/{id}/editar', EquipmentTypeManagement::class)
         ->name('service-order-equipment-types-edit');
+
+    Route::get('/os/tipos-equipamento/{id}/imagem', EquipmentTypeImageController::class)
+        ->name('service-order-equipment-types-image');
 
     Route::get('/os/nova', NewServiceOrderManagement::class)
         ->name('service-order-orders-create');

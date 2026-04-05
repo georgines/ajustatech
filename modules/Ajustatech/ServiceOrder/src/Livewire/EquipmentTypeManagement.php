@@ -2,6 +2,7 @@
 
 namespace Ajustatech\ServiceOrder\Livewire;
 
+use Ajustatech\Core\Traits\HandlesFileUploads;
 use Ajustatech\ServiceOrder\Database\Models\EquipmentType;
 use Ajustatech\ServiceOrder\Services\EquipmentTypeFormService;
 use Ajustatech\ServiceOrder\Services\EquipmentTypeImageStorageService;
@@ -16,6 +17,7 @@ use Livewire\Features\SupportFileUploads\WithFileUploads;
 #[Layout('core::layouts.app')]
 class EquipmentTypeManagement extends Component
 {
+    use HandlesFileUploads;
     use WithFileUploads;
 
     public string $title = 'Cadastro de Tipo de Equipamento';
@@ -28,6 +30,7 @@ class EquipmentTypeManagement extends Component
     public mixed $image = null;
     public bool $removeImage = false;
     public ?string $currentImageUrl = null;
+    public ?string $temporaryImageUrl = null;
     public string $imageAccept = '.jpg,.jpeg,.png,.webp';
 
     public array $fields = [];
@@ -176,15 +179,31 @@ class EquipmentTypeManagement extends Component
 
     public function updatedImage(): void
     {
-        if ($this->image) {
+        if (!$this->image) {
+            $this->temporaryImageUrl = null;
+            return;
+        }
+
+        try {
+            app(EquipmentTypeImageStorageService::class)->validate($this->image);
+            $this->temporaryImageUrl = $this->temporaryUploadedFileUrl($this->image);
             $this->removeImage = false;
+            $this->resetErrorBag('image');
+        } catch (ValidationException $exception) {
+            $this->temporaryImageUrl = null;
+            $this->setErrorBag($exception->validator->getMessageBag());
         }
     }
 
     public function updatedRemoveImage(bool $value): void
     {
         if ($value) {
+            if ($this->image) {
+                $this->deleteTemporaryUploadedFile($this->image);
+            }
+
             $this->image = null;
+            $this->temporaryImageUrl = null;
         }
     }
 
@@ -213,6 +232,9 @@ class EquipmentTypeManagement extends Component
             } else {
                 $service->create($payload, $this->image);
             }
+
+            $this->image = null;
+            $this->temporaryImageUrl = null;
         } catch (ValidationException $exception) {
             $this->setErrorBag($exception->validator->getMessageBag());
             return null;

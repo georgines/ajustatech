@@ -22,11 +22,33 @@
                 </div>
                 <div class="col-12 col-md-6">
                     <label class="form-label">Imagem do tipo de equipamento</label>
-                    <input class="form-control" type="file" wire:model="image" accept="{{ $imageAccept }}">
-                    <small class="text-muted">Formatos permitidos: {{ $imageAccept }}</small>
+                    <div
+                        x-data="{ uploading: false, progress: 0 }"
+                        x-on:livewire-upload-start="uploading = true"
+                        x-on:livewire-upload-finish="uploading = false"
+                        x-on:livewire-upload-cancel="uploading = false"
+                        x-on:livewire-upload-error="uploading = false"
+                        x-on:livewire-upload-progress="progress = $event.detail.progress"
+                    >
+                        <input class="form-control" type="file" wire:model="image" accept="{{ $imageAccept }}">
+                        <div class="mt-2" x-show="uploading">
+                            <div class="progress" role="progressbar" aria-label="Upload de imagem" aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" x-bind:style="'width: ' + progress + '%'"></div>
+                            </div>
+                            <div class="small text-muted mt-1">Enviando: <span x-text="progress"></span>%</div>
+                            <button class="btn btn-sm btn-outline-secondary mt-2" type="button" wire:click="$cancelUpload('image')">Cancelar upload</button>
+                        </div>
+                    </div>
+                    <small class="text-muted d-block mt-1">Formatos permitidos: {{ $imageAccept }}</small>
                     @error('image') <small class="text-danger">{{ $message }}</small> @enderror
                 </div>
-                @if ($currentImageUrl)
+                @if ($temporaryImageUrl)
+                    <div class="col-12 col-md-6">
+                        <label class="form-label d-block">Preview da nova imagem</label>
+                        <img src="{{ $temporaryImageUrl }}" alt="Preview da nova imagem do tipo de equipamento" class="rounded border mb-2" style="max-height: 140px;">
+                    </div>
+                @endif
+                @if ($currentImageUrl && !$temporaryImageUrl)
                     <div class="col-12 col-md-6">
                         <label class="form-label d-block">Imagem atual</label>
                         <img src="{{ $currentImageUrl }}" alt="Imagem do tipo de equipamento" class="rounded border mb-2" style="max-height: 140px;">
