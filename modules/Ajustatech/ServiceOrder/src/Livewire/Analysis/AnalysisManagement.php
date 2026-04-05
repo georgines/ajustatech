@@ -117,6 +117,12 @@ class AnalysisManagement extends Component
         $this->resequenceQuestions();
     }
 
+    public function openCreateQuestionModal(?int $afterIndex = null): void
+    {
+        $this->resetQuestionModalState();
+        $this->dispatch('analysis-question-create-open-modal');
+    }
+
     public function createQuestionFromModal(string $type): void
     {
         if (!in_array($type, ServiceOrderAnalysisQuestion::allowedTypes(), true)) {

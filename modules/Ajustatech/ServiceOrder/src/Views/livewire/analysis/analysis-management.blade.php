@@ -51,9 +51,6 @@
     <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">{{ trans('service-order::messages.analysis_questions') }}</h5>
-            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#analysisAddQuestionTypeModal">
-                {{ trans('service-order::messages.add_question') }}
-            </button>
         </div>
         <div class="card-body">
             @error('questions') <small class="text-danger d-block mb-3">{{ $message }}</small> @enderror
@@ -175,6 +172,12 @@
                         </div>
                     </div>
                 @endforeach
+            </div>
+
+            <div class="d-flex justify-content-end mt-3">
+                <button type="button" class="btn btn-sm btn-outline-primary" wire:click="openCreateQuestionModal({{ max(-1, count($questions) - 1) }})">
+                    {{ trans('service-order::messages.add_question') }}
+                </button>
             </div>
         </div>
     </div>
@@ -334,6 +337,11 @@
             Livewire.on('analysis-question-added', () => {
                 const instance = bootstrap.Modal.getOrCreateInstance(addQuestionModalEl);
                 instance.hide();
+            });
+
+            Livewire.on('analysis-question-create-open-modal', () => {
+                const instance = bootstrap.Modal.getOrCreateInstance(addQuestionModalEl);
+                instance.show();
             });
 
             Livewire.on('analysis-question-edit-open-modal', () => {
