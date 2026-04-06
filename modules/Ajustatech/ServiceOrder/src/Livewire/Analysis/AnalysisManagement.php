@@ -2,6 +2,9 @@
 
 namespace Ajustatech\ServiceOrder\Livewire\Analysis;
 
+use Ajustatech\ServiceOrder\Services\Analysis\AnalysisQuestionFormService;
+use Ajustatech\ServiceOrder\Services\Analysis\AnalysisQuestionWorkflowService;
+use Ajustatech\ServiceOrder\Services\Analysis\Contracts\AnalysisServiceInterface;
 use Ajustatech\ServiceOrder\Database\Models\Analysis\ServiceOrderAnalysisService;
 use Ajustatech\ServiceOrder\Database\Models\Analysis\ServiceOrderAnalysisQuestion;
 use Ajustatech\ServiceOrder\Database\Models\Procedure\ServiceOrderProcedure;
@@ -37,7 +40,7 @@ class AnalysisManagement extends Component
     {
         $this->availableProcedures = ServiceOrderAnalysisService::listProcedureOptions();
 
-        $this->questions = [$this->newQuestionRow(1)];
+        $this->questions = [$this->questionFormService()->newQuestionRow(1)];
         $this->resetNewQuestionDraft();
         $this->title = trans('service-order::messages.analysis_service_create_title');
 
@@ -45,7 +48,7 @@ class AnalysisManagement extends Component
             return;
         }
 
-        $analysis = ServiceOrderAnalysisService::findWithQuestionsOrFail($id);
+        $analysis = $this->analysisService()->findAnalysisService($id);
 
         $this->mode = 'edit';
         $this->analysisServiceId = $analysis->id;
@@ -57,36 +60,12 @@ class AnalysisManagement extends Component
         $mappedQuestions = $analysis->questions
             ->sortBy('sequence')
             ->values()
-            ->map(function ($question) {
-                $type = (string) $question->question_type;
-                $options = $this->normalizeOptions((array) ($question->options_json ?? []), $type);
-                $answerMap = $this->normalizeAnswerProcedureMap((array) ($question->answer_procedure_map_json ?? []), $type, $options);
-
-                return [
-                    'client_key' => (string) $question->id,
-                    'sequence' => (int) $question->sequence,
-                    'section_name' => (string) ($question->section_name ?? 'Geral'),
-                    'question_text' => (string) $question->question_text,
-                    'question_type' => $type,
-                    'is_required' => (bool) $question->is_required,
-                    'is_technical_description_required' => (bool) $question->is_technical_description_required,
-                    'is_image_required' => (bool) $question->is_image_required,
-                    'required_images_count' => (int) ($question->required_images_count ?? 1),
-                    'has_help' => (bool) ($question->has_help ?? false),
-                    'help_content' => (string) ($question->help_content ?? ''),
-                    'is_collapsed' => $this->toBool($question->is_collapsed ?? false),
-                    'is_subquestion' => $question->parent_question_id !== null,
-                    'parent_client_key' => (string) ($question->parent_question_id ?? ''),
-                    'condition_value' => (string) ($question->condition_value ?? ''),
-                    'options' => $options,
-                    'answer_procedure_map' => $answerMap,
-                ];
-            })
+            ->map(fn ($question) => $this->questionFormService()->fromPersistedQuestion($question))
             ->all();
 
-        $this->questions = empty($mappedQuestions) ? [$this->newQuestionRow(1)] : $mappedQuestions;
-        $this->resequenceQuestions();
-        $this->syncQuestionDependencies();
+        $this->questions = empty($mappedQuestions) ? [$this->questionFormService()->newQuestionRow(1)] : $mappedQuestions;
+        $this->questions = $this->questionWorkflowService()->resequenceQuestions($this->questions);
+        $this->questions = $this->questionWorkflowService()->syncQuestionDependencies($this->questions);
     }
 
     public function resetNewQuestionDraft(): void
@@ -117,106 +96,55 @@ class AnalysisManagement extends Component
         ];
     }
 
+    protected function questionFormService(): AnalysisQuestionFormService
+    {
+        return app(AnalysisQuestionFormService::class);
+    }
+
+    protected function questionWorkflowService(): AnalysisQuestionWorkflowService
+    {
+        return app(AnalysisQuestionWorkflowService::class);
+    }
+
+    protected function analysisService(): AnalysisServiceInterface
+    {
+        return app(AnalysisServiceInterface::class);
+    }
+
     public function addQuestion(): void
     {
-        $this->questions[] = $this->newQuestionRow(count($this->questions) + 1);
-        $this->resequenceQuestions();
+        $this->questions[] = $this->questionFormService()->newQuestionRow(count($this->questions) + 1);
+        $this->questions = $this->questionWorkflowService()->resequenceQuestions($this->questions);
     }
 
     public function openCreateQuestionModal(?int $afterIndex = null): void
     {
-        $this->resetQuestionModalState();
-        $this->dispatch('analysis-question-create-open-modal');
-    }
-
-    public function createQuestionFromModal(string $type): void
-    {
-        if (!in_array($type, ServiceOrderAnalysisQuestion::allowedTypes(), true)) {
-            return;
-        }
-
+        return $this->questionWorkflowService()->getMainQuestionNumber($this->questions, $index);
         $isImageRequired = (bool) ($this->newQuestionDraft['is_image_required'] ?? false);
         $requiredImagesCount = (int) ($this->newQuestionDraft['required_images_count'] ?? 1);
         $isSubquestion = (bool) ($this->newQuestionDraft['is_subquestion'] ?? false);
-        $parentIndex = $isSubquestion ? $this->getLastMainQuestionIndex() : null;
-        $conditionValue = trim((string) ($this->newQuestionDraft['condition_value'] ?? ''));
-        $triggerValues = collect($this->getNewSubquestionTriggerOptions())->pluck('value')->all();
-
-        if ($isSubquestion && ($parentIndex === null || empty($triggerValues))) {
-            $this->addError('newQuestionDraft.condition_value', trans('service-order::messages.analysis_question_condition_required'));
-            return;
+        $parentIndex = $isSubquestion ? $this->questionWorkflowService()->getLastMainQuestionIndex($this->questions) : null;
+        return $this->questionWorkflowService()->getSubquestionParentMainNumber($this->questions, $index);
         }
 
         if ($isSubquestion && ($conditionValue === '' || !in_array($conditionValue, $triggerValues, true))) {
             $this->addError('newQuestionDraft.condition_value', trans('service-order::messages.analysis_question_condition_invalid'));
-            return;
-        }
-
-        $newQuestion = $this->newQuestionRow(
-            count($this->questions) + 1,
-            $type,
-            [
-                'is_subquestion' => $isSubquestion,
-                'parent_client_key' => $isSubquestion
-                    ? (string) ($this->questions[$parentIndex]['client_key'] ?? '')
-                    : '',
-                'condition_value' => $isSubquestion ? $conditionValue : '',
-                'is_required' => (bool) ($this->newQuestionDraft['is_required'] ?? false),
-                'is_technical_description_required' => (bool) ($this->newQuestionDraft['is_technical_description_required'] ?? false),
-                'is_image_required' => $isImageRequired,
-                'required_images_count' => $isImageRequired ? max(1, min(5, $requiredImagesCount)) : 1,
-                'has_help' => (bool) ($this->newQuestionDraft['has_help'] ?? false),
+        return $this->questionWorkflowService()->getSubquestionNumberInParent($this->questions, $index);
             ]
         );
 
         if ($isSubquestion && $parentIndex !== null) {
-            $insertIndex = $this->getSubquestionInsertIndexForParent($parentIndex);
-            array_splice($this->questions, $insertIndex, 0, [$newQuestion]);
-        } else {
-            $this->questions[] = $newQuestion;
-        }
-
-        $this->resequenceQuestions();
-        $this->syncQuestionDependencies();
-        $this->resetQuestionModalState();
+        return $this->questionWorkflowService()->getSubquestionTriggerLabel($this->questions, $index);
         $this->dispatch('analysis-question-added');
     }
 
     public function removeQuestion(int $index): void
-    {
-        if (!isset($this->questions[$index])) {
-            return;
-        }
-
-        unset($this->questions[$index]);
-        $this->questions = array_values($this->questions);
-        $this->resequenceQuestions();
-        $this->syncQuestionDependencies();
-    }
-
+        return $this->questionWorkflowService()->getNewSubquestionTriggerOptions($this->questions);
     public function editQuestion(int $index): void
     {
         if (!isset($this->questions[$index])) {
             return;
-        }
-
-        $question = $this->questions[$index];
-
-        $this->editingQuestionIndex = $index;
-        $this->newQuestionDraft = [
-            'question_type' => (string) ($question['question_type'] ?? ServiceOrderAnalysisQuestion::TYPE_YES_NO),
-            'is_subquestion' => (bool) ($question['is_subquestion'] ?? false),
-            'condition_value' => (string) ($question['condition_value'] ?? ''),
-            'is_required' => (bool) ($question['is_required'] ?? false),
-            'is_technical_description_required' => (bool) ($question['is_technical_description_required'] ?? false),
-            'is_image_required' => (bool) ($question['is_image_required'] ?? false),
-            'required_images_count' => min(5, max(1, (int) ($question['required_images_count'] ?? 1))),
-            'has_help' => (bool) ($question['has_help'] ?? false),
-        ];
-
-        $this->dispatch('analysis-question-edit-open-modal');
-    }
-
+        return $this->questionWorkflowService()->getSubquestionTriggerOptionsForEdit($this->questions, $index);
     public function saveQuestionOptionsFromModal(): void
     {
         if ($this->editingQuestionIndex === null || !isset($this->questions[$this->editingQuestionIndex])) {
@@ -281,7 +209,7 @@ class AnalysisManagement extends Component
             $this->questions[$this->editingQuestionIndex]['answer_procedure_map'] = $normalizedMap;
         }
 
-        $this->syncQuestionDependencies();
+        $this->questions = $this->questionWorkflowService()->syncQuestionDependencies($this->questions);
         $this->dispatch('analysis-question-options-saved');
         $this->resetQuestionModalState();
     }
@@ -319,7 +247,7 @@ class AnalysisManagement extends Component
             return;
         }
 
-        $content = $this->sanitizeText((string) ($this->questionHelpDraft['content'] ?? ''), 2000);
+        $content = $this->questionFormService()->sanitizeText((string) ($this->questionHelpDraft['content'] ?? ''), 2000);
         $this->questions[$this->editingHelpQuestionIndex]['help_content'] = $content;
 
         $this->dispatch('analysis-question-help-saved');
@@ -332,31 +260,7 @@ class AnalysisManagement extends Component
             return;
         }
 
-        $mainStart = $this->resolveMainStartIndex($index);
-        if ($mainStart === null) {
-            return;
-        }
-
-        $mainIndices = $this->getMainQuestionIndexes();
-        $mainPosition = array_search($mainStart, $mainIndices, true);
-        if ($mainPosition === false || $mainPosition === 0) {
-            return;
-        }
-
-        $previousMainStart = $mainIndices[$mainPosition - 1];
-        $currentMainEnd = $this->getMainBlockEndIndex($mainStart);
-        if ($currentMainEnd === null) {
-            return;
-        }
-
-        $before = array_slice($this->questions, 0, $previousMainStart);
-        $previousBlock = array_slice($this->questions, $previousMainStart, $mainStart - $previousMainStart);
-        $currentBlock = array_slice($this->questions, $mainStart, $currentMainEnd - $mainStart + 1);
-        $after = array_slice($this->questions, $currentMainEnd + 1);
-
-        $this->questions = array_values(array_merge($before, $currentBlock, $previousBlock, $after));
-        $this->resequenceQuestions();
-        $this->syncQuestionDependencies();
+        $this->questions = $this->questionWorkflowService()->moveQuestionUp($this->questions, $index);
     }
 
     public function moveQuestionDown(int $index): void
@@ -365,32 +269,7 @@ class AnalysisManagement extends Component
             return;
         }
 
-        $mainStart = $this->resolveMainStartIndex($index);
-        if ($mainStart === null) {
-            return;
-        }
-
-        $mainIndices = $this->getMainQuestionIndexes();
-        $mainPosition = array_search($mainStart, $mainIndices, true);
-        if ($mainPosition === false || $mainPosition >= (count($mainIndices) - 1)) {
-            return;
-        }
-
-        $nextMainStart = $mainIndices[$mainPosition + 1];
-        $currentMainEnd = $this->getMainBlockEndIndex($mainStart);
-        $nextMainEnd = $this->getMainBlockEndIndex($nextMainStart);
-        if ($currentMainEnd === null || $nextMainEnd === null) {
-            return;
-        }
-
-        $before = array_slice($this->questions, 0, $mainStart);
-        $currentBlock = array_slice($this->questions, $mainStart, $currentMainEnd - $mainStart + 1);
-        $nextBlock = array_slice($this->questions, $nextMainStart, $nextMainEnd - $nextMainStart + 1);
-        $after = array_slice($this->questions, $nextMainEnd + 1);
-
-        $this->questions = array_values(array_merge($before, $nextBlock, $currentBlock, $after));
-        $this->resequenceQuestions();
-        $this->syncQuestionDependencies();
+        $this->questions = $this->questionWorkflowService()->moveQuestionDown($this->questions, $index);
     }
 
     public function toggleQuestionCollapse(string $clientKey): void
@@ -430,28 +309,12 @@ class AnalysisManagement extends Component
 
     public function canMoveQuestionUp(int $index): bool
     {
-        $mainStart = $this->resolveMainStartIndex($index);
-        if ($mainStart === null || $mainStart !== $index) {
-            return false;
-        }
-
-        $mainIndices = $this->getMainQuestionIndexes();
-        $mainPosition = array_search($mainStart, $mainIndices, true);
-
-        return $mainPosition !== false && $mainPosition > 0;
+        return $this->questionWorkflowService()->canMoveQuestionUp($this->questions, $index);
     }
 
     public function canMoveQuestionDown(int $index): bool
     {
-        $mainStart = $this->resolveMainStartIndex($index);
-        if ($mainStart === null || $mainStart !== $index) {
-            return false;
-        }
-
-        $mainIndices = $this->getMainQuestionIndexes();
-        $mainPosition = array_search($mainStart, $mainIndices, true);
-
-        return $mainPosition !== false && $mainPosition < (count($mainIndices) - 1);
+        return $this->questionWorkflowService()->canMoveQuestionDown($this->questions, $index);
     }
 
     public function addOption(int $index): void
@@ -488,70 +351,59 @@ class AnalysisManagement extends Component
 
     public function save()
     {
-        $this->sanitizeInputs();
-        $this->resequenceQuestions();
-        $this->syncQuestionDependencies();
+        $sanitized = $this->questionFormService()->sanitizeAnalysisForm(
+            $this->name,
+            $this->description,
+            $this->value,
+            $this->questions,
+        );
 
-        $this->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string|max:1000',
-            'value' => 'required|numeric|min:0|max:999999.99',
-            'questions' => 'required|array|min:1',
-        ], [], [
-            'name' => trans('service-order::messages.analysis_service_name'),
-            'description' => trans('service-order::messages.analysis_service_description'),
-            'value' => trans('service-order::messages.analysis_service_value'),
-            'questions' => trans('service-order::messages.analysis_questions'),
-        ]);
-
-        if (!$this->validateQuestionsStructure()) {
-            return null;
+        $this->name = $sanitized['name'];
+        $this->description = $sanitized['description'];
+        $this->value = $sanitized['value'];
+                $this->resetQuestionModalState();
+                $this->dispatch('analysis-question-create-open-modal');
         }
 
         $payload = [
             'name' => $this->name,
-            'description' => $this->nullableValue($this->description),
+                if (!isset($this->questions[$index])) {
+                    return;
+                }
+
+                unset($this->questions[$index]);
+                $this->questions = array_values($this->questions);
+                $this->questions = $this->questionWorkflowService()->resequenceQuestions($this->questions);
+                $this->questions = $this->questionWorkflowService()->syncQuestionDependencies($this->questions);
+            }
+
+            'description' => $this->questionFormService()->nullableValue($this->description),
             'value' => round((float) $this->value, 2),
         ];
 
-        $questionPayload = collect($this->questions)
-            ->map(function (array $question) {
-                $type = (string) $question['question_type'];
-                $options = array_values($question['options'] ?? []);
-                $answerMap = $this->buildAnswerProcedureMap($type, $options, (array) ($question['answer_procedure_map'] ?? []));
+        $questionPayload = $this->questionFormService()->buildQuestionPayload($this->questions);
 
-                return [
-                    'client_key' => $question['client_key'],
-                    'sequence' => (int) $question['sequence'],
-                    'section_name' => $question['section_name'],
-                    'question_text' => $question['question_text'],
-                    'question_type' => $type,
-                    'is_required' => (bool) $question['is_required'],
-                    'technical_description' => null,
-                    'is_technical_description_required' => (bool) $question['is_technical_description_required'],
-                    'images_json' => null,
-                    'is_image_required' => (bool) $question['is_image_required'],
-                    'required_images_count' => (bool) $question['is_image_required']
-                        ? (int) $question['required_images_count']
-                        : null,
+                $question = $this->questions[$index];
+
+                $this->editingQuestionIndex = $index;
+                $this->newQuestionDraft = [
+                    'question_type' => (string) ($question['question_type'] ?? ServiceOrderAnalysisQuestion::TYPE_YES_NO),
+                    'is_subquestion' => (bool) ($question['is_subquestion'] ?? false),
+                    'condition_value' => (string) ($question['condition_value'] ?? ''),
+                    'is_required' => (bool) ($question['is_required'] ?? false),
+                    'is_technical_description_required' => (bool) ($question['is_technical_description_required'] ?? false),
+                    'is_image_required' => (bool) ($question['is_image_required'] ?? false),
+                    'required_images_count' => min(5, max(1, (int) ($question['required_images_count'] ?? 1))),
                     'has_help' => (bool) ($question['has_help'] ?? false),
-                    'help_content' => (bool) ($question['has_help'] ?? false)
-                        ? $this->nullableValue($question['help_content'] ?? '')
-                        : null,
-                    'is_collapsed' => $this->toBool($question['is_collapsed'] ?? false),
-                    'options_json' => $type === ServiceOrderAnalysisQuestion::TYPE_SELECT ? $options : null,
-                    'parent_client_key' => $this->nullableValue($question['parent_client_key'] ?? ''),
-                    'condition_value' => $this->nullableValue($question['condition_value'] ?? ''),
-                    'answer_procedure_map_json' => $answerMap,
                 ];
-            })
-            ->all();
+
+                $this->dispatch('analysis-question-edit-open-modal');
+            }
 
         if ($this->mode === 'edit' && $this->analysisServiceId) {
-            $service = ServiceOrderAnalysisService::findWithQuestionsOrFail($this->analysisServiceId);
-            $service->updateWithQuestions($payload, $questionPayload);
+            $this->analysisService()->updateAnalysisService($this->analysisServiceId, $payload, $questionPayload);
         } else {
-            ServiceOrderAnalysisService::createWithQuestions($payload, $questionPayload);
+            $this->analysisService()->createAnalysisService($payload, $questionPayload);
         }
 
         return redirect()->route('service-order-analyses-show');
@@ -679,7 +531,7 @@ class AnalysisManagement extends Component
             $this->questions[$index]['is_required'] = (bool) ($question['is_required'] ?? false);
             $this->questions[$index]['is_technical_description_required'] = (bool) ($question['is_technical_description_required'] ?? false);
             $this->questions[$index]['is_image_required'] = (bool) ($question['is_image_required'] ?? false);
-            $this->questions[$index]['required_images_count'] = min(5, max(1, (int) ($question['required_images_count'] ?? 1)));
+            $this->questions[$index]['required_images_count'] = (int) ($question['required_images_count'] ?? 1);
             $this->questions[$index]['has_help'] = (bool) ($question['has_help'] ?? false);
             $this->questions[$index]['help_content'] = $this->sanitizeText((string) ($question['help_content'] ?? ''), 2000);
             $this->questions[$index]['is_subquestion'] = (bool) ($question['is_subquestion'] ?? false);
@@ -781,6 +633,11 @@ class AnalysisManagement extends Component
 
             if ($isSub && $parentIndex !== null) {
                 $this->questions[$index]['parent_client_key'] = (string) ($this->questions[$parentIndex]['client_key'] ?? '');
+                continue;
+            }
+
+            if ($isSub && $index === 0) {
+                $this->questions[$index]['parent_client_key'] = '';
                 continue;
             }
 
