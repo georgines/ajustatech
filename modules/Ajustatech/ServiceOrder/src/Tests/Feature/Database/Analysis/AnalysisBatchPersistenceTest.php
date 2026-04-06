@@ -5,6 +5,7 @@ namespace Ajustatech\ServiceOrder\Tests\Feature\Database\Analysis;
 use Ajustatech\ServiceOrder\Database\Factories\Analysis\ServiceOrderAnalysisServiceFactory;
 use Ajustatech\ServiceOrder\Database\Models\Analysis\ServiceOrderAnalysisService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -232,5 +233,214 @@ class AnalysisBatchPersistenceTest extends TestCase
         $this->assertDatabaseMissing('service_order_analysis_questions', [
             'analysis_service_id' => $toDelete->id,
         ]);
+    }
+
+    public function test_create_many_with_questions_uses_fixed_number_of_queries(): void
+    {
+        $baseServices = ServiceOrderAnalysisServiceFactory::new()->count(3)->make()->values();
+
+        $items = [
+            [
+                'service' => array_merge($baseServices[0]->toArray(), [
+                    'name' => 'Analise Query A',
+                    'value' => 80.00,
+                ]),
+                'questions' => [
+                    [
+                        'client_key' => 'qa1',
+                        'sequence' => 1,
+                        'section_name' => 'Hardware',
+                        'question_text' => 'Pergunta QA1',
+                        'question_type' => 'yes_no',
+                        'is_required' => true,
+                        'answer_procedure_map_json' => [
+                            'yes' => ['procedure_id' => ''],
+                            'no' => ['procedure_id' => ''],
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'service' => array_merge($baseServices[1]->toArray(), [
+                    'name' => 'Analise Query B',
+                    'value' => 90.00,
+                ]),
+                'questions' => [
+                    [
+                        'client_key' => 'qb1',
+                        'sequence' => 1,
+                        'section_name' => 'Sistema',
+                        'question_text' => 'Pergunta QB1',
+                        'question_type' => 'select',
+                        'is_required' => true,
+                        'options_json' => [
+                            ['key' => 'qb-opt-1', 'label' => 'Opcao 1', 'procedure_id' => ''],
+                            ['key' => 'qb-opt-2', 'label' => 'Opcao 2', 'procedure_id' => ''],
+                        ],
+                        'answer_procedure_map_json' => [
+                            'qb-opt-1' => ['procedure_id' => ''],
+                            'qb-opt-2' => ['procedure_id' => ''],
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'service' => array_merge($baseServices[2]->toArray(), [
+                    'name' => 'Analise Query C',
+                    'value' => 100.00,
+                ]),
+                'questions' => [
+                    [
+                        'client_key' => 'qc1',
+                        'sequence' => 1,
+                        'section_name' => 'Rede',
+                        'question_text' => 'Pergunta QC1',
+                        'question_type' => 'yes_no',
+                        'is_required' => true,
+                        'answer_procedure_map_json' => [
+                            'yes' => ['procedure_id' => ''],
+                            'no' => ['procedure_id' => ''],
+                        ],
+                    ],
+                    [
+                        'client_key' => 'qc2',
+                        'parent_client_key' => 'qc1',
+                        'condition_value' => 'no',
+                        'sequence' => 2,
+                        'section_name' => 'Rede',
+                        'question_text' => 'Subpergunta QC2',
+                        'question_type' => 'yes_no',
+                        'is_required' => true,
+                        'answer_procedure_map_json' => [
+                            'yes' => ['procedure_id' => ''],
+                            'no' => ['procedure_id' => ''],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $queries = $this->countDmlQueries(fn () => ServiceOrderAnalysisService::createManyWithQuestions($items));
+
+        $this->assertCount(4, $queries);
+        $this->assertSame('insert', $queries[0]);
+        $this->assertSame('insert', $queries[1]);
+        $this->assertSame('select', $queries[2]);
+        $this->assertSame('select', $queries[3]);
+    }
+
+    public function test_find_with_questions_or_fail_uses_two_queries_with_eager_loading(): void
+    {
+        $service = ServiceOrderAnalysisService::createWithQuestions([
+            'id' => (string) Str::uuid(),
+            'name' => 'Analise Find',
+            'description' => 'x',
+            'value' => 75.00,
+        ], [
+            [
+                'client_key' => 'f1',
+                'sequence' => 1,
+                'section_name' => 'Hardware',
+                'question_text' => 'Pergunta F1',
+                'question_type' => 'yes_no',
+                'is_required' => true,
+                'answer_procedure_map_json' => [
+                    'yes' => ['procedure_id' => ''],
+                    'no' => ['procedure_id' => ''],
+                ],
+            ],
+            [
+                'client_key' => 'f2',
+                'sequence' => 2,
+                'section_name' => 'Hardware',
+                'question_text' => 'Pergunta F2',
+                'question_type' => 'yes_no',
+                'is_required' => true,
+                'answer_procedure_map_json' => [
+                    'yes' => ['procedure_id' => ''],
+                    'no' => ['procedure_id' => ''],
+                ],
+            ],
+        ]);
+
+        $queries = $this->countDmlQueries(fn () => ServiceOrderAnalysisService::findWithQuestionsOrFail($service->id));
+
+        $this->assertCount(2, $queries);
+        $this->assertSame(['select', 'select'], $queries);
+    }
+
+    public function test_list_for_index_uses_single_query_with_questions_count(): void
+    {
+        ServiceOrderAnalysisService::createManyWithQuestions([
+            [
+                'service' => [
+                    'id' => (string) Str::uuid(),
+                    'name' => 'Analise Count 1',
+                    'description' => 'x',
+                    'value' => 70.00,
+                ],
+                'questions' => [
+                    [
+                        'client_key' => 'lc1',
+                        'sequence' => 1,
+                        'section_name' => 'Secao',
+                        'question_text' => 'Pergunta LC1',
+                        'question_type' => 'yes_no',
+                        'is_required' => true,
+                        'answer_procedure_map_json' => [
+                            'yes' => ['procedure_id' => ''],
+                            'no' => ['procedure_id' => ''],
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'service' => [
+                    'id' => (string) Str::uuid(),
+                    'name' => 'Analise Count 2',
+                    'description' => 'y',
+                    'value' => 90.00,
+                ],
+                'questions' => [
+                    [
+                        'client_key' => 'lc2',
+                        'sequence' => 1,
+                        'section_name' => 'Secao',
+                        'question_text' => 'Pergunta LC2',
+                        'question_type' => 'yes_no',
+                        'is_required' => true,
+                        'answer_procedure_map_json' => [
+                            'yes' => ['procedure_id' => ''],
+                            'no' => ['procedure_id' => ''],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $queries = $this->countDmlQueries(fn () => ServiceOrderAnalysisService::listForIndex());
+
+        $this->assertCount(1, $queries);
+        $this->assertSame(['select'], $queries);
+    }
+
+    private function countDmlQueries(callable $callback): array
+    {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        try {
+            $callback();
+        } finally {
+            $queryLog = DB::getQueryLog();
+            DB::disableQueryLog();
+            DB::flushQueryLog();
+        }
+
+        return collect($queryLog)
+            ->map(fn (array $entry) => strtolower((string) preg_replace('/\s+.*/', '', ltrim((string) ($entry['query'] ?? '')))))
+            ->filter(fn (string $operation) => in_array($operation, ['select', 'insert', 'update', 'delete'], true))
+            ->values()
+            ->all();
     }
 }

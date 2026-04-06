@@ -4,15 +4,22 @@ namespace Ajustatech\ServiceOrder\Livewire\Analysis;
 
 use Ajustatech\ServiceOrder\Database\Models\Analysis\ServiceOrderAnalysisService;
 use Ajustatech\ServiceOrder\Database\Models\Analysis\ServiceOrderAnalysisQuestion;
+use Ajustatech\ServiceOrder\Database\Models\Procedure\ServiceOrderProcedure;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 #[Layout('core::layouts.app')]
 class AnalysisManagement extends Component
 {
+    #[Locked]
     public string $title = '';
+
+    #[Locked]
     public string $mode = 'create';
+
+    #[Locked]
     public ?string $analysisServiceId = null;
 
     public string $name = '';
@@ -552,6 +559,8 @@ class AnalysisManagement extends Component
 
     private function validateQuestionsStructure(): bool
     {
+        $allowedProcedureIds = $this->getAllowedProcedureIds();
+
         foreach ($this->questions as $index => $question) {
             $basePath = "questions.{$index}";
             $questionType = $question['question_type'] ?? '';
@@ -584,6 +593,30 @@ class AnalysisManagement extends Component
 
             if ($questionType === ServiceOrderAnalysisQuestion::TYPE_SELECT && count($options) > 8) {
                 $this->addError("{$basePath}.options", trans('service-order::messages.analysis_question_options_max'));
+            }
+
+            if ($questionType === ServiceOrderAnalysisQuestion::TYPE_YES_NO) {
+                foreach (['yes', 'no'] as $answerKey) {
+                    $procedureId = trim((string) data_get($question, "answer_procedure_map.{$answerKey}.procedure_id", ''));
+                    if ($procedureId !== '' && !isset($allowedProcedureIds[$procedureId])) {
+                        $this->addError("{$basePath}.answer_procedure_map", trans('validation.exists', [
+                            'attribute' => trans('service-order::messages.analysis_answer_procedures'),
+                        ]));
+                        break;
+                    }
+                }
+            }
+
+            if ($questionType === ServiceOrderAnalysisQuestion::TYPE_SELECT) {
+                foreach ((array) ($question['options'] ?? []) as $option) {
+                    $procedureId = trim((string) ($option['procedure_id'] ?? ''));
+                    if ($procedureId !== '' && !isset($allowedProcedureIds[$procedureId])) {
+                        $this->addError("{$basePath}.answer_procedure_map", trans('validation.exists', [
+                            'attribute' => trans('service-order::messages.analysis_answer_procedures'),
+                        ]));
+                        break;
+                    }
+                }
             }
 
             if ($question['is_image_required'] ?? false) {
@@ -1075,6 +1108,14 @@ class AnalysisManagement extends Component
                 'no' => ['procedure_id' => ''],
             ],
         ];
+    }
+
+    private function getAllowedProcedureIds(): array
+    {
+        return ServiceOrderProcedure::query()
+            ->pluck('id')
+            ->mapWithKeys(fn ($id) => [(string) $id => true])
+            ->all();
     }
 
     public function render()
