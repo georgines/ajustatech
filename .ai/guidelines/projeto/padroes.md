@@ -104,19 +104,23 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
   - `modules/Ajustatech/Core/src/Rules`
 - Quando nao existir regra pronta, criar no Core e reutilizar no modulo que precisar.
 - Toda feature nova deve aplicar sanitizacao + validacao backend e restricoes de frontend quando houver input.
+- Toda feature nova tambem deve passar pelo gate obrigatorio de verificacao antes de ser considerada pronta.
 - Fonte de verdade:
   - `/.ai/guidelines/projeto/validacoes-core-reutilizaveis.md`.
   - `/.ai/guidelines/projeto/validacoes-sanitizacao-seguranca.md`.
+  - `/.ai/guidelines/projeto/verificacao-obrigatoria-codigo-novo.md`.
 
 ## Convencoes de testes (obrigatorio)
 - Fluxo TDD para feature: RED -> GREEN -> REFACTOR.
 - Antes de implementar, criar teste de **Feature** e comprovar falha inicial.
 - Implementar somente depois da falha validada.
 - Concluir apenas com teste de Feature passando.
+- Toda implementacao nova deve ter revisao minima de testes validos, invalidos, seguranca e performance quando aplicavel.
 - Apos executar testes, rodar obrigatoriamente `php artisan dev:reinstall` para reconstruir e preencher o banco local.
 - Fonte de verdade para esse fluxo:
   - `/.ai/guidelines/projeto/testes-feature-tdd.md`.
   - `/.ai/guidelines/projeto/pos-testes-dev-reinstall.md`.
+  - `/.ai/guidelines/projeto/verificacao-obrigatoria-codigo-novo.md`.
 - Factories + Seeds + Testes:
   - `/.ai/guidelines/projeto/factories-para-seeds-e-testes.md`.
 
@@ -133,6 +137,7 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
 - Sempre executar testes de requisicoes/performance dos fluxos principais (exibir, carregar, editar e excluir), registrando a contagem de requests/queries e validando reducao de desperdicio.
 - Fonte de verdade:
   - `/.ai/guidelines/projeto/otimizacao-solicitacoes.md`.
+  - `/.ai/guidelines/projeto/verificacao-obrigatoria-codigo-novo.md`.
 
 ## Referencias Vuexy (somente referencia)
 - Use `templete/Vuexy/resources` para copiar padrao visual e blocos Blade/SCSS/JS.
