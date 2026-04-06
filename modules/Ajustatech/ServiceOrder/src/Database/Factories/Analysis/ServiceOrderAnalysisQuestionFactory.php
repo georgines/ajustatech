@@ -5,6 +5,7 @@ namespace Ajustatech\ServiceOrder\Database\Factories\Analysis;
 use Ajustatech\ServiceOrder\Database\Models\Analysis\ServiceOrderAnalysisQuestion;
 use Ajustatech\ServiceOrder\Database\Models\Analysis\ServiceOrderAnalysisService;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 class ServiceOrderAnalysisQuestionFactory extends Factory
 {
@@ -13,7 +14,7 @@ class ServiceOrderAnalysisQuestionFactory extends Factory
     public function definition(): array
     {
         return [
-            'id' => $this->faker->uuid(),
+            'id' => (string) Str::uuid(),
             'analysis_service_id' => ServiceOrderAnalysisService::factory(),
             'parent_question_id' => null,
             'sequence' => 1,
@@ -33,5 +34,35 @@ class ServiceOrderAnalysisQuestionFactory extends Factory
                 'no' => ['procedure_id' => ''],
             ],
         ];
+    }
+
+    public function yesNo(int $sequence = 1): self
+    {
+        return $this->state(fn () => [
+            'sequence' => $sequence,
+            'question_type' => ServiceOrderAnalysisQuestion::TYPE_YES_NO,
+            'options_json' => null,
+            'condition_value' => null,
+            'answer_procedure_map_json' => [
+                'yes' => ['procedure_id' => ''],
+                'no' => ['procedure_id' => ''],
+            ],
+        ]);
+    }
+
+    public function select(int $sequence = 1): self
+    {
+        return $this->state(fn () => [
+            'sequence' => $sequence,
+            'question_type' => ServiceOrderAnalysisQuestion::TYPE_SELECT,
+            'options_json' => [
+                ['key' => 'opt-1', 'label' => 'Opcao 1', 'procedure_id' => ''],
+                ['key' => 'opt-2', 'label' => 'Opcao 2', 'procedure_id' => ''],
+            ],
+            'answer_procedure_map_json' => [
+                'opt-1' => ['procedure_id' => ''],
+                'opt-2' => ['procedure_id' => ''],
+            ],
+        ]);
     }
 }

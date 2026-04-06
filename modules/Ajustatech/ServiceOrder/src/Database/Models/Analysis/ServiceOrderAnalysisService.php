@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ServiceOrderAnalysisService extends Model
 {
@@ -87,6 +88,52 @@ class ServiceOrderAnalysisService extends Model
             ServiceOrderAnalysisQuestion::syncForService($service, $questions);
 
             return $service;
+        });
+    }
+
+    public static function createManyWithQuestions(array $items): Collection
+    {
+        if (empty($items)) {
+            return collect();
+        }
+
+        return DB::transaction(function () use ($items) {
+            $now = now();
+            $serviceRows = [];
+            $questionSyncPayload = [];
+            $serviceIds = [];
+
+            foreach ($items as $index => $item) {
+                $serviceData = (array) ($item['service'] ?? []);
+                $serviceId = (string) ($serviceData['id'] ?? Str::uuid());
+
+                $serviceRows[] = [
+                    'id' => $serviceId,
+                    'name' => (string) ($serviceData['name'] ?? ''),
+                    'description' => $serviceData['description'] ?? null,
+                    'value' => (float) ($serviceData['value'] ?? 0),
+                    'progress_percentage' => (int) ($serviceData['progress_percentage'] ?? 0),
+                    'last_answered_question_sequence' => $serviceData['last_answered_question_sequence'] ?? null,
+                    'is_completed' => (bool) ($serviceData['is_completed'] ?? false),
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+
+                $questionSyncPayload[] = [
+                    'analysis_service_id' => $serviceId,
+                    'questions' => (array) ($item['questions'] ?? []),
+                ];
+
+                $serviceIds[$index] = $serviceId;
+            }
+
+            static::query()->insert($serviceRows);
+            ServiceOrderAnalysisQuestion::syncManyForServices($questionSyncPayload);
+
+            return static::query()
+                ->with('questions')
+                ->whereIn('id', array_values($serviceIds))
+                ->get();
         });
     }
 

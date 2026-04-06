@@ -55,37 +55,48 @@
         <div class="card-body">
             @error('questions') <small class="text-danger d-block mb-3">{{ $message }}</small> @enderror
 
-            <div class="d-flex flex-column gap-3">
+            <div class="accordion" id="analysisQuestionsAccordion">
                 @foreach ($questions as $index => $question)
-                    <div class="border rounded p-3">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="d-flex align-items-center gap-2">
-                                <strong>
+                    @php
+                        $headingId = "headingQuestion{$index}";
+                        $collapseId = "collapseQuestion{$index}";
+                    @endphp
+                    <div class="card accordion-item {{ $index === 0 ? 'active' : '' }}">
+                        <h2 class="accordion-header d-flex align-items-start align-items-md-center flex-column flex-md-row" id="{{ $headingId }}">
+                            <button type="button"
+                                class="accordion-button {{ $index === 0 ? '' : 'collapsed' }}"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#{{ $collapseId }}"
+                                aria-expanded="{{ $index === 0 ? 'true' : 'false' }}"
+                                aria-controls="{{ $collapseId }}">
+                                <span class="d-flex align-items-center gap-2 flex-wrap">
+                                    <strong>
+                                        @if ($question['is_subquestion'] ?? false)
+                                            {{ trans('service-order::messages.analysis_subquestion_title', ['sub' => $this->getSubquestionNumberInParent($index), 'question' => $this->getSubquestionParentMainNumber($index)]) }}
+                                        @else
+                                            {{ trans('service-order::messages.question') }} #{{ $this->getMainQuestionNumber($index) }}
+                                        @endif
+                                    </strong>
+                                    <span class="badge bg-label-primary text-uppercase">{{ $question['question_type'] === 'yes_no' ? trans('service-order::messages.analysis_type_yes_no') : trans('service-order::messages.analysis_type_select') }}</span>
                                     @if ($question['is_subquestion'] ?? false)
-                                        {{ trans('service-order::messages.analysis_subquestion_title', ['sub' => $this->getSubquestionNumberInParent($index), 'question' => $this->getSubquestionParentMainNumber($index)]) }}
-                                    @else
-                                        {{ trans('service-order::messages.question') }} #{{ $this->getMainQuestionNumber($index) }}
+                                        @php $triggerLabel = $this->getSubquestionTriggerLabel($index); @endphp
+                                        @if ($triggerLabel !== '')
+                                            <span class="badge bg-label-secondary">{{ trans('service-order::messages.analysis_subquestion_when') }}: {{ $triggerLabel }}</span>
+                                        @endif
                                     @endif
-                                </strong>
-                                <span class="badge bg-label-primary text-uppercase">{{ $question['question_type'] === 'yes_no' ? trans('service-order::messages.analysis_type_yes_no') : trans('service-order::messages.analysis_type_select') }}</span>
-                                @if ($question['is_subquestion'] ?? false)
-                                    @php $triggerLabel = $this->getSubquestionTriggerLabel($index); @endphp
-                                    @if ($triggerLabel !== '')
-                                        <span class="badge bg-label-secondary">{{ trans('service-order::messages.analysis_subquestion_when') }}: {{ $triggerLabel }}</span>
+                                    @if ($question['is_required'] ?? false)
+                                        <span class="badge bg-label-secondary">{{ trans('service-order::messages.analysis_question_required') }}</span>
                                     @endif
-                                @endif
-                                @if ($question['is_required'] ?? false)
-                                    <span class="badge bg-label-secondary">{{ trans('service-order::messages.analysis_question_required') }}</span>
-                                @endif
-                                @if ($question['is_technical_description_required'] ?? false)
-                                    <span class="badge bg-label-secondary">{{ trans('service-order::messages.analysis_technical_description_required') }}</span>
-                                @endif
-                                @if ($question['is_image_required'] ?? false)
-                                    <span class="badge bg-label-secondary">{{ trans('service-order::messages.analysis_images_required') }}</span>
-                                    <span class="badge bg-label-secondary">{{ (int) ($question['required_images_count'] ?? 1) }}x</span>
-                                @endif
-                            </div>
-                            <div class="d-flex align-items-center gap-1">
+                                    @if ($question['is_technical_description_required'] ?? false)
+                                        <span class="badge bg-label-secondary">{{ trans('service-order::messages.analysis_technical_description_required') }}</span>
+                                    @endif
+                                    @if ($question['is_image_required'] ?? false)
+                                        <span class="badge bg-label-secondary">{{ trans('service-order::messages.analysis_images_required') }}</span>
+                                        <span class="badge bg-label-secondary">{{ (int) ($question['required_images_count'] ?? 1) }}x</span>
+                                    @endif
+                                </span>
+                            </button>
+                            <div class="d-none d-md-flex align-items-center gap-1 ms-2 me-3">
                                 @if ($this->canMoveQuestionUp($index))
                                     <button type="button" class="btn btn-sm btn-icon" wire:click="moveQuestionUp({{ $index }})" title="{{ trans('service-order::messages.move_up') }}" aria-label="{{ trans('service-order::messages.move_up') }}">
                                         <i class="text-primary ti ti-arrow-up"></i>
@@ -108,79 +119,106 @@
                                     <i class="text-primary ti ti-trash"></i>
                                 </button>
                             </div>
-                        </div>
-
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label class="form-label">{{ trans('service-order::messages.analysis_question_text') }}</label>
-                                <input class="form-control"
-                                    type="text"
-                                    maxlength="500"
-                                    data-question-text-input="{{ $index }}"
-                                    wire:model.blur="questions.{{ $index }}.question_text"
-                                    placeholder="{{ trans('service-order::messages.analysis_question_text_placeholder') }}">
-                                @error('questions.'.$index.'.question_text') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
+                            <div class="d-flex d-md-none align-items-center justify-content-end gap-1 w-100 mt-2 px-3 pb-2">
+                                @if ($this->canMoveQuestionUp($index))
+                                    <button type="button" class="btn btn-sm btn-icon" wire:click="moveQuestionUp({{ $index }})" title="{{ trans('service-order::messages.move_up') }}" aria-label="{{ trans('service-order::messages.move_up') }}">
+                                        <i class="text-primary ti ti-arrow-up"></i>
+                                    </button>
+                                @endif
+                                @if ($this->canMoveQuestionDown($index))
+                                    <button type="button" class="btn btn-sm btn-icon" wire:click="moveQuestionDown({{ $index }})" title="{{ trans('service-order::messages.move_down') }}" aria-label="{{ trans('service-order::messages.move_down') }}">
+                                        <i class="text-primary ti ti-arrow-down"></i>
+                                    </button>
+                                @endif
+                                @if ($question['has_help'] ?? false)
+                                    <button type="button" class="btn btn-sm btn-icon" wire:click="openQuestionHelpModal({{ $index }})" title="{{ trans('service-order::messages.analysis_question_help_button') }}" aria-label="{{ trans('service-order::messages.analysis_question_help_button') }}">
+                                        <i class="text-primary ti ti-help"></i>
+                                    </button>
+                                @endif
+                                <button type="button" class="btn btn-sm btn-icon" wire:click="editQuestion({{ $index }})" title="{{ trans('service-order::messages.edit') }}" aria-label="{{ trans('service-order::messages.edit') }}">
+                                    <i class="text-primary ti ti-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-icon" wire:click="removeQuestion({{ $index }})" title="{{ trans('service-order::messages.delete') }}" aria-label="{{ trans('service-order::messages.delete') }}">
+                                    <i class="text-primary ti ti-trash"></i>
+                                </button>
                             </div>
+                        </h2>
 
-                            @if (($question['question_type'] ?? '') === 'yes_no')
-                                <div class="col-12">
-                                    <label class="form-label">{{ trans('service-order::messages.analysis_answer_procedures') }}</label>
-                                    <div class="row g-2">
-                                        <div class="col-12 col-md-6">
-                                            <label class="form-label small">{{ trans('service-order::messages.confirm_yes') }}</label>
-                                            <select class="form-select" wire:model.live="questions.{{ $index }}.answer_procedure_map.yes.procedure_id">
-                                                <option value="">{{ trans('service-order::messages.analysis_no_procedure') }}</option>
-                                                @foreach ($availableProcedures as $procedure)
-                                                    <option value="{{ $procedure['id'] }}">{{ $procedure['name'] }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div class="col-12 col-md-6">
-                                            <label class="form-label small">{{ trans('service-order::messages.confirm_no') }}</label>
-                                            <select class="form-select" wire:model.live="questions.{{ $index }}.answer_procedure_map.no.procedure_id">
-                                                <option value="">{{ trans('service-order::messages.analysis_no_procedure') }}</option>
-                                                @foreach ($availableProcedures as $procedure)
-                                                    <option value="{{ $procedure['id'] }}">{{ $procedure['name'] }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
+                        <div id="{{ $collapseId }}" class="accordion-collapse collapse {{ $index === 0 ? 'show' : '' }}" aria-labelledby="{{ $headingId }}" data-bs-parent="#analysisQuestionsAccordion">
+                            <div class="accordion-body">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label class="form-label">{{ trans('service-order::messages.analysis_question_text') }}</label>
+                                        <input class="form-control"
+                                            type="text"
+                                            maxlength="500"
+                                            data-question-text-input="{{ $index }}"
+                                            wire:model.blur="questions.{{ $index }}.question_text"
+                                            placeholder="{{ trans('service-order::messages.analysis_question_text_placeholder') }}">
+                                        @error('questions.'.$index.'.question_text') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                                     </div>
-                                </div>
-                            @else
-                                <div class="col-12">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <label class="form-label mb-0">{{ trans('service-order::messages.analysis_question_options') }}</label>
-                                        <button type="button" class="btn btn-sm btn-outline-primary" wire:click="addOption({{ $index }})" @disabled(count($question['options'] ?? []) >= 8)>
-                                            {{ trans('service-order::messages.add_option') }}
-                                        </button>
-                                    </div>
-                                    @foreach (($question['options'] ?? []) as $optionIndex => $option)
-                                        <div class="row g-2 mb-2">
-                                            <div class="col-12 col-md-6">
-                                                <input class="form-control"
-                                                    type="text"
-                                                    maxlength="120"
-                                                    wire:model.blur="questions.{{ $index }}.options.{{ $optionIndex }}.label"
-                                                    placeholder="{{ trans('service-order::messages.analysis_option_placeholder') }}">
+
+                                    @if (($question['question_type'] ?? '') === 'yes_no')
+                                        <div class="col-12">
+                                            <label class="form-label">{{ trans('service-order::messages.analysis_answer_procedures') }}</label>
+                                            <div class="row g-2">
+                                                <div class="col-12 col-md-6">
+                                                    <label class="form-label small">{{ trans('service-order::messages.confirm_yes') }}</label>
+                                                    <select class="form-select" wire:model.live="questions.{{ $index }}.answer_procedure_map.yes.procedure_id">
+                                                        <option value="">{{ trans('service-order::messages.analysis_no_procedure') }}</option>
+                                                        @foreach ($availableProcedures as $procedure)
+                                                            <option value="{{ $procedure['id'] }}">{{ $procedure['name'] }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <div class="col-12 col-md-6">
+                                                    <label class="form-label small">{{ trans('service-order::messages.confirm_no') }}</label>
+                                                    <select class="form-select" wire:model.live="questions.{{ $index }}.answer_procedure_map.no.procedure_id">
+                                                        <option value="">{{ trans('service-order::messages.analysis_no_procedure') }}</option>
+                                                        @foreach ($availableProcedures as $procedure)
+                                                            <option value="{{ $procedure['id'] }}">{{ $procedure['name'] }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
                                             </div>
-                                            <div class="col-10 col-md-5">
-                                                <select class="form-select" wire:model.live="questions.{{ $index }}.options.{{ $optionIndex }}.procedure_id">
-                                                    <option value="">{{ trans('service-order::messages.analysis_no_procedure') }}</option>
-                                                    @foreach ($availableProcedures as $procedure)
-                                                        <option value="{{ $procedure['id'] }}">{{ $procedure['name'] }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                            <div class="col-2 col-md-1">
-                                                <button type="button" class="btn btn-sm btn-icon" wire:click="removeOption({{ $index }}, {{ $optionIndex }})">
-                                                    <i class="text-primary ti ti-trash"></i>
+                                        </div>
+                                    @else
+                                        <div class="col-12">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <label class="form-label mb-0">{{ trans('service-order::messages.analysis_question_options') }}</label>
+                                                <button type="button" class="btn btn-sm btn-outline-primary" wire:click="addOption({{ $index }})" @disabled(count($question['options'] ?? []) >= 8)>
+                                                    {{ trans('service-order::messages.add_option') }}
                                                 </button>
                                             </div>
+                                            @foreach (($question['options'] ?? []) as $optionIndex => $option)
+                                                <div class="row g-2 mb-2">
+                                                    <div class="col-12 col-md-6">
+                                                        <input class="form-control"
+                                                            type="text"
+                                                            maxlength="120"
+                                                            wire:model.blur="questions.{{ $index }}.options.{{ $optionIndex }}.label"
+                                                            placeholder="{{ trans('service-order::messages.analysis_option_placeholder') }}">
+                                                    </div>
+                                                    <div class="col-10 col-md-5">
+                                                        <select class="form-select" wire:model.live="questions.{{ $index }}.options.{{ $optionIndex }}.procedure_id">
+                                                            <option value="">{{ trans('service-order::messages.analysis_no_procedure') }}</option>
+                                                            @foreach ($availableProcedures as $procedure)
+                                                                <option value="{{ $procedure['id'] }}">{{ $procedure['name'] }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-2 col-md-1">
+                                                        <button type="button" class="btn btn-sm btn-icon" wire:click="removeOption({{ $index }}, {{ $optionIndex }})">
+                                                            <i class="text-primary ti ti-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                            @error('questions.'.$index.'.options') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                                         </div>
-                                    @endforeach
-                                    @error('questions.'.$index.'.options') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
+                                    @endif
                                 </div>
-                            @endif
+                            </div>
                         </div>
                     </div>
                 @endforeach
