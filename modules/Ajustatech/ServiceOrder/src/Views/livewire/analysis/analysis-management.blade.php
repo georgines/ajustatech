@@ -61,13 +61,16 @@
                         $headingId = "headingQuestion{$index}";
                         $collapseId = "collapseQuestion{$index}";
                         $questionClientKey = (string) ($question['client_key'] ?? "question-{$index}");
-                        $isCollapsed = (bool) ($question['is_collapsed'] ?? false);
+                        $collapsedRaw = $question['is_collapsed'] ?? false;
+                        $isCollapsed = is_bool($collapsedRaw)
+                            ? $collapsedRaw
+                            : in_array(strtolower(trim((string) $collapsedRaw)), ['1', 'true', 'on', 'yes'], true);
                     @endphp
                     <div class="card accordion-item {{ $isCollapsed ? '' : 'active' }}" wire:key="analysis-question-{{ $questionClientKey }}">
                         <h2 class="accordion-header d-flex align-items-start align-items-md-center flex-column flex-md-row" id="{{ $headingId }}">
                             <button type="button"
                                 class="accordion-button {{ $isCollapsed ? 'collapsed' : '' }}"
-                                wire:click="toggleQuestionCollapse('{{ $questionClientKey }}')"
+                                wire:click="toggleQuestionCollapseByIndex({{ $index }})"
                                 aria-expanded="{{ $isCollapsed ? 'false' : 'true' }}"
                                 aria-controls="{{ $collapseId }}">
                                 @php
@@ -114,47 +117,47 @@
                             </button>
                             <div class="d-none d-md-flex align-items-center gap-1 ms-2 me-3">
                                 @if ($this->canMoveQuestionUp($index))
-                                    <button type="button" class="btn btn-sm btn-icon" wire:click="moveQuestionUp({{ $index }})" title="{{ trans('service-order::messages.move_up') }}" aria-label="{{ trans('service-order::messages.move_up') }}">
+                                    <button type="button" class="btn btn-sm btn-icon" wire:click.stop="moveQuestionUp({{ $index }})" title="{{ trans('service-order::messages.move_up') }}" aria-label="{{ trans('service-order::messages.move_up') }}">
                                         <i class="text-primary ti ti-arrow-up"></i>
                                     </button>
                                 @endif
                                 @if ($this->canMoveQuestionDown($index))
-                                    <button type="button" class="btn btn-sm btn-icon" wire:click="moveQuestionDown({{ $index }})" title="{{ trans('service-order::messages.move_down') }}" aria-label="{{ trans('service-order::messages.move_down') }}">
+                                    <button type="button" class="btn btn-sm btn-icon" wire:click.stop="moveQuestionDown({{ $index }})" title="{{ trans('service-order::messages.move_down') }}" aria-label="{{ trans('service-order::messages.move_down') }}">
                                         <i class="text-primary ti ti-arrow-down"></i>
                                     </button>
                                 @endif
                                 @if ($question['has_help'] ?? false)
-                                    <button type="button" class="btn btn-sm btn-icon" wire:click="openQuestionHelpModal({{ $index }})" title="{{ trans('service-order::messages.analysis_question_help_button') }}" aria-label="{{ trans('service-order::messages.analysis_question_help_button') }}">
+                                    <button type="button" class="btn btn-sm btn-icon" wire:click.stop="openQuestionHelpModal({{ $index }})" title="{{ trans('service-order::messages.analysis_question_help_button') }}" aria-label="{{ trans('service-order::messages.analysis_question_help_button') }}">
                                         <i class="text-primary ti ti-help"></i>
                                     </button>
                                 @endif
-                                <button type="button" class="btn btn-sm btn-icon" wire:click="editQuestion({{ $index }})" title="{{ trans('service-order::messages.edit') }}" aria-label="{{ trans('service-order::messages.edit') }}">
+                                <button type="button" class="btn btn-sm btn-icon" wire:click.stop="editQuestion({{ $index }})" title="{{ trans('service-order::messages.edit') }}" aria-label="{{ trans('service-order::messages.edit') }}">
                                     <i class="text-primary ti ti-edit"></i>
                                 </button>
-                                <button type="button" class="btn btn-sm btn-icon" wire:click="removeQuestion({{ $index }})" title="{{ trans('service-order::messages.delete') }}" aria-label="{{ trans('service-order::messages.delete') }}">
+                                <button type="button" class="btn btn-sm btn-icon" wire:click.stop="removeQuestion({{ $index }})" title="{{ trans('service-order::messages.delete') }}" aria-label="{{ trans('service-order::messages.delete') }}">
                                     <i class="text-primary ti ti-trash"></i>
                                 </button>
                             </div>
                             <div class="d-flex d-md-none align-items-center justify-content-end gap-1 w-100 mt-2 px-3 pb-2">
                                 @if ($this->canMoveQuestionUp($index))
-                                    <button type="button" class="btn btn-sm btn-icon" wire:click="moveQuestionUp({{ $index }})" title="{{ trans('service-order::messages.move_up') }}" aria-label="{{ trans('service-order::messages.move_up') }}">
+                                    <button type="button" class="btn btn-sm btn-icon" wire:click.stop="moveQuestionUp({{ $index }})" title="{{ trans('service-order::messages.move_up') }}" aria-label="{{ trans('service-order::messages.move_up') }}">
                                         <i class="text-primary ti ti-arrow-up"></i>
                                     </button>
                                 @endif
                                 @if ($this->canMoveQuestionDown($index))
-                                    <button type="button" class="btn btn-sm btn-icon" wire:click="moveQuestionDown({{ $index }})" title="{{ trans('service-order::messages.move_down') }}" aria-label="{{ trans('service-order::messages.move_down') }}">
+                                    <button type="button" class="btn btn-sm btn-icon" wire:click.stop="moveQuestionDown({{ $index }})" title="{{ trans('service-order::messages.move_down') }}" aria-label="{{ trans('service-order::messages.move_down') }}">
                                         <i class="text-primary ti ti-arrow-down"></i>
                                     </button>
                                 @endif
                                 @if ($question['has_help'] ?? false)
-                                    <button type="button" class="btn btn-sm btn-icon" wire:click="openQuestionHelpModal({{ $index }})" title="{{ trans('service-order::messages.analysis_question_help_button') }}" aria-label="{{ trans('service-order::messages.analysis_question_help_button') }}">
+                                    <button type="button" class="btn btn-sm btn-icon" wire:click.stop="openQuestionHelpModal({{ $index }})" title="{{ trans('service-order::messages.analysis_question_help_button') }}" aria-label="{{ trans('service-order::messages.analysis_question_help_button') }}">
                                         <i class="text-primary ti ti-help"></i>
                                     </button>
                                 @endif
-                                <button type="button" class="btn btn-sm btn-icon" wire:click="editQuestion({{ $index }})" title="{{ trans('service-order::messages.edit') }}" aria-label="{{ trans('service-order::messages.edit') }}">
+                                <button type="button" class="btn btn-sm btn-icon" wire:click.stop="editQuestion({{ $index }})" title="{{ trans('service-order::messages.edit') }}" aria-label="{{ trans('service-order::messages.edit') }}">
                                     <i class="text-primary ti ti-edit"></i>
                                 </button>
-                                <button type="button" class="btn btn-sm btn-icon" wire:click="removeQuestion({{ $index }})" title="{{ trans('service-order::messages.delete') }}" aria-label="{{ trans('service-order::messages.delete') }}">
+                                <button type="button" class="btn btn-sm btn-icon" wire:click.stop="removeQuestion({{ $index }})" title="{{ trans('service-order::messages.delete') }}" aria-label="{{ trans('service-order::messages.delete') }}">
                                     <i class="text-primary ti ti-trash"></i>
                                 </button>
                             </div>

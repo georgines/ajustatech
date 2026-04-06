@@ -30,6 +30,7 @@ class AnalysisBatchPersistenceTest extends TestCase
                         'question_text' => 'Pergunta A1',
                         'question_type' => 'yes_no',
                         'is_required' => true,
+                        'is_collapsed' => true,
                         'answer_procedure_map_json' => [
                             'yes' => ['procedure_id' => ''],
                             'no' => ['procedure_id' => ''],
@@ -64,6 +65,7 @@ class AnalysisBatchPersistenceTest extends TestCase
                         'question_text' => 'Pergunta B1',
                         'question_type' => 'select',
                         'is_required' => true,
+                        'is_collapsed' => false,
                         'options_json' => [
                             ['key' => 'opt-1', 'label' => 'Opcao 1', 'procedure_id' => ''],
                             ['key' => 'opt-2', 'label' => 'Opcao 2', 'procedure_id' => ''],
@@ -92,6 +94,7 @@ class AnalysisBatchPersistenceTest extends TestCase
         $this->assertNotNull($mainQuestion);
         $this->assertNotNull($subQuestion);
         $this->assertSame($mainQuestion->id, $subQuestion->parent_question_id);
+        $this->assertTrue((bool) $mainQuestion->is_collapsed);
     }
 
     public function test_can_update_service_replacing_questions_with_batch_insert(): void
@@ -128,6 +131,7 @@ class AnalysisBatchPersistenceTest extends TestCase
                 'question_text' => 'Pergunta nova 1',
                 'question_type' => 'yes_no',
                 'is_required' => true,
+                'is_collapsed' => true,
                 'answer_procedure_map_json' => [
                     'yes' => ['procedure_id' => ''],
                     'no' => ['procedure_id' => ''],
@@ -158,6 +162,7 @@ class AnalysisBatchPersistenceTest extends TestCase
         $this->assertDatabaseHas('service_order_analysis_questions', [
             'analysis_service_id' => $service->id,
             'question_text' => 'Pergunta nova 1',
+            'is_collapsed' => 1,
         ]);
         $this->assertDatabaseHas('service_order_analysis_questions', [
             'analysis_service_id' => $service->id,
@@ -229,4 +234,3 @@ class AnalysisBatchPersistenceTest extends TestCase
         ]);
     }
 }
-

@@ -67,20 +67,17 @@ class AnalysisManagement extends Component
                     'required_images_count' => (int) ($question->required_images_count ?? 1),
                     'has_help' => (bool) ($question->has_help ?? false),
                     'help_content' => (string) ($question->help_content ?? ''),
+                    'is_collapsed' => $this->toBool($question->is_collapsed ?? false),
                     'is_subquestion' => $question->parent_question_id !== null,
                     'parent_client_key' => (string) ($question->parent_question_id ?? ''),
                     'condition_value' => (string) ($question->condition_value ?? ''),
                     'options' => $options,
                     'answer_procedure_map' => $answerMap,
-                    'is_collapsed' => true,
                 ];
             })
             ->all();
 
         $this->questions = empty($mappedQuestions) ? [$this->newQuestionRow(1)] : $mappedQuestions;
-        if (!empty($this->questions)) {
-            $this->questions[0]['is_collapsed'] = false;
-        }
         $this->resequenceQuestions();
         $this->syncQuestionDependencies();
     }
@@ -397,12 +394,30 @@ class AnalysisManagement extends Component
         }
 
         foreach ($this->questions as $index => $question) {
-            if ((string) ($question['client_key'] ?? '') !== $normalizedKey) {
-                continue;
+            if ((string) ($question['client_key'] ?? '') === $normalizedKey) {
+                $this->toggleQuestionCollapseByIndex($index);
+                return;
             }
+        }
+    }
 
-            $this->questions[$index]['is_collapsed'] = !((bool) ($question['is_collapsed'] ?? false));
-            break;
+    public function toggleQuestionCollapseByIndex(int $index): void
+    {
+        if (!isset($this->questions[$index])) {
+            return;
+        }
+
+        $questionId = (string) ($this->questions[$index]['client_key'] ?? '');
+        $newCollapsedState = !$this->toBool($this->questions[$index]['is_collapsed'] ?? false);
+        $this->questions[$index]['is_collapsed'] = $newCollapsedState;
+
+        if ($this->mode === 'edit' && $this->analysisServiceId && $questionId !== '') {
+            ServiceOrderAnalysisQuestion::query()
+                ->where('id', $questionId)
+                ->where('analysis_service_id', $this->analysisServiceId)
+                ->update([
+                    'is_collapsed' => $newCollapsedState,
+                ]);
         }
     }
 
@@ -516,6 +531,7 @@ class AnalysisManagement extends Component
                     'help_content' => (bool) ($question['has_help'] ?? false)
                         ? $this->nullableValue($question['help_content'] ?? '')
                         : null,
+                    'is_collapsed' => $this->toBool($question['is_collapsed'] ?? false),
                     'options_json' => $type === ServiceOrderAnalysisQuestion::TYPE_SELECT ? $options : null,
                     'parent_client_key' => $this->nullableValue($question['parent_client_key'] ?? ''),
                     'condition_value' => $this->nullableValue($question['condition_value'] ?? ''),
@@ -638,7 +654,7 @@ class AnalysisManagement extends Component
             $this->questions[$index]['condition_value'] = trim((string) ($question['condition_value'] ?? ''));
             $this->questions[$index]['options'] = $options;
             $this->questions[$index]['answer_procedure_map'] = (array) ($question['answer_procedure_map'] ?? []);
-            $this->questions[$index]['is_collapsed'] = (bool) ($question['is_collapsed'] ?? false);
+            $this->questions[$index]['is_collapsed'] = $this->toBool($question['is_collapsed'] ?? false);
         }
     }
 
@@ -1007,6 +1023,30 @@ class AnalysisManagement extends Component
         return $normalized === '' ? null : $normalized;
     }
 
+    private function toBool(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_int($value)) {
+            return $value === 1;
+        }
+
+        if (is_string($value)) {
+            $normalized = strtolower(trim($value));
+            if (in_array($normalized, ['1', 'true', 'on', 'yes'], true)) {
+                return true;
+            }
+
+            if (in_array($normalized, ['0', 'false', 'off', 'no', ''], true)) {
+                return false;
+            }
+        }
+
+        return (bool) $value;
+    }
+
     private function newQuestionRow(int $sequence, ?string $type = null, array $flags = []): array
     {
         $questionType = $type ?? ServiceOrderAnalysisQuestion::TYPE_YES_NO;
@@ -1026,7 +1066,7 @@ class AnalysisManagement extends Component
             'required_images_count' => min(5, max(1, (int) ($flags['required_images_count'] ?? 1))),
             'has_help' => (bool) ($flags['has_help'] ?? false),
             'help_content' => '',
-            'is_collapsed' => (bool) ($flags['is_collapsed'] ?? false),
+            'is_collapsed' => $this->toBool($flags['is_collapsed'] ?? false),
             'options' => $questionType === ServiceOrderAnalysisQuestion::TYPE_SELECT ? [
                 ['key' => (string) Str::uuid(), 'label' => '', 'procedure_id' => ''],
             ] : [],

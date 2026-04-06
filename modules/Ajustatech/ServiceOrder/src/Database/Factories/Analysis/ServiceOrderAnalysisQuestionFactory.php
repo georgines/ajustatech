@@ -27,6 +27,7 @@ class ServiceOrderAnalysisQuestionFactory extends Factory
             'images_json' => [],
             'is_image_required' => false,
             'required_images_count' => null,
+            'is_collapsed' => false,
             'options_json' => null,
             'condition_value' => null,
             'answer_procedure_map_json' => [
