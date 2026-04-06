@@ -72,11 +72,15 @@ class AnalysisManagement extends Component
                     'condition_value' => (string) ($question->condition_value ?? ''),
                     'options' => $options,
                     'answer_procedure_map' => $answerMap,
+                    'is_collapsed' => true,
                 ];
             })
             ->all();
 
         $this->questions = empty($mappedQuestions) ? [$this->newQuestionRow(1)] : $mappedQuestions;
+        if (!empty($this->questions)) {
+            $this->questions[0]['is_collapsed'] = false;
+        }
         $this->resequenceQuestions();
         $this->syncQuestionDependencies();
     }
@@ -385,6 +389,23 @@ class AnalysisManagement extends Component
         $this->syncQuestionDependencies();
     }
 
+    public function toggleQuestionCollapse(string $clientKey): void
+    {
+        $normalizedKey = trim($clientKey);
+        if ($normalizedKey === '') {
+            return;
+        }
+
+        foreach ($this->questions as $index => $question) {
+            if ((string) ($question['client_key'] ?? '') !== $normalizedKey) {
+                continue;
+            }
+
+            $this->questions[$index]['is_collapsed'] = !((bool) ($question['is_collapsed'] ?? false));
+            break;
+        }
+    }
+
     public function canMoveQuestionUp(int $index): bool
     {
         $mainStart = $this->resolveMainStartIndex($index);
@@ -617,6 +638,7 @@ class AnalysisManagement extends Component
             $this->questions[$index]['condition_value'] = trim((string) ($question['condition_value'] ?? ''));
             $this->questions[$index]['options'] = $options;
             $this->questions[$index]['answer_procedure_map'] = (array) ($question['answer_procedure_map'] ?? []);
+            $this->questions[$index]['is_collapsed'] = (bool) ($question['is_collapsed'] ?? false);
         }
     }
 
@@ -1004,6 +1026,7 @@ class AnalysisManagement extends Component
             'required_images_count' => min(5, max(1, (int) ($flags['required_images_count'] ?? 1))),
             'has_help' => (bool) ($flags['has_help'] ?? false),
             'help_content' => '',
+            'is_collapsed' => (bool) ($flags['is_collapsed'] ?? false),
             'options' => $questionType === ServiceOrderAnalysisQuestion::TYPE_SELECT ? [
                 ['key' => (string) Str::uuid(), 'label' => '', 'procedure_id' => ''],
             ] : [],

@@ -60,16 +60,28 @@
                     @php
                         $headingId = "headingQuestion{$index}";
                         $collapseId = "collapseQuestion{$index}";
+                        $questionClientKey = (string) ($question['client_key'] ?? "question-{$index}");
+                        $isCollapsed = (bool) ($question['is_collapsed'] ?? false);
                     @endphp
-                    <div class="card accordion-item {{ $index === 0 ? 'active' : '' }}">
+                    <div class="card accordion-item {{ $isCollapsed ? '' : 'active' }}" wire:key="analysis-question-{{ $questionClientKey }}">
                         <h2 class="accordion-header d-flex align-items-start align-items-md-center flex-column flex-md-row" id="{{ $headingId }}">
                             <button type="button"
-                                class="accordion-button {{ $index === 0 ? '' : 'collapsed' }}"
-                                data-bs-toggle="collapse"
-                                data-bs-target="#{{ $collapseId }}"
-                                aria-expanded="{{ $index === 0 ? 'true' : 'false' }}"
+                                class="accordion-button {{ $isCollapsed ? 'collapsed' : '' }}"
+                                wire:click="toggleQuestionCollapse('{{ $questionClientKey }}')"
+                                aria-expanded="{{ $isCollapsed ? 'false' : 'true' }}"
                                 aria-controls="{{ $collapseId }}">
-                                <span class="d-flex align-items-center gap-2 flex-wrap">
+                                @php
+                                    $questionTypeLabel = $question['question_type'] === 'yes_no'
+                                        ? trans('service-order::messages.analysis_type_yes_no')
+                                        : trans('service-order::messages.analysis_type_select');
+                                    $collapsedQuestionTitle = trim((string) ($question['question_text'] ?? ''));
+                                    if ($collapsedQuestionTitle === '') {
+                                        $collapsedQuestionTitle = ($question['is_subquestion'] ?? false)
+                                            ? trans('service-order::messages.analysis_subquestion_title', ['sub' => $this->getSubquestionNumberInParent($index), 'question' => $this->getSubquestionParentMainNumber($index)])
+                                            : trans('service-order::messages.question') . ' #' . $this->getMainQuestionNumber($index);
+                                    }
+                                @endphp
+                                <span class="analysis-header-expanded d-flex align-items-center gap-2 flex-wrap">
                                     <strong>
                                         @if ($question['is_subquestion'] ?? false)
                                             {{ trans('service-order::messages.analysis_subquestion_title', ['sub' => $this->getSubquestionNumberInParent($index), 'question' => $this->getSubquestionParentMainNumber($index)]) }}
@@ -77,7 +89,7 @@
                                             {{ trans('service-order::messages.question') }} #{{ $this->getMainQuestionNumber($index) }}
                                         @endif
                                     </strong>
-                                    <span class="badge bg-label-primary text-uppercase">{{ $question['question_type'] === 'yes_no' ? trans('service-order::messages.analysis_type_yes_no') : trans('service-order::messages.analysis_type_select') }}</span>
+                                    <span class="badge bg-label-primary text-uppercase">{{ $questionTypeLabel }}</span>
                                     @if ($question['is_subquestion'] ?? false)
                                         @php $triggerLabel = $this->getSubquestionTriggerLabel($index); @endphp
                                         @if ($triggerLabel !== '')
@@ -94,6 +106,10 @@
                                         <span class="badge bg-label-secondary">{{ trans('service-order::messages.analysis_images_required') }}</span>
                                         <span class="badge bg-label-secondary">{{ (int) ($question['required_images_count'] ?? 1) }}x</span>
                                     @endif
+                                </span>
+                                <span class="analysis-header-collapsed d-flex align-items-center gap-2 flex-wrap">
+                                    <strong>{{ $collapsedQuestionTitle }}</strong>
+                                    <span class="badge bg-label-primary text-uppercase">{{ $questionTypeLabel }}</span>
                                 </span>
                             </button>
                             <div class="d-none d-md-flex align-items-center gap-1 ms-2 me-3">
@@ -144,7 +160,7 @@
                             </div>
                         </h2>
 
-                        <div id="{{ $collapseId }}" class="accordion-collapse collapse {{ $index === 0 ? 'show' : '' }}" aria-labelledby="{{ $headingId }}" data-bs-parent="#analysisQuestionsAccordion">
+                        <div id="{{ $collapseId }}" class="accordion-collapse collapse {{ $isCollapsed ? '' : 'show' }}" aria-labelledby="{{ $headingId }}">
                             <div class="accordion-body">
                                 <div class="row g-3">
                                     <div class="col-12">
@@ -391,6 +407,15 @@
             </div>
         </div>
     </div>
+    <style>
+        .accordion-button.collapsed .analysis-header-expanded {
+            display: none !important;
+        }
+
+        .accordion-button:not(.collapsed) .analysis-header-collapsed {
+            display: none !important;
+        }
+    </style>
 </div>
 
 @script
