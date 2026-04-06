@@ -6,8 +6,6 @@ use Ajustatech\ServiceOrder\Commands\Analysis\SeedAnalysisCommand;
 use Ajustatech\ServiceOrder\Commands\Analysis\WipeAnalysisMediaCommand;
 use Ajustatech\ServiceOrder\Livewire\Analysis\AnalysisManagement;
 use Ajustatech\ServiceOrder\Livewire\Analysis\ShowAnalysisServices;
-use Ajustatech\ServiceOrder\Services\Analysis\AnalysisService;
-use Ajustatech\ServiceOrder\Services\Analysis\Contracts\AnalysisServiceInterface;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 
@@ -17,11 +15,6 @@ class AnalysisServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        $this->app->bind(
-            AnalysisServiceInterface::class,
-            AnalysisService::class
-        );
-
         config()->set('media_wipe.modules.service-order.analysis.directories', [
             'service-order/analysis',
         ]);

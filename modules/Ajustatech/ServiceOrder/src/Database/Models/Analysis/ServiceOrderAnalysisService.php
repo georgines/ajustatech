@@ -3,6 +3,7 @@
 namespace Ajustatech\ServiceOrder\Database\Models\Analysis;
 
 use Ajustatech\ServiceOrder\Database\Factories\Analysis\ServiceOrderAnalysisServiceFactory;
+use Ajustatech\ServiceOrder\Database\Models\Procedure\ServiceOrderProcedure;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -62,13 +63,30 @@ class ServiceOrderAnalysisService extends Model
             ->findOrFail($id);
     }
 
+    public static function findOrFailById(string $id): self
+    {
+        return static::query()->findOrFail($id);
+    }
+
+    public static function listProcedureOptions(): array
+    {
+        return ServiceOrderProcedure::query()
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn ($item) => [
+                'id' => $item->id,
+                'name' => $item->name,
+            ])
+            ->all();
+    }
+
     public static function createWithQuestions(array $data, array $questions): self
     {
         return DB::transaction(function () use ($data, $questions) {
             $service = static::query()->create($data);
             ServiceOrderAnalysisQuestion::syncForService($service, $questions);
 
-            return $service->load('questions');
+            return $service;
         });
     }
 
@@ -80,7 +98,7 @@ class ServiceOrderAnalysisService extends Model
             $this->questions()->delete();
             ServiceOrderAnalysisQuestion::syncForService($this, $questions);
 
-            return $this->load('questions');
+            return $this;
         });
     }
 

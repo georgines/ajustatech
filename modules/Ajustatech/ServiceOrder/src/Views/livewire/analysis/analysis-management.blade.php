@@ -86,12 +86,12 @@
                                 @endif
                             </div>
                             <div class="d-flex align-items-center gap-1">
-                                @if (count($questions) > 1 && $index > 0)
+                                @if ($this->canMoveQuestionUp($index))
                                     <button type="button" class="btn btn-sm btn-icon" wire:click="moveQuestionUp({{ $index }})" title="{{ trans('service-order::messages.move_up') }}" aria-label="{{ trans('service-order::messages.move_up') }}">
                                         <i class="text-primary ti ti-arrow-up"></i>
                                     </button>
                                 @endif
-                                @if (count($questions) > 1 && $index < (count($questions) - 1))
+                                @if ($this->canMoveQuestionDown($index))
                                     <button type="button" class="btn btn-sm btn-icon" wire:click="moveQuestionDown({{ $index }})" title="{{ trans('service-order::messages.move_down') }}" aria-label="{{ trans('service-order::messages.move_down') }}">
                                         <i class="text-primary ti ti-arrow-down"></i>
                                     </button>
@@ -113,12 +113,12 @@
                         <div class="row g-3">
                             <div class="col-12">
                                 <label class="form-label">{{ trans('service-order::messages.analysis_question_text') }}</label>
-                                <textarea class="form-control"
-                                    rows="2"
+                                <input class="form-control"
+                                    type="text"
                                     maxlength="500"
                                     data-question-text-input="{{ $index }}"
                                     wire:model.blur="questions.{{ $index }}.question_text"
-                                    placeholder="{{ trans('service-order::messages.analysis_question_text_placeholder') }}"></textarea>
+                                    placeholder="{{ trans('service-order::messages.analysis_question_text_placeholder') }}">
                                 @error('questions.'.$index.'.question_text') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                             </div>
 

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
 class ServiceOrderAnalysisQuestion extends Model
 {
@@ -74,44 +75,75 @@ class ServiceOrderAnalysisQuestion extends Model
 
     public static function syncForService(ServiceOrderAnalysisService $service, array $questions): void
     {
-        $questionRows = [];
-        $parentMap = [];
-
-        foreach ($questions as $question) {
-            $created = static::query()->create([
+        static::syncManyForServices([
+            [
                 'analysis_service_id' => $service->id,
-                'parent_question_id' => null,
-                'sequence' => (int) ($question['sequence'] ?? 0),
-                'section_name' => (string) ($question['section_name'] ?? 'Geral'),
-                'question_text' => (string) ($question['question_text'] ?? ''),
-                'question_type' => (string) ($question['question_type'] ?? self::TYPE_YES_NO),
-                'is_required' => (bool) ($question['is_required'] ?? false),
-                'technical_description' => $question['technical_description'] ?? null,
-                'is_technical_description_required' => (bool) ($question['is_technical_description_required'] ?? false),
-                'images_json' => $question['images_json'] ?? null,
-                'is_image_required' => (bool) ($question['is_image_required'] ?? false),
-                'required_images_count' => $question['required_images_count'] ?? null,
-                'has_help' => (bool) ($question['has_help'] ?? false),
-                'help_content' => $question['help_content'] ?? null,
-                'options_json' => $question['options_json'] ?? null,
-                'condition_value' => $question['condition_value'] ?? null,
-                'answer_procedure_map_json' => $question['answer_procedure_map_json'] ?? null,
-            ]);
+                'questions' => $questions,
+            ],
+        ]);
+    }
 
-            $clientKey = (string) ($question['client_key'] ?? $created->id);
-            $questionRows[$clientKey] = $created;
-            $parentMap[$clientKey] = $question['parent_client_key'] ?? null;
-
+    public static function syncManyForServices(array $serviceQuestionBatches): void
+    {
+        if (empty($serviceQuestionBatches)) {
+            return;
         }
 
-        foreach ($parentMap as $clientKey => $parentClientKey) {
-            if (!$parentClientKey || !isset($questionRows[$parentClientKey], $questionRows[$clientKey])) {
+        $now = now();
+        $rows = [];
+
+        foreach ($serviceQuestionBatches as $batch) {
+            $analysisServiceId = (string) ($batch['analysis_service_id'] ?? '');
+            if ($analysisServiceId === '') {
                 continue;
             }
 
-            $questionRows[$clientKey]->update([
-                'parent_question_id' => $questionRows[$parentClientKey]->id,
-            ]);
+            $normalizedQuestions = [];
+            $idByClientKey = [];
+            foreach ((array) ($batch['questions'] ?? []) as $question) {
+                $clientKey = (string) ($question['client_key'] ?? '');
+                if ($clientKey === '') {
+                    $clientKey = (string) Str::uuid();
+                }
+
+                $question['client_key'] = $clientKey;
+                $normalizedQuestions[] = $question;
+                $idByClientKey[$clientKey] = (string) Str::uuid();
+            }
+
+            foreach ($normalizedQuestions as $question) {
+                $clientKey = (string) $question['client_key'];
+                $parentClientKey = (string) ($question['parent_client_key'] ?? '');
+
+                $rows[] = [
+                    'id' => $idByClientKey[$clientKey],
+                    'analysis_service_id' => $analysisServiceId,
+                    'parent_question_id' => $parentClientKey !== '' && isset($idByClientKey[$parentClientKey])
+                        ? $idByClientKey[$parentClientKey]
+                        : null,
+                    'sequence' => (int) ($question['sequence'] ?? 0),
+                    'section_name' => (string) ($question['section_name'] ?? 'Geral'),
+                    'question_text' => (string) ($question['question_text'] ?? ''),
+                    'question_type' => (string) ($question['question_type'] ?? self::TYPE_YES_NO),
+                    'is_required' => (bool) ($question['is_required'] ?? false),
+                    'technical_description' => $question['technical_description'] ?? null,
+                    'is_technical_description_required' => (bool) ($question['is_technical_description_required'] ?? false),
+                    'images_json' => is_array($question['images_json'] ?? null) ? json_encode($question['images_json']) : ($question['images_json'] ?? null),
+                    'is_image_required' => (bool) ($question['is_image_required'] ?? false),
+                    'required_images_count' => $question['required_images_count'] ?? null,
+                    'has_help' => (bool) ($question['has_help'] ?? false),
+                    'help_content' => $question['help_content'] ?? null,
+                    'options_json' => is_array($question['options_json'] ?? null) ? json_encode($question['options_json']) : ($question['options_json'] ?? null),
+                    'condition_value' => $question['condition_value'] ?? null,
+                    'answer_procedure_map_json' => is_array($question['answer_procedure_map_json'] ?? null) ? json_encode($question['answer_procedure_map_json']) : ($question['answer_procedure_map_json'] ?? null),
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+        }
+
+        if (!empty($rows)) {
+            static::query()->insert($rows);
         }
     }
 

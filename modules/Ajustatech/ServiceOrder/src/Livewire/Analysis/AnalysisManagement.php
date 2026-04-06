@@ -2,9 +2,8 @@
 
 namespace Ajustatech\ServiceOrder\Livewire\Analysis;
 
+use Ajustatech\ServiceOrder\Database\Models\Analysis\ServiceOrderAnalysisService;
 use Ajustatech\ServiceOrder\Database\Models\Analysis\ServiceOrderAnalysisQuestion;
-use Ajustatech\ServiceOrder\Database\Models\Procedure\ServiceOrderProcedure;
-use Ajustatech\ServiceOrder\Services\Analysis\Contracts\AnalysisServiceInterface;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -27,16 +26,9 @@ class AnalysisManagement extends Component
     public ?int $editingHelpQuestionIndex = null;
     public array $questionHelpDraft = [];
 
-    public function mount(AnalysisServiceInterface $service, ?string $id = null): void
+    public function mount(?string $id = null): void
     {
-        $this->availableProcedures = ServiceOrderProcedure::query()
-            ->orderBy('name')
-            ->get(['id', 'name'])
-            ->map(fn ($item) => [
-                'id' => $item->id,
-                'name' => $item->name,
-            ])
-            ->all();
+        $this->availableProcedures = ServiceOrderAnalysisService::listProcedureOptions();
 
         $this->questions = [$this->newQuestionRow(1)];
         $this->resetNewQuestionDraft();
@@ -46,7 +38,7 @@ class AnalysisManagement extends Component
             return;
         }
 
-        $analysis = $service->findAnalysisService($id);
+        $analysis = ServiceOrderAnalysisService::findWithQuestionsOrFail($id);
 
         $this->mode = 'edit';
         $this->analysisServiceId = $analysis->id;
@@ -328,30 +320,95 @@ class AnalysisManagement extends Component
 
     public function moveQuestionUp(int $index): void
     {
-        if ($index <= 0 || !isset($this->questions[$index], $this->questions[$index - 1])) {
+        if (!isset($this->questions[$index])) {
             return;
         }
 
-        $current = $this->questions[$index];
-        $this->questions[$index] = $this->questions[$index - 1];
-        $this->questions[$index - 1] = $current;
-        $this->questions = array_values($this->questions);
+        $mainStart = $this->resolveMainStartIndex($index);
+        if ($mainStart === null) {
+            return;
+        }
+
+        $mainIndices = $this->getMainQuestionIndexes();
+        $mainPosition = array_search($mainStart, $mainIndices, true);
+        if ($mainPosition === false || $mainPosition === 0) {
+            return;
+        }
+
+        $previousMainStart = $mainIndices[$mainPosition - 1];
+        $currentMainEnd = $this->getMainBlockEndIndex($mainStart);
+        if ($currentMainEnd === null) {
+            return;
+        }
+
+        $before = array_slice($this->questions, 0, $previousMainStart);
+        $previousBlock = array_slice($this->questions, $previousMainStart, $mainStart - $previousMainStart);
+        $currentBlock = array_slice($this->questions, $mainStart, $currentMainEnd - $mainStart + 1);
+        $after = array_slice($this->questions, $currentMainEnd + 1);
+
+        $this->questions = array_values(array_merge($before, $currentBlock, $previousBlock, $after));
         $this->resequenceQuestions();
         $this->syncQuestionDependencies();
     }
 
     public function moveQuestionDown(int $index): void
     {
-        if (!isset($this->questions[$index], $this->questions[$index + 1])) {
+        if (!isset($this->questions[$index])) {
             return;
         }
 
-        $current = $this->questions[$index];
-        $this->questions[$index] = $this->questions[$index + 1];
-        $this->questions[$index + 1] = $current;
-        $this->questions = array_values($this->questions);
+        $mainStart = $this->resolveMainStartIndex($index);
+        if ($mainStart === null) {
+            return;
+        }
+
+        $mainIndices = $this->getMainQuestionIndexes();
+        $mainPosition = array_search($mainStart, $mainIndices, true);
+        if ($mainPosition === false || $mainPosition >= (count($mainIndices) - 1)) {
+            return;
+        }
+
+        $nextMainStart = $mainIndices[$mainPosition + 1];
+        $currentMainEnd = $this->getMainBlockEndIndex($mainStart);
+        $nextMainEnd = $this->getMainBlockEndIndex($nextMainStart);
+        if ($currentMainEnd === null || $nextMainEnd === null) {
+            return;
+        }
+
+        $before = array_slice($this->questions, 0, $mainStart);
+        $currentBlock = array_slice($this->questions, $mainStart, $currentMainEnd - $mainStart + 1);
+        $nextBlock = array_slice($this->questions, $nextMainStart, $nextMainEnd - $nextMainStart + 1);
+        $after = array_slice($this->questions, $nextMainEnd + 1);
+
+        $this->questions = array_values(array_merge($before, $nextBlock, $currentBlock, $after));
         $this->resequenceQuestions();
         $this->syncQuestionDependencies();
+    }
+
+    public function canMoveQuestionUp(int $index): bool
+    {
+        $mainStart = $this->resolveMainStartIndex($index);
+        if ($mainStart === null || $mainStart !== $index) {
+            return false;
+        }
+
+        $mainIndices = $this->getMainQuestionIndexes();
+        $mainPosition = array_search($mainStart, $mainIndices, true);
+
+        return $mainPosition !== false && $mainPosition > 0;
+    }
+
+    public function canMoveQuestionDown(int $index): bool
+    {
+        $mainStart = $this->resolveMainStartIndex($index);
+        if ($mainStart === null || $mainStart !== $index) {
+            return false;
+        }
+
+        $mainIndices = $this->getMainQuestionIndexes();
+        $mainPosition = array_search($mainStart, $mainIndices, true);
+
+        return $mainPosition !== false && $mainPosition < (count($mainIndices) - 1);
     }
 
     public function addOption(int $index): void
@@ -386,7 +443,7 @@ class AnalysisManagement extends Component
         }
     }
 
-    public function save(AnalysisServiceInterface $service)
+    public function save()
     {
         $this->sanitizeInputs();
         $this->resequenceQuestions();
@@ -447,9 +504,10 @@ class AnalysisManagement extends Component
             ->all();
 
         if ($this->mode === 'edit' && $this->analysisServiceId) {
-            $service->updateAnalysisService($this->analysisServiceId, $payload, $questionPayload);
+            $service = ServiceOrderAnalysisService::findWithQuestionsOrFail($this->analysisServiceId);
+            $service->updateWithQuestions($payload, $questionPayload);
         } else {
-            $service->createAnalysisService($payload, $questionPayload);
+            ServiceOrderAnalysisService::createWithQuestions($payload, $questionPayload);
         }
 
         return redirect()->route('service-order-analyses-show');
@@ -867,6 +925,49 @@ class AnalysisManagement extends Component
         }
 
         return $insert;
+    }
+
+    private function getMainQuestionIndexes(): array
+    {
+        $indexes = [];
+        foreach ($this->questions as $index => $question) {
+            if (($question['is_subquestion'] ?? false)) {
+                continue;
+            }
+            $indexes[] = $index;
+        }
+
+        return $indexes;
+    }
+
+    private function resolveMainStartIndex(int $index): ?int
+    {
+        if (!isset($this->questions[$index])) {
+            return null;
+        }
+
+        if (!($this->questions[$index]['is_subquestion'] ?? false)) {
+            return $index;
+        }
+
+        return $this->getParentMainIndexFor($index);
+    }
+
+    private function getMainBlockEndIndex(int $mainStart): ?int
+    {
+        if (!isset($this->questions[$mainStart]) || ($this->questions[$mainStart]['is_subquestion'] ?? false)) {
+            return null;
+        }
+
+        $end = $mainStart;
+        for ($i = $mainStart + 1; $i < count($this->questions); $i++) {
+            if (!($this->questions[$i]['is_subquestion'] ?? false)) {
+                break;
+            }
+            $end = $i;
+        }
+
+        return $end;
     }
 
     private function sanitizeText(?string $value, int $limit): string
