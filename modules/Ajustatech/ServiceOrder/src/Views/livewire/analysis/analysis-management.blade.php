@@ -134,7 +134,7 @@
                                 <button type="button" class="btn btn-sm btn-icon" wire:click.stop="editQuestion({{ $index }})" title="{{ trans('service-order::messages.edit') }}" aria-label="{{ trans('service-order::messages.edit') }}">
                                     <i class="text-primary ti ti-edit"></i>
                                 </button>
-                                <button type="button" class="btn btn-sm btn-icon" wire:click.stop="removeQuestion({{ $index }})" title="{{ trans('service-order::messages.delete') }}" aria-label="{{ trans('service-order::messages.delete') }}">
+                                <button type="button" class="btn btn-sm btn-icon" wire:click.stop="confirmRemoveQuestion({{ $index }})" title="{{ trans('service-order::messages.delete') }}" aria-label="{{ trans('service-order::messages.delete') }}">
                                     <i class="text-primary ti ti-trash"></i>
                                 </button>
                             </div>
@@ -157,7 +157,7 @@
                                 <button type="button" class="btn btn-sm btn-icon" wire:click.stop="editQuestion({{ $index }})" title="{{ trans('service-order::messages.edit') }}" aria-label="{{ trans('service-order::messages.edit') }}">
                                     <i class="text-primary ti ti-edit"></i>
                                 </button>
-                                <button type="button" class="btn btn-sm btn-icon" wire:click.stop="removeQuestion({{ $index }})" title="{{ trans('service-order::messages.delete') }}" aria-label="{{ trans('service-order::messages.delete') }}">
+                                <button type="button" class="btn btn-sm btn-icon" wire:click.stop="confirmRemoveQuestion({{ $index }})" title="{{ trans('service-order::messages.delete') }}" aria-label="{{ trans('service-order::messages.delete') }}">
                                     <i class="text-primary ti ti-trash"></i>
                                 </button>
                             </div>

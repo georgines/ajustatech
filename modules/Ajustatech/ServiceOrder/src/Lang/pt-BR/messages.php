@@ -66,6 +66,8 @@ return [
     'analysis_service_description_placeholder' => 'Descricao opcional',
     'analysis_service_value' => 'Valor',
     'analysis_confirm_delete' => 'Deseja excluir este servico de analise?',
+    'analysis_confirm_delete_question' => 'Deseja excluir a pergunta ":question"?',
+    'analysis_confirm_delete_question_generic' => 'Deseja excluir esta pergunta?',
     'analysis_questions' => 'Perguntas da analise',
     'analysis_questions_count' => 'Perguntas',
     'add_question' => 'Adicionar pergunta',

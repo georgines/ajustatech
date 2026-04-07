@@ -15,6 +15,7 @@ class ServiceOrderAnalysisQuestion extends Model
     use HasUuids;
 
     public const TYPE_YES_NO = 'yes_no';
+
     public const TYPE_SELECT = 'select';
 
     protected $table = 'service_order_analysis_questions';
@@ -73,6 +74,251 @@ class ServiceOrderAnalysisQuestion extends Model
             self::TYPE_YES_NO,
             self::TYPE_SELECT,
         ];
+    }
+
+    public static function resequenceQuestions(array $questions): array
+    {
+        foreach ($questions as $index => $question) {
+            $questions[$index]['sequence'] = $index + 1;
+        }
+
+        return array_values($questions);
+    }
+
+    public static function syncQuestionDependencies(array $questions): array
+    {
+        foreach ($questions as $index => $question) {
+            $isSubquestion = (bool) ($question['is_subquestion'] ?? false);
+            $parentIndex = self::getParentMainIndexFor($questions, $index);
+
+            if ($isSubquestion && $parentIndex !== null) {
+                $questions[$index]['parent_client_key'] = (string) ($questions[$parentIndex]['client_key'] ?? '');
+
+                continue;
+            }
+
+            if ($isSubquestion && $index === 0) {
+                $questions[$index]['parent_client_key'] = '';
+
+                continue;
+            }
+
+            $questions[$index]['is_subquestion'] = false;
+            $questions[$index]['parent_client_key'] = '';
+            $questions[$index]['condition_value'] = '';
+        }
+
+        return array_values($questions);
+    }
+
+    public static function removeQuestion(array $questions, int $index): array
+    {
+        if (! isset($questions[$index])) {
+            return $questions;
+        }
+
+        if ((bool) ($questions[$index]['is_subquestion'] ?? false)) {
+            unset($questions[$index]);
+
+            return array_values($questions);
+        }
+
+        $mainEnd = self::getMainBlockEndIndex($questions, $index);
+        if ($mainEnd === null) {
+            return $questions;
+        }
+
+        return array_values(array_merge(
+            array_slice($questions, 0, $index),
+            array_slice($questions, $mainEnd + 1)
+        ));
+    }
+
+    public static function moveQuestionUp(array $questions, int $index): array
+    {
+        $mainStart = self::resolveMainStartIndex($questions, $index);
+        if ($mainStart === null) {
+            return $questions;
+        }
+
+        $previousMainStart = self::getPreviousMainQuestionIndex($questions, $mainStart);
+        if ($previousMainStart === null) {
+            return $questions;
+        }
+
+        $mainEnd = self::getMainBlockEndIndex($questions, $mainStart);
+        $previousMainEnd = self::getMainBlockEndIndex($questions, $previousMainStart);
+        if ($mainEnd === null || $previousMainEnd === null) {
+            return $questions;
+        }
+
+        $before = array_slice($questions, 0, $previousMainStart);
+        $previousBlock = array_slice($questions, $previousMainStart, $previousMainEnd - $previousMainStart + 1);
+        $currentBlock = array_slice($questions, $mainStart, $mainEnd - $mainStart + 1);
+        $after = array_slice($questions, $mainEnd + 1);
+
+        return array_values(array_merge($before, $currentBlock, $previousBlock, $after));
+    }
+
+    public static function moveQuestionDown(array $questions, int $index): array
+    {
+        $mainStart = self::resolveMainStartIndex($questions, $index);
+        if ($mainStart === null) {
+            return $questions;
+        }
+
+        $mainEnd = self::getMainBlockEndIndex($questions, $mainStart);
+        if ($mainEnd === null) {
+            return $questions;
+        }
+
+        $nextMainStart = self::getNextMainQuestionIndex($questions, $mainEnd + 1);
+        if ($nextMainStart === null) {
+            return $questions;
+        }
+
+        $nextMainEnd = self::getMainBlockEndIndex($questions, $nextMainStart);
+        if ($nextMainEnd === null) {
+            return $questions;
+        }
+
+        $before = array_slice($questions, 0, $mainStart);
+        $currentBlock = array_slice($questions, $mainStart, $mainEnd - $mainStart + 1);
+        $nextBlock = array_slice($questions, $nextMainStart, $nextMainEnd - $nextMainStart + 1);
+        $after = array_slice($questions, $nextMainEnd + 1);
+
+        return array_values(array_merge($before, $nextBlock, $currentBlock, $after));
+    }
+
+    public static function canMoveQuestionUp(array $questions, int $index): bool
+    {
+        $mainStart = self::resolveMainStartIndex($questions, $index);
+
+        return $mainStart !== null && self::getPreviousMainQuestionIndex($questions, $mainStart) !== null;
+    }
+
+    public static function canMoveQuestionDown(array $questions, int $index): bool
+    {
+        $mainStart = self::resolveMainStartIndex($questions, $index);
+        if ($mainStart === null) {
+            return false;
+        }
+
+        $mainEnd = self::getMainBlockEndIndex($questions, $mainStart);
+        if ($mainEnd === null) {
+            return false;
+        }
+
+        return self::getNextMainQuestionIndex($questions, $mainEnd + 1) !== null;
+    }
+
+    public static function getLastMainQuestionIndex(array $questions): ?int
+    {
+        for ($i = count($questions) - 1; $i >= 0; $i--) {
+            if (! ($questions[$i]['is_subquestion'] ?? false)) {
+                return $i;
+            }
+        }
+
+        return null;
+    }
+
+    public static function getMainQuestionNumber(array $questions, int $index): int
+    {
+        $number = 0;
+        for ($i = 0; $i <= $index; $i++) {
+            if (($questions[$i]['is_subquestion'] ?? false)) {
+                continue;
+            }
+
+            $number++;
+        }
+
+        return max(1, $number);
+    }
+
+    public static function getSubquestionParentMainNumber(array $questions, int $index): int
+    {
+        $parentIndex = self::getParentMainIndexFor($questions, $index);
+        if ($parentIndex === null) {
+            return 0;
+        }
+
+        return self::getMainQuestionNumber($questions, $parentIndex);
+    }
+
+    public static function getSubquestionNumberInParent(array $questions, int $index): int
+    {
+        $parentIndex = self::getParentMainIndexFor($questions, $index);
+        if ($parentIndex === null) {
+            return 0;
+        }
+
+        $number = 0;
+        for ($i = $parentIndex + 1; $i <= $index; $i++) {
+            if (! ($questions[$i]['is_subquestion'] ?? false)) {
+                continue;
+            }
+
+            if (self::getParentMainIndexFor($questions, $i) !== $parentIndex) {
+                continue;
+            }
+
+            $number++;
+        }
+
+        return max(1, $number);
+    }
+
+    public static function getSubquestionTriggerLabel(array $questions, int $index): string
+    {
+        $value = (string) ($questions[$index]['condition_value'] ?? '');
+        if ($value === '') {
+            return '';
+        }
+
+        $option = collect(self::getSubquestionTriggerOptionsForEdit($questions, $index))
+            ->first(fn (array $item) => (string) ($item['value'] ?? '') === $value);
+
+        return (string) ($option['label'] ?? '');
+    }
+
+    public static function getNewSubquestionTriggerOptions(array $questions): array
+    {
+        $parentIndex = self::getLastMainQuestionIndex($questions);
+        if ($parentIndex === null) {
+            return [];
+        }
+
+        $usedValues = self::getUsedTriggerValuesForParent($questions, $parentIndex);
+
+        return collect(self::getTriggerOptionsForQuestion($questions, $parentIndex))
+            ->filter(fn (array $option) => ! in_array((string) ($option['value'] ?? ''), $usedValues, true))
+            ->values()
+            ->all();
+    }
+
+    public static function getSubquestionTriggerOptionsForEdit(array $questions, int $index): array
+    {
+        $parentIndex = self::getParentMainIndexFor($questions, $index);
+        if ($parentIndex === null) {
+            return [];
+        }
+
+        $currentValue = trim((string) ($questions[$index]['condition_value'] ?? ''));
+        $usedValues = self::getUsedTriggerValuesForParent($questions, $parentIndex, $index);
+
+        return collect(self::getTriggerOptionsForQuestion($questions, $parentIndex))
+            ->filter(function (array $option) use ($usedValues, $currentValue) {
+                $value = (string) ($option['value'] ?? '');
+                if ($value === $currentValue) {
+                    return true;
+                }
+
+                return ! in_array($value, $usedValues, true);
+            })
+            ->values()
+            ->all();
     }
 
     public static function syncForService(ServiceOrderAnalysisService $service, array $questions): void
@@ -145,14 +391,14 @@ class ServiceOrderAnalysisQuestion extends Model
             }
         }
 
-        if (!empty($rows)) {
+        if (! empty($rows)) {
             static::query()->insert($rows);
         }
     }
 
     public function isVisible(array $answersByQuestionId): bool
     {
-        if (!$this->parent_question_id) {
+        if (! $this->parent_question_id) {
             return true;
         }
 
@@ -170,5 +416,143 @@ class ServiceOrderAnalysisQuestion extends Model
 
         return $parentValue === $conditionValue;
     }
-}
 
+    public static function getParentMainIndexFor(array $questions, int $index): ?int
+    {
+        if (! isset($questions[$index])) {
+            return null;
+        }
+
+        if (! ($questions[$index]['is_subquestion'] ?? false)) {
+            return null;
+        }
+
+        for ($i = $index - 1; $i >= 0; $i--) {
+            if (($questions[$i]['is_subquestion'] ?? false)) {
+                continue;
+            }
+
+            return $i;
+        }
+
+        return null;
+    }
+
+    private static function resolveMainStartIndex(array $questions, int $index): ?int
+    {
+        if (! isset($questions[$index])) {
+            return null;
+        }
+
+        if (! ($questions[$index]['is_subquestion'] ?? false)) {
+            return $index;
+        }
+
+        return self::getParentMainIndexFor($questions, $index);
+    }
+
+    private static function getMainBlockEndIndex(array $questions, int $mainStart): ?int
+    {
+        if (! isset($questions[$mainStart]) || ($questions[$mainStart]['is_subquestion'] ?? false)) {
+            return null;
+        }
+
+        $end = $mainStart;
+        for ($i = $mainStart + 1; $i < count($questions); $i++) {
+            if (! ($questions[$i]['is_subquestion'] ?? false)) {
+                break;
+            }
+
+            $end = $i;
+        }
+
+        return $end;
+    }
+
+    private static function getPreviousMainQuestionIndex(array $questions, int $index): ?int
+    {
+        for ($i = $index - 1; $i >= 0; $i--) {
+            if (! ($questions[$i]['is_subquestion'] ?? false)) {
+                return $i;
+            }
+        }
+
+        return null;
+    }
+
+    private static function getNextMainQuestionIndex(array $questions, int $index): ?int
+    {
+        for ($i = $index; $i < count($questions); $i++) {
+            if (! ($questions[$i]['is_subquestion'] ?? false)) {
+                return $i;
+            }
+        }
+
+        return null;
+    }
+
+    public static function getUsedTriggerValuesForParent(array $questions, int $parentIndex, ?int $ignoreQuestionIndex = null): array
+    {
+        $used = [];
+        foreach ($questions as $index => $question) {
+            if ($ignoreQuestionIndex !== null && $index === $ignoreQuestionIndex) {
+                continue;
+            }
+
+            if (! ($question['is_subquestion'] ?? false)) {
+                continue;
+            }
+
+            if (self::getParentMainIndexFor($questions, $index) !== $parentIndex) {
+                continue;
+            }
+
+            $value = trim((string) ($question['condition_value'] ?? ''));
+            if ($value === '') {
+                continue;
+            }
+
+            $used[] = $value;
+        }
+
+        return array_values(array_unique($used));
+    }
+
+    private static function getTriggerOptionsForQuestion(array $questions, int $questionIndex): array
+    {
+        if (! isset($questions[$questionIndex])) {
+            return [];
+        }
+
+        $question = $questions[$questionIndex];
+        $type = (string) ($question['question_type'] ?? self::TYPE_YES_NO);
+
+        if ($type === self::TYPE_YES_NO) {
+            return [
+                ['value' => 'yes', 'label' => trans('service-order::messages.confirm_yes')],
+                ['value' => 'no', 'label' => trans('service-order::messages.confirm_no')],
+            ];
+        }
+
+        if ($type !== self::TYPE_SELECT) {
+            return [];
+        }
+
+        return collect((array) ($question['options'] ?? []))
+            ->map(function (array $option) {
+                $key = (string) ($option['key'] ?? '');
+                $label = trim((string) ($option['label'] ?? ''));
+                if ($key === '' || $label === '') {
+                    return null;
+                }
+
+                return [
+                    'value' => $key,
+                    'label' => $label,
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
+}

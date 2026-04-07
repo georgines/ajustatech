@@ -8,8 +8,8 @@ use Ajustatech\ServiceOrder\Livewire\Analysis\AnalysisManagement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Livewire\Livewire;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class AnalysisManagementTest extends TestCase
@@ -112,7 +112,7 @@ class AnalysisManagementTest extends TestCase
 
         $component
             ->call('toggleQuestionCollapseByIndex', 1)
-            ->assertSet('questions.1.is_collapsed', !$secondBefore);
+            ->assertSet('questions.1.is_collapsed', ! $secondBefore);
 
         $component
             ->call('save')
@@ -122,7 +122,7 @@ class AnalysisManagementTest extends TestCase
         $questions = $reloaded->questions->values();
 
         $this->assertSame($firstBefore, (bool) ($questions[0]->is_collapsed ?? false));
-        $this->assertSame(!$secondBefore, (bool) ($questions[1]->is_collapsed ?? false));
+        $this->assertSame(! $secondBefore, (bool) ($questions[1]->is_collapsed ?? false));
     }
 
     public function test_mode_property_cannot_be_changed_from_client(): void
@@ -181,7 +181,7 @@ class AnalysisManagementTest extends TestCase
         $options = collect(range(1, 9))
             ->map(fn (int $index) => [
                 'key' => (string) Str::uuid(),
-                'label' => 'Opcao ' . $index,
+                'label' => 'Opcao '.$index,
                 'procedure_id' => '',
             ])
             ->all();
@@ -374,6 +374,90 @@ class AnalysisManagementTest extends TestCase
         $this->assertFalse((bool) data_get($questions, '1.is_subquestion'));
         $this->assertTrue((bool) data_get($questions, '2.is_subquestion'));
         $this->assertSame(data_get($questions, '1.client_key'), data_get($questions, '2.parent_client_key'));
+    }
+
+    public function test_removing_a_main_question_also_removes_its_subquestions(): void
+    {
+        $component = Livewire::test(AnalysisManagement::class)
+            ->set('questions', [
+                [
+                    'client_key' => (string) Str::uuid(),
+                    'sequence' => 1,
+                    'section_name' => 'Hardware',
+                    'question_text' => 'Pergunta principal 1',
+                    'question_type' => 'yes_no',
+                    'is_subquestion' => false,
+                    'parent_client_key' => '',
+                    'condition_value' => '',
+                    'is_required' => false,
+                    'is_technical_description_required' => false,
+                    'is_image_required' => false,
+                    'required_images_count' => 1,
+                    'has_help' => false,
+                    'help_content' => '',
+                    'is_collapsed' => false,
+                    'options' => [],
+                    'answer_procedure_map' => [
+                        'yes' => ['procedure_id' => ''],
+                        'no' => ['procedure_id' => ''],
+                    ],
+                ],
+                [
+                    'client_key' => (string) Str::uuid(),
+                    'sequence' => 2,
+                    'section_name' => 'Hardware',
+                    'question_text' => 'Subpergunta da 1',
+                    'question_type' => 'yes_no',
+                    'is_subquestion' => true,
+                    'parent_client_key' => 'parent-1',
+                    'condition_value' => 'no',
+                    'is_required' => false,
+                    'is_technical_description_required' => false,
+                    'is_image_required' => false,
+                    'required_images_count' => 1,
+                    'has_help' => false,
+                    'help_content' => '',
+                    'is_collapsed' => false,
+                    'options' => [],
+                    'answer_procedure_map' => [
+                        'yes' => ['procedure_id' => ''],
+                        'no' => ['procedure_id' => ''],
+                    ],
+                ],
+                [
+                    'client_key' => (string) Str::uuid(),
+                    'sequence' => 3,
+                    'section_name' => 'Sistema',
+                    'question_text' => 'Pergunta principal 2',
+                    'question_type' => 'yes_no',
+                    'is_subquestion' => false,
+                    'parent_client_key' => '',
+                    'condition_value' => '',
+                    'is_required' => false,
+                    'is_technical_description_required' => false,
+                    'is_image_required' => false,
+                    'required_images_count' => 1,
+                    'has_help' => false,
+                    'help_content' => '',
+                    'is_collapsed' => false,
+                    'options' => [],
+                    'answer_procedure_map' => [
+                        'yes' => ['procedure_id' => ''],
+                        'no' => ['procedure_id' => ''],
+                    ],
+                ],
+            ]);
+
+        $component
+            ->call('confirmRemoveQuestion', 0)
+            ->assertDispatched('confirmation');
+
+        $component->call('removeQuestionConfirmed', 0);
+
+        $questions = collect($component->get('questions'))->values();
+
+        $this->assertCount(1, $questions);
+        $this->assertSame('Pergunta principal 2', data_get($questions, '0.question_text'));
     }
 
     public function test_save_rejects_questions_without_section_name(): void

@@ -66,6 +66,8 @@ return [
     'analysis_service_description_placeholder' => 'Optional description',
     'analysis_service_value' => 'Value',
     'analysis_confirm_delete' => 'Do you want to delete this analysis service?',
+    'analysis_confirm_delete_question' => 'Do you want to delete the question ":question"?',
+    'analysis_confirm_delete_question_generic' => 'Do you want to delete this question?',
     'analysis_questions' => 'Analysis questions',
     'analysis_questions_count' => 'Questions',
     'add_question' => 'Add question',
