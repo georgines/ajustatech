@@ -1,0 +1,12 @@
+[mcp_servers.laravel-boost]
+command = "php"
+args = ["artisan", "boost:mcp"]
+cwd = "C:\\Users\\Usuario\\Herd\\ajustatechold"
+
+[mcp_servers.herd]
+command = "php"
+args = ["C:/Users/Usuario/.config/herd/bin/herd-mcp.phar"]
+cwd = "C:\\Users\\Usuario\\Herd\\ajustatechold"
+
+[mcp_servers.herd.env]
+SITE_PATH = "C:\\Users\\Usuario\\Herd\\ajustatechold"
