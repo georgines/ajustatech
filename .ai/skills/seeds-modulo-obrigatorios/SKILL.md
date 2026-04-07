@@ -26,3 +26,6 @@ Sempre criar seeds de todas as possibilidades relevantes do recurso.
 - Nao criar recurso sem seeds correspondentes.
 - Nao depender de dados manuais para validar feature.
 - Nao finalizar tarefa sem rodar o seed global dos modulos.
+## Regra obrigatoria de qualidade profissional
+- Seguir `/.ai/skills/qualidade-profissional/SKILL.md` como fonte unica de qualidade de codigo e performance de banco (incluindo prevencao de N+1).
+

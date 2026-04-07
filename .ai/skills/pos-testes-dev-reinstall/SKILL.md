@@ -26,3 +26,6 @@ Padronizar o passo final de reconstruir e popular o banco apos rodar testes.
 ## Nao fazer
 - Nao encerrar tarefa com testes rodados sem executar `dev:reinstall`.
 - Nao assumir banco valido sem confirmar sucesso do comando.
+## Regra obrigatoria de qualidade profissional
+- Seguir `/.ai/skills/qualidade-profissional/SKILL.md` como fonte unica de qualidade de codigo e performance de banco (incluindo prevencao de N+1).
+

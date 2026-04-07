@@ -32,3 +32,6 @@ Garantir que toda feature nova tenha entrada de dados protegida e consistente.
 - Nao salvar input cru sem sanitizacao.
 - Nao deixar regra condicional apenas na interface.
 - Nao manter temporario de upload sem necessidade apos persistencia.
+## Regra obrigatoria de qualidade profissional
+- Seguir `/.ai/skills/qualidade-profissional/SKILL.md` como fonte unica de qualidade de codigo e performance de banco (incluindo prevencao de N+1).
+

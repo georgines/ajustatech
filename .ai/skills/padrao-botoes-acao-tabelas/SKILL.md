@@ -23,3 +23,6 @@ Aplicar padrao unico para botoes de acao e icones em listagens de tabela.
 - Nao misturar bibliotecas de icones na mesma tabela.
 - Nao usar botao de acao sem `aria-label`.
 - Nao substituir botoes icon-only por links textuais longos em celulas de acao.
+## Regra obrigatoria de qualidade profissional
+- Seguir `/.ai/skills/qualidade-profissional/SKILL.md` como fonte unica de qualidade de codigo e performance de banco (incluindo prevencao de N+1).
+

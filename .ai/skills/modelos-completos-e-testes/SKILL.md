@@ -30,3 +30,6 @@ Forcar padrao de modelo no lugar correto, impedir logica de modelo fora de `Data
 - Nao deixar consulta de banco no Service quando pertencer ao Model.
 - Nao entregar modelo sem migration, factory e seeder.
 - Nao duplicar regras de teste nesta skill: seguir os guidelines oficiais de testes/factories.
+## Regra obrigatoria de qualidade profissional
+- Seguir `/.ai/skills/qualidade-profissional/SKILL.md` como fonte unica de qualidade de codigo e performance de banco (incluindo prevencao de N+1).
+

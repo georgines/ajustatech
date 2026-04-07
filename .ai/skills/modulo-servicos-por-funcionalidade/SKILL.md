@@ -43,3 +43,6 @@ Aplicar padrao de separacao por funcionalidade dentro do modulo e enforce de Ser
 - Nao criar contrato de feature nova fora da pasta da funcionalidade.
 - Nao depender de descoberta automatica para orquestrar comandos de feature no fluxo principal.
 - Nao concentrar consulta de dados no Service quando ela pertencer ao Model.
+## Regra obrigatoria de qualidade profissional
+- Seguir `/.ai/skills/qualidade-profissional/SKILL.md` como fonte unica de qualidade de codigo e performance de banco (incluindo prevencao de N+1).
+

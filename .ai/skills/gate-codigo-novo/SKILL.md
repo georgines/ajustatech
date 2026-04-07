@@ -73,3 +73,6 @@ Uma implementacao nova so pode ser considerada pronta quando:
 - Nao encerrar mudanca nova sem revisar seguranca e validacao.
 - Nao depender apenas de guideline isolado sem aplicar o gate completo.
 - Nao considerar codigo pronto so porque funciona visualmente.
+## Regra obrigatoria de qualidade profissional
+- Seguir `/.ai/skills/qualidade-profissional/SKILL.md` como fonte unica de qualidade de codigo e performance de banco (incluindo prevencao de N+1).
+

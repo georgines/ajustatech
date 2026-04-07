@@ -39,3 +39,6 @@ Aplicar padrao de eficiencia de requisicoes em toda funcionalidade nova.
 - Nao usar dois eventos para uma unica confirmacao simples.
 - Nao aceitar N+1 em listagens novas.
 - Nao considerar otimizado sem medir requests/queries em teste.
+## Regra obrigatoria de qualidade profissional
+- Seguir `/.ai/skills/qualidade-profissional/SKILL.md` como fonte unica de qualidade de codigo e performance de banco (incluindo prevencao de N+1).
+

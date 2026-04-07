@@ -143,3 +143,7 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
 - Use `templete/Vuexy/resources` para copiar padrao visual e blocos Blade/SCSS/JS.
 - Qualquer adaptacao deve ser feita no codigo real do projeto.
 - Nao tratar arquivos de `templete/` como fonte de verdade de negocio.
+## Convencoes de qualidade profissional (obrigatorio)
+- Seguir skill dedicada: `/.ai/skills/qualidade-profissional/SKILL.md`.
+- Esta skill e a fonte unica para padroes de codigo profissional, Clean Code, SOLID, mentalidade agil, simplicidade e prevencao de N+1.
+
