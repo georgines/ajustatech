@@ -32,7 +32,6 @@ class AnalysisService implements AnalysisServiceInterface
 
     public function deleteAnalysisService(string $id): void
     {
-        $service = ServiceOrderAnalysisService::findWithQuestionsOrFail($id);
-        $service->deleteWithRelations();
+        ServiceOrderAnalysisService::deleteById($id);
     }
 }

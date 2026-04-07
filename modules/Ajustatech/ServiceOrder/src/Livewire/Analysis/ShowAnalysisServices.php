@@ -10,6 +10,7 @@ use Livewire\Component;
 class ShowAnalysisServices extends Component
 {
     public string $title = '';
+
     public array $analysisServices = [];
 
     public function mount(): void
@@ -20,8 +21,7 @@ class ShowAnalysisServices extends Component
 
     public function deleteAnalysisService(string $id): void
     {
-        $analysis = ServiceOrderAnalysisService::findOrFailById($id);
-        $analysis->deleteWithRelations();
+        ServiceOrderAnalysisService::deleteById($id);
         $this->analysisServices = array_values(array_filter(
             $this->analysisServices,
             fn (array $item) => ($item['id'] ?? null) !== $id

@@ -322,11 +322,9 @@ class AnalysisBatchPersistenceTest extends TestCase
 
         $queries = $this->countDmlQueries(fn () => ServiceOrderAnalysisService::createManyWithQuestions($items));
 
-        $this->assertCount(4, $queries);
+        $this->assertCount(2, $queries);
         $this->assertSame('insert', $queries[0]);
         $this->assertSame('insert', $queries[1]);
-        $this->assertSame('select', $queries[2]);
-        $this->assertSame('select', $queries[3]);
     }
 
     public function test_find_with_questions_or_fail_uses_two_queries_with_eager_loading(): void
@@ -422,6 +420,40 @@ class AnalysisBatchPersistenceTest extends TestCase
 
         $this->assertCount(1, $queries);
         $this->assertSame(['select'], $queries);
+    }
+
+    public function test_delete_by_id_uses_single_delete_query(): void
+    {
+        $service = ServiceOrderAnalysisService::createWithQuestions([
+            'id' => (string) Str::uuid(),
+            'name' => 'Analise Delete Direto',
+            'description' => 'x',
+            'value' => 70.00,
+        ], [
+            [
+                'client_key' => 'dd1',
+                'sequence' => 1,
+                'section_name' => 'Secao',
+                'question_text' => 'Pergunta DD1',
+                'question_type' => 'yes_no',
+                'is_required' => true,
+                'answer_procedure_map_json' => [
+                    'yes' => ['procedure_id' => ''],
+                    'no' => ['procedure_id' => ''],
+                ],
+            ],
+        ]);
+
+        $queries = $this->countDmlQueries(fn () => ServiceOrderAnalysisService::deleteById($service->id));
+
+        $this->assertCount(1, $queries);
+        $this->assertSame(['delete'], $queries);
+        $this->assertDatabaseMissing('service_order_analysis_services', [
+            'id' => $service->id,
+        ]);
+        $this->assertDatabaseMissing('service_order_analysis_questions', [
+            'analysis_service_id' => $service->id,
+        ]);
     }
 
     private function countDmlQueries(callable $callback): array

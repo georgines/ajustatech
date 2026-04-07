@@ -50,6 +50,24 @@ class AnalysisManagementTest extends TestCase
         $this->assertNull($question->images_json);
     }
 
+    public function test_save_create_uses_two_dml_queries(): void
+    {
+        $component = Livewire::test(AnalysisManagement::class)
+            ->set('name', 'Analise de notebook')
+            ->set('description', 'Checklist tecnico completo')
+            ->set('value', '90.00')
+            ->set('questions.0.section_name', 'Hardware')
+            ->set('questions.0.sequence', 1)
+            ->set('questions.0.question_text', 'O SSD esta funcionando?')
+            ->set('questions.0.question_type', 'yes_no')
+            ->set('questions.0.answer_procedure_map.no.procedure_id', '');
+
+        $queries = $this->countDmlQueries(fn () => $component->call('save'));
+
+        $this->assertCount(2, $queries);
+        $this->assertSame(['insert', 'insert'], $queries);
+    }
+
     public function test_collapsed_state_is_persisted_and_restored_on_edit(): void
     {
         $service = ServiceOrderAnalysisService::createWithQuestions([
@@ -123,6 +141,50 @@ class AnalysisManagementTest extends TestCase
 
         $this->assertSame($firstBefore, (bool) ($questions[0]->is_collapsed ?? false));
         $this->assertSame(! $secondBefore, (bool) ($questions[1]->is_collapsed ?? false));
+    }
+
+    public function test_save_edit_uses_three_dml_queries(): void
+    {
+        $service = ServiceOrderAnalysisService::createWithQuestions([
+            'id' => (string) Str::uuid(),
+            'name' => 'Analise Edit Query',
+            'description' => 'Teste de edicao',
+            'value' => 100.00,
+        ], [
+            [
+                'client_key' => 'eq1',
+                'sequence' => 1,
+                'section_name' => 'Hardware',
+                'question_text' => 'Pergunta 1',
+                'question_type' => 'yes_no',
+                'is_required' => true,
+                'answer_procedure_map_json' => [
+                    'yes' => ['procedure_id' => ''],
+                    'no' => ['procedure_id' => ''],
+                ],
+            ],
+            [
+                'client_key' => 'eq2',
+                'sequence' => 2,
+                'section_name' => 'Hardware',
+                'question_text' => 'Pergunta 2',
+                'question_type' => 'yes_no',
+                'is_required' => true,
+                'answer_procedure_map_json' => [
+                    'yes' => ['procedure_id' => ''],
+                    'no' => ['procedure_id' => ''],
+                ],
+            ],
+        ]);
+
+        $component = Livewire::test(AnalysisManagement::class, ['id' => $service->id])
+            ->set('name', 'Analise Edit Query Atualizada')
+            ->set('questions.0.question_text', 'Pergunta 1 atualizada');
+
+        $queries = $this->countDmlQueries(fn () => $component->call('save'));
+
+        $this->assertCount(3, $queries);
+        $this->assertSame(['update', 'delete', 'insert'], $queries);
     }
 
     public function test_mode_property_cannot_be_changed_from_client(): void
@@ -492,6 +554,29 @@ class AnalysisManagementTest extends TestCase
             ->set('questions.0.question_type', 'invalid_type')
             ->call('save')
             ->assertHasErrors(['questions.0.question_type']);
+    }
+
+    private function countDmlQueries(callable $callback): array
+    {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        try {
+            $callback();
+        } finally {
+            $queryLog = DB::getQueryLog();
+            DB::disableQueryLog();
+            DB::flushQueryLog();
+        }
+
+        return collect($queryLog)
+            ->map(fn (array $entry) => strtolower((string) ($entry['query'] ?? '')))
+            ->filter(fn (string $query) => str_contains($query, 'service_order_analysis_services') || str_contains($query, 'service_order_analysis_questions'))
+            ->values()
+            ->map(fn (string $query) => strtolower((string) preg_replace('/\s+.*/', '', ltrim($query))))
+            ->filter(fn (string $operation) => in_array($operation, ['insert', 'update', 'delete'], true))
+            ->values()
+            ->all();
     }
 
     public function test_save_rejects_invalid_required_images_count(): void

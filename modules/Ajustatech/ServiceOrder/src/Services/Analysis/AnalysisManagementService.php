@@ -474,7 +474,7 @@ class AnalysisManagementService implements AnalysisManagementServiceInterface
 
     private function validateQuestionsStructure(AnalysisManagement $component): bool
     {
-        $allowedProcedureIds = $this->getAllowedProcedureIds();
+        $allowedProcedureIds = $this->getAllowedProcedureIds($component);
 
         foreach ($component->questions as $index => $question) {
             $basePath = "questions.{$index}";
@@ -616,8 +616,15 @@ class AnalysisManagementService implements AnalysisManagementServiceInterface
         $component->questions = $this->questionWorkflowService->syncQuestionDependencies($component->questions);
     }
 
-    private function getAllowedProcedureIds(): array
+    private function getAllowedProcedureIds(AnalysisManagement $component): array
     {
+        if (! empty($component->availableProcedures)) {
+            return collect($component->availableProcedures)
+                ->pluck('id')
+                ->mapWithKeys(fn ($id) => [(string) $id => true])
+                ->all();
+        }
+
         return ServiceOrderProcedure::query()->pluck('id')->mapWithKeys(fn ($id) => [(string) $id => true])->all();
     }
 

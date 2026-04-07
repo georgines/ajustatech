@@ -50,16 +50,40 @@ class ServiceOrderAnalysisService extends Model
     public static function listForIndex(): Collection
     {
         return static::query()
+            ->select(['id', 'name', 'description', 'value', 'created_at'])
             ->withCount('questions')
-            ->latest()
+            ->latest('created_at')
             ->get();
     }
 
     public static function findWithQuestionsOrFail(string $id): self
     {
         return static::query()
+            ->select(['id', 'name', 'description', 'value', 'progress_percentage', 'last_answered_question_sequence', 'is_completed', 'created_at', 'updated_at'])
             ->with([
-                'questions',
+                'questions' => fn ($query) => $query->select([
+                    'id',
+                    'analysis_service_id',
+                    'parent_question_id',
+                    'sequence',
+                    'section_name',
+                    'question_text',
+                    'question_type',
+                    'is_required',
+                    'technical_description',
+                    'is_technical_description_required',
+                    'images_json',
+                    'is_image_required',
+                    'required_images_count',
+                    'has_help',
+                    'help_content',
+                    'is_collapsed',
+                    'options_json',
+                    'condition_value',
+                    'answer_procedure_map_json',
+                    'created_at',
+                    'updated_at',
+                ]),
             ])
             ->findOrFail($id);
     }
@@ -101,7 +125,6 @@ class ServiceOrderAnalysisService extends Model
             $now = now();
             $serviceRows = [];
             $questionSyncPayload = [];
-            $serviceIds = [];
 
             foreach ($items as $index => $item) {
                 $serviceData = (array) ($item['service'] ?? []);
@@ -123,17 +146,12 @@ class ServiceOrderAnalysisService extends Model
                     'analysis_service_id' => $serviceId,
                     'questions' => (array) ($item['questions'] ?? []),
                 ];
-
-                $serviceIds[$index] = $serviceId;
             }
 
             static::query()->insert($serviceRows);
             ServiceOrderAnalysisQuestion::syncManyForServices($questionSyncPayload);
 
-            return static::query()
-                ->with('questions')
-                ->whereIn('id', array_values($serviceIds))
-                ->get();
+            return static::hydrate($serviceRows);
         });
     }
 
@@ -153,5 +171,9 @@ class ServiceOrderAnalysisService extends Model
     {
         $this->delete();
     }
-}
 
+    public static function deleteById(string $id): int
+    {
+        return static::query()->whereKey($id)->delete();
+    }
+}
