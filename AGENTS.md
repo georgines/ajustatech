@@ -805,6 +805,7 @@ Diretrizes de seguranca para Laravel + Livewire no contexto modular Ajustatech.
 
 - Confirmacoes de acao devem passar por `SwitchAlertDispatch` quando houver impacto em dados.
 - Evitar executar alteracoes destrutivas sem confirmacao.
+- Toda funcao/acao de exclusao (delete, remove, destroy ou equivalente) deve exibir `SwitchAlertDispatch` para confirmar se o usuario realmente deseja deletar antes de persistir a exclusao.
 
 ## Rotas e autorizacao
 
