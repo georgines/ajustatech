@@ -143,7 +143,42 @@ class AnalysisManagementTest extends TestCase
         $this->assertSame(! $secondBefore, (bool) ($questions[1]->is_collapsed ?? false));
     }
 
-    public function test_save_edit_uses_three_dml_queries(): void
+    public function test_toggle_question_collapse_does_not_write_to_database_until_save(): void
+    {
+        $service = ServiceOrderAnalysisService::createWithQuestions([
+            'id' => (string) Str::uuid(),
+            'name' => 'Analise Colapso',
+            'description' => 'Teste de persistencia tardia',
+            'value' => 100.00,
+        ], [
+            [
+                'client_key' => 'c1',
+                'sequence' => 1,
+                'section_name' => 'Hardware',
+                'question_text' => 'Pergunta 1',
+                'question_type' => 'yes_no',
+                'is_required' => true,
+                'is_collapsed' => false,
+                'answer_procedure_map_json' => [
+                    'yes' => ['procedure_id' => ''],
+                    'no' => ['procedure_id' => ''],
+                ],
+            ],
+        ]);
+
+        $component = Livewire::test(AnalysisManagement::class, ['id' => $service->id]);
+
+        $queries = $this->countRelevantQueries(fn () => $component->call('toggleQuestionCollapseByIndex', 0));
+
+        $this->assertCount(0, $queries);
+        $this->assertDatabaseHas('service_order_analysis_questions', [
+            'analysis_service_id' => $service->id,
+            'question_text' => 'Pergunta 1',
+            'is_collapsed' => 0,
+        ]);
+    }
+
+    public function test_save_edit_uses_three_relevant_queries(): void
     {
         $service = ServiceOrderAnalysisService::createWithQuestions([
             'id' => (string) Str::uuid(),
@@ -181,7 +216,7 @@ class AnalysisManagementTest extends TestCase
             ->set('name', 'Analise Edit Query Atualizada')
             ->set('questions.0.question_text', 'Pergunta 1 atualizada');
 
-        $queries = $this->countDmlQueries(fn () => $component->call('save'));
+        $queries = $this->countRelevantQueries(fn () => $component->call('save'));
 
         $this->assertCount(3, $queries);
         $this->assertSame(['update', 'delete', 'insert'], $queries);
@@ -575,6 +610,29 @@ class AnalysisManagementTest extends TestCase
             ->values()
             ->map(fn (string $query) => strtolower((string) preg_replace('/\s+.*/', '', ltrim($query))))
             ->filter(fn (string $operation) => in_array($operation, ['insert', 'update', 'delete'], true))
+            ->values()
+            ->all();
+    }
+
+    private function countRelevantQueries(callable $callback): array
+    {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        try {
+            $callback();
+        } finally {
+            $queryLog = DB::getQueryLog();
+            DB::disableQueryLog();
+            DB::flushQueryLog();
+        }
+
+        return collect($queryLog)
+            ->map(fn (array $entry) => strtolower((string) ($entry['query'] ?? '')))
+            ->filter(fn (string $query) => str_contains($query, 'service_order_analysis_services') || str_contains($query, 'service_order_analysis_questions'))
+            ->values()
+            ->map(fn (string $query) => strtolower((string) preg_replace('/\s+.*/', '', ltrim($query))))
+            ->filter(fn (string $operation) => in_array($operation, ['select', 'insert', 'update', 'delete'], true))
             ->values()
             ->all();
     }

@@ -25,9 +25,7 @@ class AnalysisService implements AnalysisServiceInterface
 
     public function updateAnalysisService(string $id, array $data, array $questions): ServiceOrderAnalysisService
     {
-        $service = ServiceOrderAnalysisService::findWithQuestionsOrFail($id);
-
-        return $service->updateWithQuestions($data, $questions);
+        return ServiceOrderAnalysisService::updateWithQuestionsById($id, $data, $questions);
     }
 
     public function deleteAnalysisService(string $id): void

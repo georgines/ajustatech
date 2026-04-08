@@ -167,6 +167,25 @@ class ServiceOrderAnalysisService extends Model
         });
     }
 
+    public static function updateWithQuestionsById(string $id, array $data, array $questions): self
+    {
+        return DB::transaction(function () use ($id, $data, $questions) {
+            $now = now();
+
+            static::query()
+                ->whereKey($id)
+                ->update(array_merge($data, ['updated_at' => $now]));
+
+            $service = new static;
+            $service->setRawAttributes(['id' => $id] + $data, true);
+            $service->exists = true;
+            $service->questions()->delete();
+            ServiceOrderAnalysisQuestion::syncForService($service, $questions);
+
+            return $service;
+        });
+    }
+
     public function deleteWithRelations(): void
     {
         $this->delete();

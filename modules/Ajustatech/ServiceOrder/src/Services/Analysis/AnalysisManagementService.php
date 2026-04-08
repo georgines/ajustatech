@@ -346,18 +346,8 @@ class AnalysisManagementService implements AnalysisManagementServiceInterface
             return;
         }
 
-        $questionId = (string) ($component->questions[$index]['client_key'] ?? '');
         $newCollapsedState = ! (bool) ($component->questions[$index]['is_collapsed'] ?? false);
         $component->questions[$index]['is_collapsed'] = $newCollapsedState;
-
-        if ($component->mode === 'edit' && $component->analysisServiceId && $questionId !== '') {
-            ServiceOrderAnalysisQuestion::query()
-                ->where('id', $questionId)
-                ->where('analysis_service_id', $component->analysisServiceId)
-                ->update([
-                    'is_collapsed' => $newCollapsedState,
-                ]);
-        }
     }
 
     public function canMoveQuestionUp(AnalysisManagement $component, int $index): bool
