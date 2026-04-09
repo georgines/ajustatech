@@ -6,20 +6,41 @@ use Ajustatech\ServiceOrder\Commands\Procedure\SeedProcedureCommand;
 use Ajustatech\ServiceOrder\Commands\Procedure\WipeProcedureMediaCommand;
 use Ajustatech\ServiceOrder\Livewire\Procedure\ProcedureManagement;
 use Ajustatech\ServiceOrder\Livewire\Procedure\ShowProcedures;
+use Ajustatech\ServiceOrder\Services\Procedure\Contracts\ProcedureFormServiceInterface;
+use Ajustatech\ServiceOrder\Services\Procedure\Contracts\ProcedureManagementServiceInterface;
+use Ajustatech\ServiceOrder\Services\Procedure\Contracts\ProcedureMediaServiceInterface;
 use Ajustatech\ServiceOrder\Services\Procedure\Contracts\ProcedureServiceInterface;
+use Ajustatech\ServiceOrder\Services\Procedure\ProcedureFormService;
+use Ajustatech\ServiceOrder\Services\Procedure\ProcedureManagementService;
+use Ajustatech\ServiceOrder\Services\Procedure\ProcedureMediaService;
 use Ajustatech\ServiceOrder\Services\Procedure\ProcedureService;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 
 class ProcedureServiceProvider extends ServiceProvider
 {
-    protected string $path = __DIR__ . '/../..';
+    protected string $path = __DIR__.'/../..';
 
     public function register(): void
     {
         $this->app->bind(
             ProcedureServiceInterface::class,
             ProcedureService::class
+        );
+
+        $this->app->bind(
+            ProcedureFormServiceInterface::class,
+            ProcedureFormService::class
+        );
+
+        $this->app->bind(
+            ProcedureManagementServiceInterface::class,
+            ProcedureManagementService::class
+        );
+
+        $this->app->bind(
+            ProcedureMediaServiceInterface::class,
+            ProcedureMediaService::class
         );
 
         $this->registerMediaDirectories();
