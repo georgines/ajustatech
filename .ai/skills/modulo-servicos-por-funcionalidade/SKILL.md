@@ -1,3 +1,8 @@
+---
+name: modulo-servicos-por-funcionalidade
+description: "Use quando organizar um modulo por funcionalidades e services, com interfaces, binds no provider e separacao arquitetural por feature."
+---
+
 # Skill: Modulo Servicos por Funcionalidade
 
 ## Objetivo

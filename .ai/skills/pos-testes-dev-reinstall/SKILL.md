@@ -1,3 +1,8 @@
+---
+name: pos-testes-dev-reinstall
+description: "Use quando executar testes e precisar reconstruir o ambiente com php artisan dev:reinstall antes de concluir a task."
+---
+
 # Skill: Pos-Testes com `dev:reinstall`
 
 ## Objetivo

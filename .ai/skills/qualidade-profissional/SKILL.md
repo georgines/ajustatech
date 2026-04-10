@@ -1,3 +1,8 @@
+---
+name: qualidade-profissional
+description: "Use quando precisar reforcar qualidade profissional de codigo, simplicidade, Clean Code, SOLID e prevencao de N+1 em consultas."
+---
+
 # Skill: Qualidade Profissional
 
 ## Objetivo

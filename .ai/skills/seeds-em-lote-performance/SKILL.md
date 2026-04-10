@@ -1,3 +1,8 @@
+---
+name: seeds-em-lote-performance
+description: "Use quando criar ou refatorar seeders com muitos registros, priorizando insert em lote, integridade relacional e performance."
+---
+
 # Skill: Seeds em Lote (Performance)
 
 ## Objetivo

@@ -1,3 +1,8 @@
+---
+name: validacoes-sanitizacao-seguranca
+description: "Use quando trabalhar com formularios, inputs, uploads e persistencia, aplicando sanitizacao, validacao backend, restricoes frontend e seguranca."
+---
+
 # Skill: Validacoes, Sanitizacao e Seguranca
 
 ## Objetivo

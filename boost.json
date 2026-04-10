@@ -9,6 +9,21 @@
     "nightwatch_mcp": false,
     "sail": false,
     "skills": [
-        "livewire-development"
+        "livewire-development",
+        "factory-seed-test-flow",
+        "feature-test-first",
+        "gate-codigo-novo",
+        "modelos-completos-e-testes",
+        "modulo-ajustatech",
+        "modulo-servicos-por-funcionalidade",
+        "otimizacao-solicitacoes",
+        "padrao-botoes-acao-tabelas",
+        "pos-testes-dev-reinstall",
+        "qualidade-profissional",
+        "seeds-em-lote-performance",
+        "seeds-modulo-obrigatorios",
+        "validacoes-sanitizacao-seguranca",
+        "vuexy-catalogo",
+        "vuexy-livewire"
     ]
 }

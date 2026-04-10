@@ -1,3 +1,8 @@
+---
+name: seeds-modulo-obrigatorios
+description: "Use quando criar ou evoluir recursos e modulos que exigem seeds completos, dados relacionais coerentes e povoamento global com dev:seed."
+---
+
 # Skill: Seeds Modulo Obrigatorios
 
 ## Objetivo

@@ -1,3 +1,8 @@
+---
+name: feature-test-first
+description: "Use quando desenvolver uma nova feature com TDD, escrevendo testes de Feature primeiro e validando o fluxo RED -> GREEN."
+---
+
 # Skill: Feature Test First
 
 ## Objetivo

@@ -1,3 +1,8 @@
+---
+name: vuexy-livewire
+description: "Use quando construir interfaces Blade ou Livewire com visual Vuexy, reaproveitando layouts, menus e padroes visuais sem acoplar ao template."
+---
+
 # Skill: Vuexy + Livewire (Referencia)
 
 ## Objetivo
@@ -24,6 +29,7 @@ Guiar implementacoes de UI no projeto mantendo o visual Vuexy sem copiar cegamen
 - Priorizar partials/layouts existentes antes de criar novos.
 - Evitar duplicacao de assets de vendor sem necessidade.
 - Preservar semantica de classes do Vuexy para consistencia visual.
+- Nao usar `style=""` inline; mover estilos para arquivos CSS/SCSS do codigo real do projeto.
 - Toda customizacao de negocio deve ficar no modulo de dominio.
 
 ## Verificacao
@@ -36,4 +42,3 @@ Guiar implementacoes de UI no projeto mantendo o visual Vuexy sem copiar cegamen
 - Nao acoplar componentes de dominio a views de demonstração sem adaptacao.
 ## Regra obrigatoria de qualidade profissional
 - Seguir `/.ai/skills/qualidade-profissional/SKILL.md` como fonte unica de qualidade de codigo e performance de banco (incluindo prevencao de N+1).
-

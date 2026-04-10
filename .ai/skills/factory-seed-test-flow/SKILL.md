@@ -1,3 +1,8 @@
+---
+name: factory-seed-test-flow
+description: "Use quando criar ou evoluir recursos com factories, seeders e testes de feature, incluindo dados relacionais e povoamento de modulo."
+---
+
 # Skill: Factory Seed Test Flow
 
 ## Objetivo

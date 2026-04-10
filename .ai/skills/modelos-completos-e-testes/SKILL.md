@@ -1,3 +1,8 @@
+---
+name: modelos-completos-e-testes
+description: "Use quando criar ou refatorar models, garantindo Database/Models, migrations, factories, seeders e testes com consultas no lugar correto."
+---
+
 # Skill: Modelos Completos e Testes
 
 ## Objetivo

@@ -1,3 +1,8 @@
+---
+name: vuexy-catalogo
+description: "Use quando precisar localizar rapidamente referencias do Vuexy em templete/Vuexy/resources para layouts, paginas, assets, modais e menus."
+---
+
 # Skill: Catalogo Vuexy Resources
 
 ## Objetivo

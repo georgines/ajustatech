@@ -618,6 +618,7 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
 
 - Use `templete/Vuexy/resources` para copiar padrao visual e blocos Blade/SCSS/JS.
 - Qualquer adaptacao deve ser feita no codigo real do projeto.
+- Nao usar `style=""` inline em Blade/Livewire; estilos devem ficar em arquivos CSS/SCSS do projeto real.
 - Nao tratar arquivos de `templete/` como fonte de verdade de negocio.
 
 ## Convencoes de qualidade profissional (obrigatorio)
@@ -2257,6 +2258,21 @@ This application is a Laravel application and its main Laravel ecosystems packag
 This project has domain-specific skills available. You MUST activate the relevant skill whenever you work in that domain—don't wait until you're stuck.
 
 - `livewire-development` — Develops reactive Livewire 3 components. Activates when creating, updating, or modifying Livewire components; working with wire:model, wire:click, wire:loading, or any wire: directives; adding real-time updates, loading states, or reactivity; debugging component behavior; writing Livewire tests; or when the user mentions Livewire, component, counter, or reactive UI.
+- `factory-seed-test-flow` — Use quando criar ou evoluir recursos com factories, seeders e testes de feature, incluindo dados relacionais e povoamento de modulo.
+- `feature-test-first` — Use quando desenvolver uma nova feature com TDD, escrevendo testes de Feature primeiro e validando o fluxo RED -> GREEN.
+- `gate-codigo-novo` — Use quando criar ou alterar codigo relevante e precisar aplicar o gate completo de arquitetura, validacao, seguranca, performance, testes e dev:reinstall.
+- `modelos-completos-e-testes` — Use quando criar ou refatorar models, garantindo Database/Models, migrations, factories, seeders e testes com consultas no lugar correto.
+- `modulo-ajustatech` — Use quando criar ou evoluir modulos Ajustatech, incluindo providers, rotas, menus, autoload, Livewire e testes modulares.
+- `modulo-servicos-por-funcionalidade` — Use quando organizar um modulo por funcionalidades e services, com interfaces, binds no provider e separacao arquitetural por feature.
+- `otimizacao-solicitacoes` — Use quando otimizar requests HTTP ou Livewire, reduzir round-trips, evitar N+1 e medir performance de fluxos de listar, salvar, editar e excluir.
+- `padrao-botoes-acao-tabelas` — Use quando criar ou revisar botoes de acao em tabelas, com padrao btn-icon, Tabler Icons, acessibilidade e consistencia visual.
+- `pos-testes-dev-reinstall` — Use quando executar testes e precisar reconstruir o ambiente com php artisan dev:reinstall antes de concluir a task.
+- `qualidade-profissional` — Use quando precisar reforcar qualidade profissional de codigo, simplicidade, Clean Code, SOLID e prevencao de N+1 em consultas.
+- `seeds-em-lote-performance` — Use quando criar ou refatorar seeders com muitos registros, priorizando insert em lote, integridade relacional e performance.
+- `seeds-modulo-obrigatorios` — Use quando criar ou evoluir recursos e modulos que exigem seeds completos, dados relacionais coerentes e povoamento global com dev:seed.
+- `validacoes-sanitizacao-seguranca` — Use quando trabalhar com formularios, inputs, uploads e persistencia, aplicando sanitizacao, validacao backend, restricoes frontend e seguranca.
+- `vuexy-catalogo` — Use quando precisar localizar rapidamente referencias do Vuexy em templete/Vuexy/resources para layouts, paginas, assets, modais e menus.
+- `vuexy-livewire` — Use quando construir interfaces Blade ou Livewire com visual Vuexy, reaproveitando layouts, menus e padroes visuais sem acoplar ao template.
 
 ## Conventions
 

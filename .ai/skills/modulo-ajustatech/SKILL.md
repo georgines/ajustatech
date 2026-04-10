@@ -1,3 +1,8 @@
+---
+name: modulo-ajustatech
+description: "Use quando criar ou evoluir modulos Ajustatech, incluindo providers, rotas, menus, autoload, Livewire e testes modulares."
+---
+
 # Skill: Modulo Ajustatech
 
 ## Objetivo

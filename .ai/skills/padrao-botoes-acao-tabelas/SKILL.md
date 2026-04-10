@@ -1,3 +1,8 @@
+---
+name: padrao-botoes-acao-tabelas
+description: "Use quando criar ou revisar botoes de acao em tabelas, com padrao btn-icon, Tabler Icons, acessibilidade e consistencia visual."
+---
+
 # Skill: Padrao de Botoes de Acao em Tabelas
 
 ## Objetivo

@@ -1,3 +1,8 @@
+---
+name: otimizacao-solicitacoes
+description: "Use quando otimizar requests HTTP ou Livewire, reduzir round-trips, evitar N+1 e medir performance de fluxos de listar, salvar, editar e excluir."
+---
+
 # Skill: Otimizacao de Solicitacoes
 
 ## Objetivo

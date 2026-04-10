@@ -142,6 +142,7 @@ Toda feature de dominio nova deve nascer em modulo (`modules/Ajustatech/<Modulo>
 ## Referencias Vuexy (somente referencia)
 - Use `templete/Vuexy/resources` para copiar padrao visual e blocos Blade/SCSS/JS.
 - Qualquer adaptacao deve ser feita no codigo real do projeto.
+- Nao usar `style=""` inline em Blade/Livewire; estilos devem ficar em arquivos CSS/SCSS do projeto real.
 - Nao tratar arquivos de `templete/` como fonte de verdade de negocio.
 ## Convencoes de qualidade profissional (obrigatorio)
 - Seguir skill dedicada: `/.ai/skills/qualidade-profissional/SKILL.md`.

@@ -1,3 +1,8 @@
+---
+name: gate-codigo-novo
+description: "Use quando criar ou alterar codigo relevante e precisar aplicar o gate completo de arquitetura, validacao, seguranca, performance, testes e dev:reinstall."
+---
+
 # Skill: Gate de Codigo Novo
 
 ## Objetivo
