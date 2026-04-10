@@ -35,6 +35,15 @@ class SeedServiceOrderCommand extends Command
             return self::FAILURE;
         }
 
+        $this->info('Running command: feature:seed-service-order-equipment-type');
+        $exitCode = $this->call('feature:seed-service-order-equipment-type');
+
+        if ($exitCode !== self::SUCCESS) {
+            $this->error('Command failed: feature:seed-service-order-equipment-type');
+
+            return self::FAILURE;
+        }
+
         return self::SUCCESS;
     }
 }
