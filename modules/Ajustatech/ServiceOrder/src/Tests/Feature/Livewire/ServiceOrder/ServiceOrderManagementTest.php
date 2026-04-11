@@ -8,8 +8,8 @@ use Ajustatech\ServiceOrder\Database\Models\EquipmentType\ServiceOrderEquipmentT
 use Ajustatech\ServiceOrder\Database\Models\EquipmentType\ServiceOrderEquipmentTypeField;
 use Ajustatech\ServiceOrder\Database\Models\Procedure\ServiceOrderProcedure;
 use Ajustatech\ServiceOrder\Database\Models\ServiceOrder\ServiceOrder;
-use Ajustatech\ServiceOrder\Services\ServiceOrder\Contracts\ServiceOrderServiceInterface;
 use Ajustatech\ServiceOrder\Livewire\ServiceOrder\ServiceOrderManagement;
+use Ajustatech\ServiceOrder\Services\ServiceOrder\Contracts\ServiceOrderServiceInterface;
 use Ajustatech\Settings\Database\Models\ServiceOrder\ServiceOrderStatusFlow;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -118,7 +118,8 @@ class ServiceOrderManagementTest extends TestCase
             ->call('openCustomerCorrectionModal')
             ->assertSet('showCustomerCorrectionModal', true)
             ->call('handleCustomerCorrectionSaved', $customer->id)
-            ->assertSet('showCustomerCorrectionModal', false);
+            ->assertSet('showCustomerCorrectionModal', false)
+            ->assertDispatched('customer-correction-saved');
 
         $serviceOrder->refresh();
 

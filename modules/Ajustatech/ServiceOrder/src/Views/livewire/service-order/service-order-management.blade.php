@@ -384,18 +384,30 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    @if ($customerForCorrectionModal)
-                        @livewire(
-                            'customer-management',
-                            ['customer' => $customerForCorrectionModal, 'embedded' => true],
-                            key('service-order-customer-correction-'.$customerCorrectionComponentKey.'-'.$customerForCorrectionModal->id)
-                        )
-                    @endif
+                    @livewire(
+                        'customer-management',
+                        ['customer' => $customerForCorrectionModal, 'embedded' => true],
+                        key('service-order-customer-correction-'.$customerCorrectionComponentKey.'-'.$customerForCorrectionModal->id)
+                    )
                 </div>
             </div>
         </div>
     </div>
 @endif
+
+@script
+    <script>
+        $wire.on('customer-correction-saved', () => {
+            const modalEl = document.getElementById('customerCorrectionModal');
+
+            if (!modalEl || !window.bootstrap) {
+                return;
+            }
+
+            bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+        });
+    </script>
+@endscript
 
 @if ($showDiscountModal)
     <div class="modal fade show d-block" tabindex="-1">

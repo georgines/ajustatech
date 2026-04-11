@@ -8,8 +8,8 @@ use Ajustatech\Customer\Database\Models\Customer;
 use Ajustatech\ServiceOrder\Database\Models\ServiceOrder\ServiceOrder;
 use Ajustatech\ServiceOrder\Services\ServiceOrder\Contracts\ServiceOrderServiceInterface;
 use Illuminate\Validation\Rule;
-use Livewire\Attributes\On;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 #[Layout('core::layouts.app')]
@@ -444,7 +444,7 @@ class ServiceOrderManagement extends Component
             'selectedCustomer' => $selectedCustomer,
             'customerForCorrectionModal' => $this->customerCorrectionTargetId
                 ? Customer::query()->find($this->customerCorrectionTargetId)
-                : null,
+                : $selectedCustomer,
             'availableCustomers' => $service->searchCustomers($this->customerSearch, 20),
             'equipmentTypes' => $equipmentTypes,
             'equipmentDocuments' => $documents,
