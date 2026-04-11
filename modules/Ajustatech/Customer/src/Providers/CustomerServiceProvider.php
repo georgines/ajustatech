@@ -32,7 +32,7 @@ class CustomerServiceProvider extends ServiceProvider
     private function initializeMenus()
     {
         $verticalMenu = json_decode(file_get_contents("$this->path/Menu/verticalMenu.json"));
-        $horizontalMenu = json_decode(file_get_contents("$this->path/Menu/verticalMenu.json"));
+        $horizontalMenu = json_decode(file_get_contents("$this->path/Menu/horizontalMenu.json"));
 
         $menu = app(MenuManagerInterface::class);
         $menu->addVerticalMenu($verticalMenu);

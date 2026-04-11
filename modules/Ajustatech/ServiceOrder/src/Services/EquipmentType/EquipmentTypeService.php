@@ -49,7 +49,7 @@ class EquipmentTypeService implements EquipmentTypeServiceInterface
     public function duplicateEquipmentType(string $id): ServiceOrderEquipmentType
     {
         $equipmentType = ServiceOrderEquipmentType::findWithDetailsOrFail($id);
-        $cloneName = $this->buildDuplicateName($equipmentType->name);
+        $cloneName = ServiceOrderEquipmentType::nextDuplicateName($equipmentType->name);
 
         $data = [
             'name' => $cloneName,
@@ -102,17 +102,6 @@ class EquipmentTypeService implements EquipmentTypeServiceInterface
             ->all();
 
         return $equipmentType->duplicateWithDetails($data, $documents, $fields);
-    }
-
-    private function buildDuplicateName(string $originalName): string
-    {
-        $base = trim($originalName);
-
-        if ($base === '') {
-            return 'Tipo de equipamento (Copia)';
-        }
-
-        return "{$base} (Copia)";
     }
 
     private function copyFileIfNeeded(?string $disk, ?string $path, string $targetDirectory): array

@@ -115,7 +115,7 @@ class ServiceOrderEquipmentType extends Model
             ServiceOrderEquipmentTypeDocument::createManyForEquipmentType($equipmentType->id, $documents);
             ServiceOrderEquipmentTypeField::createManyForEquipmentType($equipmentType->id, $fields);
 
-            return $equipmentType->load(['documents', 'fields']);
+            return $equipmentType;
         });
     }
 

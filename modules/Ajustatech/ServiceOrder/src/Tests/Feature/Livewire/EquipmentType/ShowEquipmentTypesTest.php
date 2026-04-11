@@ -17,7 +17,10 @@ class ShowEquipmentTypesTest extends TestCase
 
     public function test_renders_equipment_types_list(): void
     {
-        ServiceOrderEquipmentType::factory()->create(['name' => 'Computador desktop']);
+        ServiceOrderEquipmentType::factory()->create([
+            'name' => 'Computador desktop',
+            'is_active' => true,
+        ]);
 
         Livewire::test(ShowEquipmentTypes::class)
             ->assertStatus(200)
