@@ -91,6 +91,96 @@ class ServiceOrderManagementTest extends TestCase
         ]);
     }
 
+    public function test_renders_equipment_type_as_read_only_and_document_cards(): void
+    {
+        ServiceOrderStatusFlow::ensureDefaultRows();
+
+        $customer = Customer::factory()->create([
+            'name' => 'Cliente com Documento',
+        ]);
+
+        $equipmentType = ServiceOrderEquipmentType::factory()->create([
+            'name' => 'Notebook',
+        ]);
+
+        $document = ServiceOrderEquipmentTypeDocument::factory()->create([
+            'equipment_type_id' => $equipmentType->id,
+            'title' => 'Termo de recebimento',
+        ]);
+
+        $serviceOrder = app(ServiceOrderServiceInterface::class)->createServiceOrder([
+            'customer_id' => $customer->id,
+            'equipment_type_id' => $equipmentType->id,
+            'selected_document_id' => $document->id,
+            'equipment_brand' => 'Samsung',
+            'equipment_model' => 'VF-0697',
+            'equipment_serial_number' => 'SN-30189445',
+            'dynamic_fields' => [],
+            'service_items' => [],
+        ]);
+
+        Livewire::test(ServiceOrderManagement::class, ['serviceOrder' => $serviceOrder])
+            ->assertSee('Editar tipo de equipamento')
+            ->assertSee('Termo de recebimento')
+            ->assertSee('Visualizar documento');
+    }
+
+    public function test_can_change_equipment_type_through_modal_and_refresh_dependent_fields(): void
+    {
+        ServiceOrderStatusFlow::ensureDefaultRows();
+
+        $customer = Customer::factory()->create([
+            'name' => 'Cliente Modal',
+        ]);
+
+        $currentEquipmentType = ServiceOrderEquipmentType::factory()->create([
+            'name' => 'Notebook',
+        ]);
+
+        $newEquipmentType = ServiceOrderEquipmentType::factory()->create([
+            'name' => 'Celular',
+        ]);
+
+        ServiceOrderEquipmentTypeDocument::factory()->create([
+            'equipment_type_id' => $currentEquipmentType->id,
+            'title' => 'Laudo de notebook',
+        ]);
+
+        ServiceOrderEquipmentTypeDocument::factory()->create([
+            'equipment_type_id' => $newEquipmentType->id,
+            'title' => 'Ordem de celular',
+        ]);
+
+        ServiceOrderEquipmentTypeField::factory()->create([
+            'equipment_type_id' => $newEquipmentType->id,
+            'label' => 'IMEI',
+            'placeholder' => 'Informe o IMEI',
+            'default_text' => '000000000000000',
+        ]);
+
+        $serviceOrder = app(ServiceOrderServiceInterface::class)->createServiceOrder([
+            'customer_id' => $customer->id,
+            'equipment_type_id' => $currentEquipmentType->id,
+            'selected_document_id' => null,
+            'equipment_brand' => 'Samsung',
+            'equipment_model' => 'VF-0697',
+            'equipment_serial_number' => 'SN-30189445',
+            'dynamic_fields' => [],
+            'service_items' => [],
+        ]);
+
+        Livewire::test(ServiceOrderManagement::class, ['serviceOrder' => $serviceOrder])
+            ->call('openEquipmentTypeModal')
+            ->assertSet('showEquipmentTypeModal', true)
+            ->set('equipmentTypeDraftId', $newEquipmentType->id)
+            ->call('saveEquipmentType')
+            ->assertSet('showEquipmentTypeModal', false)
+            ->assertSet('serviceOrderForm.equipment_type_id', $newEquipmentType->id)
+            ->assertSee('Celular')
+            ->assertSee('Ordem de celular')
+            ->assertSee('IMEI');
+    }
+
     public function test_customer_update_event_refreshes_snapshot_without_changing_customer(): void
     {
         ServiceOrderStatusFlow::ensureDefaultRows();

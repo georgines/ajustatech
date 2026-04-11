@@ -5,6 +5,7 @@ namespace Ajustatech\ServiceOrder\Livewire\ServiceOrder;
 use Ajustatech\Core\Rules\CnpjValidation;
 use Ajustatech\Core\Rules\CpfValidator;
 use Ajustatech\Customer\Database\Models\Customer;
+use Ajustatech\ServiceOrder\Database\Models\EquipmentType\ServiceOrderEquipmentTypeDocument;
 use Ajustatech\ServiceOrder\Database\Models\ServiceOrder\ServiceOrder;
 use Ajustatech\ServiceOrder\Services\ServiceOrder\Contracts\ServiceOrderServiceInterface;
 use Illuminate\Validation\Rule;
@@ -82,6 +83,10 @@ class ServiceOrderManagement extends Component
 
     public string $discountInput = '0.00';
 
+    public bool $showEquipmentTypeModal = false;
+
+    public string $equipmentTypeDraftId = '';
+
     public function mount(ServiceOrderServiceInterface $service, ?ServiceOrder $serviceOrder = null): void
     {
         if ($serviceOrder && $serviceOrder->exists) {
@@ -98,18 +103,6 @@ class ServiceOrderManagement extends Component
                 'equipment_serial_number' => (string) ($loaded->equipment_serial_number ?? ''),
             ];
 
-            $this->dynamicFields = $loaded->fieldValues
-                ->map(fn ($fieldValue) => [
-                    'equipment_type_field_id' => $fieldValue->equipment_type_field_id,
-                    'field_type' => $fieldValue->field_type,
-                    'field_label' => $fieldValue->field_label,
-                    'field_placeholder' => $fieldValue->field_placeholder,
-                    'is_required' => (bool) $fieldValue->is_required,
-                    'value_text' => (string) ($fieldValue->value_text ?? ''),
-                ])
-                ->values()
-                ->all();
-
             $this->serviceItems = $loaded->serviceItems
                 ->map(fn ($serviceItem) => [
                     'procedure_id' => (string) ($serviceItem->procedure_id ?? ''),
@@ -118,6 +111,18 @@ class ServiceOrderManagement extends Component
                     'unit_value' => number_format((float) $serviceItem->unit_value, 2, '.', ''),
                     'discount_value' => number_format((float) $serviceItem->discount_value, 2, '.', ''),
                     'total_value' => number_format((float) $serviceItem->total_value, 2, '.', ''),
+                ])
+                ->values()
+                ->all();
+
+            $this->dynamicFields = $loaded->fieldValues
+                ->map(fn ($fieldValue) => [
+                    'equipment_type_field_id' => $fieldValue->equipment_type_field_id,
+                    'field_type' => $fieldValue->field_type,
+                    'field_label' => $fieldValue->field_label,
+                    'field_placeholder' => $fieldValue->field_placeholder,
+                    'is_required' => (bool) $fieldValue->is_required,
+                    'value_text' => (string) ($fieldValue->value_text ?? ''),
                 ])
                 ->values()
                 ->all();
@@ -144,20 +149,7 @@ class ServiceOrderManagement extends Component
 
         if ($equipmentTypeId !== '') {
             $this->serviceOrderForm['equipment_type_id'] = $equipmentTypeId;
-            $equipmentType = $service->listActiveEquipmentTypes()
-                ->firstWhere('id', $equipmentTypeId);
-
-            $this->dynamicFields = collect($equipmentType?->fields ?? [])
-                ->map(fn ($field) => [
-                    'equipment_type_field_id' => $field->id,
-                    'field_type' => $field->field_type,
-                    'field_label' => $field->label,
-                    'field_placeholder' => $field->placeholder,
-                    'is_required' => (bool) $field->is_required,
-                    'value_text' => (string) ($field->default_text ?? ''),
-                ])
-                ->values()
-                ->all();
+            $this->refreshEquipmentTypeContext($service, $equipmentTypeId);
         }
 
         $this->addServiceItem();
@@ -169,23 +161,7 @@ class ServiceOrderManagement extends Component
             return;
         }
 
-        $service = app(ServiceOrderServiceInterface::class);
-        $equipmentType = $service->listActiveEquipmentTypes()
-            ->firstWhere('id', (string) $this->serviceOrderForm['equipment_type_id']);
-
-        $this->serviceOrderForm['selected_document_id'] = '';
-
-        $this->dynamicFields = collect($equipmentType?->fields ?? [])
-            ->map(fn ($field) => [
-                'equipment_type_field_id' => $field->id,
-                'field_type' => $field->field_type,
-                'field_label' => $field->label,
-                'field_placeholder' => $field->placeholder,
-                'is_required' => (bool) $field->is_required,
-                'value_text' => (string) ($field->default_text ?? ''),
-            ])
-            ->values()
-            ->all();
+        $this->refreshEquipmentTypeContext(app(ServiceOrderServiceInterface::class), (string) $this->serviceOrderForm['equipment_type_id']);
     }
 
     public function openCustomerModal(string $tab = 'list'): void
@@ -365,6 +341,40 @@ class ServiceOrderManagement extends Component
         $this->discountInput = '0.00';
     }
 
+    public function openEquipmentTypeModal(): void
+    {
+        if ($this->mode === 'view') {
+            return;
+        }
+
+        $this->equipmentTypeDraftId = (string) $this->serviceOrderForm['equipment_type_id'];
+        $this->showEquipmentTypeModal = true;
+    }
+
+    public function closeEquipmentTypeModal(): void
+    {
+        $this->showEquipmentTypeModal = false;
+        $this->equipmentTypeDraftId = '';
+    }
+
+    public function saveEquipmentType(ServiceOrderServiceInterface $service): void
+    {
+        if ($this->mode === 'view') {
+            return;
+        }
+
+        $validated = $this->validate([
+            'equipmentTypeDraftId' => ['required', 'uuid', 'exists:service_order_equipment_types,id'],
+        ], [], [
+            'equipmentTypeDraftId' => trans('service-order::messages.equipment_type'),
+        ]);
+
+        $this->serviceOrderForm['equipment_type_id'] = $validated['equipmentTypeDraftId'];
+        $this->serviceOrderForm['selected_document_id'] = '';
+        $this->refreshEquipmentTypeContext($service, $validated['equipmentTypeDraftId']);
+        $this->closeEquipmentTypeModal();
+    }
+
     public function applyDiscount(): void
     {
         if ($this->discountItemIndex === null || ! isset($this->serviceItems[$this->discountItemIndex])) {
@@ -434,23 +444,66 @@ class ServiceOrderManagement extends Component
             ? Customer::query()->find($this->serviceOrderForm['customer_id'])
             : null;
 
+        $currentServiceOrder = $this->serviceOrderId ? $service->findServiceOrder($this->serviceOrderId) : null;
+
         $equipmentTypes = $service->listActiveEquipmentTypes();
 
         $selectedEquipmentType = $equipmentTypes->firstWhere('id', (string) $this->serviceOrderForm['equipment_type_id']);
 
-        $documents = collect($selectedEquipmentType?->documents ?? [])->values();
+        $documents = collect($selectedEquipmentType?->documents ?? [])
+            ->values()
+            ->map(function (ServiceOrderEquipmentTypeDocument $document) use ($selectedCustomer, $currentServiceOrder): array {
+                $previewText = null;
+
+                if ($document->document_type === ServiceOrderEquipmentTypeDocument::TYPE_EDITABLE_TEMPLATE && filled($document->template_content)) {
+                    $previewText = str_replace(
+                        [
+                            '{{dados_cliente}}',
+                            '{{equipamento_modelo}}',
+                            '{{numero_ordem_servico}}',
+                        ],
+                        [
+                            (string) ($selectedCustomer?->name ?? ''),
+                            (string) ($this->serviceOrderForm['equipment_model'] ?? ''),
+                            (string) ($currentServiceOrder?->order_number ?? ''),
+                        ],
+                        (string) $document->template_content
+                    );
+                }
+
+                return [
+                    'id' => $document->id,
+                    'title' => (string) ($document->title ?: trans('service-order::messages.equipment_type_document_without_title')),
+                    'document_type' => $document->document_type,
+                    'document_type_label' => $document->document_type === ServiceOrderEquipmentTypeDocument::TYPE_EDITABLE_TEMPLATE
+                        ? trans('service-order::messages.equipment_type_template_label')
+                        : 'PDF',
+                    'icon' => $document->document_type === ServiceOrderEquipmentTypeDocument::TYPE_EDITABLE_TEMPLATE
+                        ? 'ti-file-description'
+                        : 'ti-file-type-pdf',
+                    'preview_url' => $document->document_type === ServiceOrderEquipmentTypeDocument::TYPE_FIXED_PDF && filled($document->path)
+                        ? route('service-order-equipment-types-document-file', ['id' => $document->id])
+                        : null,
+                    'preview_text' => $previewText,
+                    'is_selected' => (string) $this->serviceOrderForm['selected_document_id'] === $document->id,
+                ];
+            })
+            ->all();
 
         return view('service-order::livewire.service-order.service-order-management', [
             'selectedCustomer' => $selectedCustomer,
+            'currentServiceOrder' => $currentServiceOrder,
             'customerForCorrectionModal' => $this->customerCorrectionTargetId
                 ? Customer::query()->find($this->customerCorrectionTargetId)
                 : $selectedCustomer,
             'availableCustomers' => $service->searchCustomers($this->customerSearch, 20),
             'equipmentTypes' => $equipmentTypes,
+            'selectedEquipmentType' => $selectedEquipmentType,
             'equipmentDocuments' => $documents,
             'procedures' => $service->listProcedures(),
             'statusFlows' => $service->listStatusFlows(),
-            'currentServiceOrder' => $this->serviceOrderId ? $service->findServiceOrder($this->serviceOrderId) : null,
+            'documentPreviewTitle' => trans('service-order::messages.equipment_type_document_preview_title'),
+            'documentPreviewPendingFile' => trans('service-order::messages.equipment_type_pending_file_preview'),
         ]);
     }
 
@@ -468,6 +521,24 @@ class ServiceOrderManagement extends Component
         $this->serviceItems[$index]['unit_value'] = number_format($unitValue, 2, '.', '');
         $this->serviceItems[$index]['discount_value'] = number_format($discountValue, 2, '.', '');
         $this->serviceItems[$index]['total_value'] = number_format($totalValue, 2, '.', '');
+    }
+
+    private function refreshEquipmentTypeContext(ServiceOrderServiceInterface $service, string $equipmentTypeId): void
+    {
+        $equipmentType = $service->listActiveEquipmentTypes()
+            ->firstWhere('id', $equipmentTypeId);
+
+        $this->dynamicFields = collect($equipmentType?->fields ?? [])
+            ->map(fn ($field) => [
+                'equipment_type_field_id' => $field->id,
+                'field_type' => $field->field_type,
+                'field_label' => $field->label,
+                'field_placeholder' => $field->placeholder,
+                'is_required' => (bool) $field->is_required,
+                'value_text' => (string) ($field->default_text ?? ''),
+            ])
+            ->values()
+            ->all();
     }
 
     private function fillCustomerCorrectionFromCurrent(): void

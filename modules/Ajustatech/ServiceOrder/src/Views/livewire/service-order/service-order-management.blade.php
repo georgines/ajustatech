@@ -1,6 +1,38 @@
 <x-slot name="page_title">{{ $title }}</x-slot>
 
-<div class="row g-3">
+<div
+    class="row g-3"
+    x-data="{
+        documentPreview: {
+            title: '',
+            documentTypeLabel: '',
+            previewUrl: '',
+            previewText: '',
+            icon: '',
+        },
+        openDocumentPreview(doc) {
+            this.documentPreview = {
+                title: doc.title ?? '',
+                documentTypeLabel: doc.document_type_label ?? '',
+                previewUrl: doc.preview_url ?? '',
+                previewText: doc.preview_text ?? '',
+                icon: doc.icon ?? '',
+            };
+
+            if (!window.bootstrap) {
+                return;
+            }
+
+            const modalEl = window.document.getElementById('documentPreviewModal');
+
+            if (!modalEl) {
+                return;
+            }
+
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        },
+    }"
+>
     <div class="col-12">
         <div class="card">
             <div class="card-header">
@@ -105,20 +137,23 @@
 
     <div class="col-12">
         <div class="card">
-            <div class="card-header"><h6 class="mb-0">{{ trans('service-order::messages.equipment_data') }}</h6></div>
+            <div class="card-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                <h6 class="mb-0">{{ trans('service-order::messages.equipment_data') }}</h6>
+                @if ($mode !== 'view')
+                    <button type="button" class="btn btn-sm btn-outline-primary align-self-start align-self-sm-center" wire:click="openEquipmentTypeModal">
+                        {{ trans('service-order::messages.equipment_type_edit') }}
+                    </button>
+                @endif
+            </div>
             <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-12 col-md-4">
-                        <label class="form-label">{{ trans('service-order::messages.equipment_type') }}</label>
-                        <select class="form-select" wire:model.live="serviceOrderForm.equipment_type_id" @disabled($mode === 'view')>
-                            <option value="">{{ trans('service-order::messages.select') }}</option>
-                            @foreach ($equipmentTypes as $equipmentType)
-                                <option value="{{ $equipmentType->id }}">{{ $equipmentType->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('serviceOrderForm.equipment_type_id') <small class="text-danger">{{ $message }}</small> @enderror
+                <div class="alert alert-primary bg-label-primary d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3">
+                    <div>
+                        <small class="text-primary d-block mb-1">{{ trans('service-order::messages.equipment_type') }}</small>
+                        <div class="fw-semibold text-primary">{{ $selectedEquipmentType?->name ?? '-' }}</div>
                     </div>
+                </div>
 
+                <div class="row g-3">
                     <div class="col-12 col-md-4">
                         <label class="form-label">{{ trans('service-order::messages.equipment_brand') }}</label>
                         <input type="text" class="form-control" wire:model="serviceOrderForm.equipment_brand" @disabled($mode === 'view')>
@@ -131,43 +166,28 @@
                         @error('serviceOrderForm.equipment_model') <small class="text-danger">{{ $message }}</small> @enderror
                     </div>
 
-                    <div class="col-12 col-md-6">
+                    <div class="col-12 col-md-4">
                         <label class="form-label">{{ trans('service-order::messages.equipment_serial_number') }}</label>
                         <input type="text" class="form-control" wire:model="serviceOrderForm.equipment_serial_number" @disabled($mode === 'view')>
                         @error('serviceOrderForm.equipment_serial_number') <small class="text-danger">{{ $message }}</small> @enderror
                     </div>
 
-                    <div class="col-12 col-md-6">
-                        <label class="form-label">{{ trans('service-order::messages.print_document') }}</label>
-                        <select class="form-select" wire:model="serviceOrderForm.selected_document_id" @disabled($mode === 'view')>
-                            <option value="">{{ trans('service-order::messages.select') }}</option>
-                            @foreach ($equipmentDocuments as $document)
-                                <option value="{{ $document->id }}">{{ $document->title }} ({{ $document->document_type }})</option>
-                            @endforeach
-                        </select>
-                        @error('serviceOrderForm.selected_document_id') <small class="text-danger">{{ $message }}</small> @enderror
+                    <div class="col-12">
+                        <label class="form-label">{{ trans('service-order::messages.custom_fields') }}</label>
+                        <div class="row g-3">
+                            @forelse ($dynamicFields as $index => $dynamicField)
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label">{{ $dynamicField['field_label'] }}</label>
+                                    <input type="text" class="form-control" wire:model="dynamicFields.{{ $index }}.value_text" placeholder="{{ $dynamicField['field_placeholder'] }}" @disabled($mode === 'view')>
+                                    @error('dynamicFields.'.$index.'.value_text') <small class="text-danger">{{ $message }}</small> @enderror
+                                </div>
+                            @empty
+                                <div class="col-12">
+                                    <div class="alert alert-secondary mb-0">{{ trans('service-order::messages.no_custom_fields_for_selected_equipment') }}</div>
+                                </div>
+                            @endforelse
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header"><h6 class="mb-0">{{ trans('service-order::messages.custom_fields') }}</h6></div>
-            <div class="card-body">
-                <div class="row g-3">
-                    @forelse ($dynamicFields as $index => $dynamicField)
-                        <div class="col-12 col-md-6">
-                            <label class="form-label">{{ $dynamicField['field_label'] }}</label>
-                            <input type="text" class="form-control" wire:model="dynamicFields.{{ $index }}.value_text" placeholder="{{ $dynamicField['field_placeholder'] }}" @disabled($mode === 'view')>
-                            @error('dynamicFields.'.$index.'.value_text') <small class="text-danger">{{ $message }}</small> @enderror
-                        </div>
-                    @empty
-                        <div class="col-12">
-                            <div class="alert alert-secondary mb-0">{{ trans('service-order::messages.no_custom_fields_for_selected_equipment') }}</div>
-                        </div>
-                    @endforelse
                 </div>
             </div>
         </div>
@@ -247,6 +267,57 @@
             <div class="card-header"><h6 class="mb-0">{{ trans('service-order::messages.products') }}</h6></div>
             <div class="card-body">
                 <div class="alert alert-info mb-0">{{ trans('service-order::messages.products_placeholder') }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">{{ trans('service-order::messages.print_document') }}</h6>
+            </div>
+            <div class="card-body">
+                @if ($equipmentDocuments)
+                    <div class="row g-3 row-cols-1 row-cols-md-2 row-cols-xl-3">
+                        @foreach ($equipmentDocuments as $document)
+                            <div class="col">
+                                <label class="form-check custom-option custom-option-icon h-100 mb-0 {{ $document['is_selected'] ? 'checked' : '' }}">
+                                    <span class="form-check-label custom-option-content h-100 d-flex flex-column">
+                                        <span class="custom-option-body d-flex flex-column flex-grow-1 gap-3">
+                                            <span class="d-flex justify-content-between align-items-start gap-3">
+                                                <i class="icon-base ti {{ $document['icon'] }} text-primary fs-3"></i>
+                                                <input
+                                                    class="form-check-input"
+                                                    type="radio"
+                                                    name="selectedDocument"
+                                                    value="{{ $document['id'] }}"
+                                                    wire:model.live="serviceOrderForm.selected_document_id"
+                                                    @disabled($mode === 'view')
+                                                    @checked($document['is_selected'])
+                                                >
+                                            </span>
+                                            <span class="custom-option-title mb-0">{{ $document['title'] }}</span>
+                                            <small class="text-body-secondary">{{ $document['document_type_label'] }}</small>
+                                        </span>
+                                        <span class="mt-3 d-flex justify-content-end">
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-icon"
+                                                title="{{ trans('service-order::messages.equipment_type_view_document') }}"
+                                                aria-label="{{ trans('service-order::messages.equipment_type_view_document') }}"
+                                                x-on:click.stop.prevent="openDocumentPreview(@js($document))"
+                                            >
+                                                <i class="text-primary ti ti-eye"></i>
+                                            </button>
+                                        </span>
+                                    </span>
+                                </label>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="alert alert-secondary mb-0">{{ trans('service-order::messages.equipment_type_empty_section') }}</div>
+                @endif
             </div>
         </div>
     </div>
@@ -393,6 +464,76 @@
             </div>
         </div>
     </div>
+@endif
+
+<div class="modal fade" id="documentPreviewModal" tabindex="-1" aria-hidden="true" wire:ignore.self>
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ trans('service-order::messages.equipment_type_document_preview_title') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <i class="icon-base ti fs-3 text-primary" :class="documentPreview.icon || 'ti-file-text'"></i>
+                    <div>
+                        <div class="fw-semibold" x-text="documentPreview.title || '{{ trans('service-order::messages.equipment_type_document_without_title') }}'"></div>
+                        <small class="text-body-secondary" x-text="documentPreview.documentTypeLabel || '-'">&nbsp;</small>
+                    </div>
+                </div>
+
+                <template x-if="documentPreview.previewText">
+                    <pre class="mb-0 p-3 bg-lighter rounded text-body small" x-text="documentPreview.previewText"></pre>
+                </template>
+
+                <template x-if="documentPreview.previewUrl">
+                    <iframe :src="documentPreview.previewUrl" :title="documentPreview.title" class="w-100 border-0 rounded" height="520"></iframe>
+                </template>
+
+                <template x-if="!documentPreview.previewUrl && !documentPreview.previewText">
+                    <div class="alert alert-secondary mb-0">{{ trans('service-order::messages.equipment_type_pending_file_preview') }}</div>
+                </template>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if ($showEquipmentTypeModal)
+    <div class="modal fade show d-block" tabindex="-1" aria-hidden="true" wire:ignore.self>
+        <div class="modal-dialog modal-md modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ trans('service-order::messages.equipment_type_edit_modal_title') }}</h5>
+                    <button type="button" class="btn-close" wire:click="closeEquipmentTypeModal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        {{ trans('service-order::messages.equipment_type_edit_help') }}
+                    </div>
+
+                    <label class="form-label" for="equipmentTypeDraftId">{{ trans('service-order::messages.equipment_type') }}</label>
+                    <select
+                        id="equipmentTypeDraftId"
+                        class="form-select @error('equipmentTypeDraftId') is-invalid @enderror"
+                        wire:model="equipmentTypeDraftId"
+                    >
+                        <option value="">{{ trans('service-order::messages.select') }}</option>
+                        @foreach ($equipmentTypes as $equipmentType)
+                            <option value="{{ $equipmentType->id }}">{{ $equipmentType->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('equipmentTypeDraftId')
+                        <small class="text-danger">{{ $message }}</small>
+                    @enderror
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-label-secondary" wire:click="closeEquipmentTypeModal">{{ trans('service-order::messages.cancel') }}</button>
+                    <button type="button" class="btn btn-primary" wire:click="saveEquipmentType">{{ trans('service-order::messages.update') }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
 @endif
 
 @script
