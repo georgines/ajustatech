@@ -3,6 +3,7 @@
 namespace Ajustatech\ServiceOrder\Tests\Feature\Livewire\ServiceOrder;
 
 use Ajustatech\Customer\Database\Models\Customer;
+use Ajustatech\ServiceOrder\Database\Factories\Analysis\ServiceOrderAnalysisServiceFactory;
 use Ajustatech\ServiceOrder\Database\Models\EquipmentType\ServiceOrderEquipmentType;
 use Ajustatech\ServiceOrder\Database\Models\EquipmentType\ServiceOrderEquipmentTypeBrand;
 use Ajustatech\ServiceOrder\Database\Models\EquipmentType\ServiceOrderEquipmentTypeDocument;
@@ -44,7 +45,7 @@ class ServiceOrderManagementTest extends TestCase
             'label' => 'Senha do equipamento',
             'is_required' => true,
         ]);
-        $procedure = ServiceOrderProcedure::factory()->create([
+        $analysisService = ServiceOrderAnalysisServiceFactory::new()->create([
             'name' => 'Troca de tela',
             'value' => 350.00,
         ]);
@@ -65,7 +66,7 @@ class ServiceOrderManagementTest extends TestCase
                 'value_text' => '1234',
             ]])
             ->set('serviceItems', [[
-                'procedure_id' => $procedure->id,
+                'procedure_id' => $analysisService->id,
                 'item_name' => 'Troca de tela',
                 'item_notes' => 'Com pelicula',
                 'unit_value' => '350.00',
@@ -144,6 +145,39 @@ class ServiceOrderManagementTest extends TestCase
         $component
             ->dispatch('service-order-remove-item', index: 0)
             ->assertSet('serviceItems', []);
+
+    }
+
+    public function test_list_of_services_comes_from_analysis_catalog_not_procedures(): void
+    {
+        ServiceOrderStatusFlow::ensureDefaultRows();
+
+        $analysisService = ServiceOrderAnalysisServiceFactory::new()->create([
+            'name' => 'Atualizacao de BIOS/UEFI',
+            'value' => 149.90,
+        ]);
+
+        ServiceOrderProcedure::factory()->create([
+            'name' => 'Troca de tela',
+            'value' => 350.00,
+        ]);
+
+        Livewire::test(ServiceOrderManagement::class)
+            ->set('serviceItems', [[
+                'procedure_id' => '',
+                'item_name' => '',
+                'item_notes' => '',
+                'unit_value' => '0.00',
+                'discount_value' => '0.00',
+                'total_value' => '0.00',
+            ]])
+            ->assertSee('Atualizacao de BIOS/UEFI')
+            ->assertDontSee('Troca de tela');
+
+        $this->assertDatabaseHas('service_order_analysis_services', [
+            'id' => $analysisService->id,
+            'name' => 'Atualizacao de BIOS/UEFI',
+        ]);
     }
 
     public function test_renders_equipment_type_as_read_only_and_document_cards(): void

@@ -34,5 +34,7 @@ interface ServiceOrderServiceInterface
 
     public function listProcedures(): Collection;
 
+    public function listAnalysisServices(): Collection;
+
     public function searchCustomers(string $search = '', int $limit = 15): Collection;
 }

@@ -341,21 +341,21 @@ class ServiceOrderManagement extends Component
         $this->serviceItems = array_values($this->serviceItems);
     }
 
-    public function applyProcedureToItem(int $index, string $procedureId, ServiceOrderServiceInterface $service): void
+    public function applyAnalysisServiceToItem(int $index, string $analysisServiceId, ServiceOrderServiceInterface $service): void
     {
         if (! isset($this->serviceItems[$index])) {
             return;
         }
 
-        $procedure = $service->listProcedures()->firstWhere('id', $procedureId);
+        $analysisService = $service->listAnalysisServices()->firstWhere('id', $analysisServiceId);
 
-        if (! $procedure) {
+        if (! $analysisService) {
             return;
         }
 
-        $this->serviceItems[$index]['procedure_id'] = $procedureId;
-        $this->serviceItems[$index]['item_name'] = $procedure->name;
-        $this->serviceItems[$index]['unit_value'] = number_format((float) $procedure->value, 2, '.', '');
+        $this->serviceItems[$index]['procedure_id'] = $analysisServiceId;
+        $this->serviceItems[$index]['item_name'] = $analysisService->name;
+        $this->serviceItems[$index]['unit_value'] = number_format((float) $analysisService->value, 2, '.', '');
         $this->recalculateItemTotal($index);
     }
 
@@ -609,7 +609,7 @@ class ServiceOrderManagement extends Component
                 $discountValue = max(0, round((float) ($item['discount_value'] ?? 0), 2));
 
                 return [
-                    'procedure_id' => $item['procedure_id'] ?: null,
+                    'procedure_id' => null,
                     'item_name' => trim((string) ($item['item_name'] ?? '')),
                     'item_notes' => trim((string) ($item['item_notes'] ?? '')),
                     'unit_value' => $unitValue,
@@ -711,7 +711,7 @@ class ServiceOrderManagement extends Component
                 )
                 : collect(),
             'equipmentDocuments' => $documents,
-            'procedures' => $service->listProcedures(),
+            'analysisServices' => $service->listAnalysisServices(),
             'statusFlows' => $service->listStatusFlows(),
             'serviceItemsSubtotal' => number_format($serviceItemsSubtotal, 2, ',', '.'),
             'documentPreviewTitle' => trans('service-order::messages.equipment_type_document_preview_title'),

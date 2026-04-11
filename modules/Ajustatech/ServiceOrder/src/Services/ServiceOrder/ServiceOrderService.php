@@ -3,6 +3,7 @@
 namespace Ajustatech\ServiceOrder\Services\ServiceOrder;
 
 use Ajustatech\Customer\Database\Models\Customer;
+use Ajustatech\ServiceOrder\Database\Models\Analysis\ServiceOrderAnalysisService;
 use Ajustatech\ServiceOrder\Database\Models\EquipmentType\ServiceOrderEquipmentType;
 use Ajustatech\ServiceOrder\Database\Models\EquipmentType\ServiceOrderEquipmentTypeField;
 use Ajustatech\ServiceOrder\Database\Models\Procedure\ServiceOrderProcedure;
@@ -204,6 +205,11 @@ class ServiceOrderService implements ServiceOrderServiceInterface
         return ServiceOrderProcedure::query()
             ->orderBy('name')
             ->get(['id', 'name', 'value']);
+    }
+
+    public function listAnalysisServices(): Collection
+    {
+        return ServiceOrderAnalysisService::listForIndex();
     }
 
     public function searchCustomers(string $search = '', int $limit = 15): Collection

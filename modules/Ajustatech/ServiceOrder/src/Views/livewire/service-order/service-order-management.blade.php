@@ -242,10 +242,10 @@
                                 <tr wire:key="service-item-{{ $index }}">
                                     <td>
                                         @if (($serviceItem['item_name'] ?? '') === '' && $mode !== 'view')
-                                            <select class="form-select" wire:change="applyProcedureToItem({{ $index }}, $event.target.value)" @disabled($mode === 'view')>
+                                            <select class="form-select" wire:change="applyAnalysisServiceToItem({{ $index }}, $event.target.value)" @disabled($mode === 'view')>
                                                 <option value="">{{ trans('service-order::messages.select_service') }}</option>
-                                                @foreach ($procedures as $procedure)
-                                                    <option value="{{ $procedure->id }}">{{ $procedure->name }}</option>
+                                                @foreach ($analysisServices as $analysisService)
+                                                    <option value="{{ $analysisService->id }}">{{ $analysisService->name }}</option>
                                                 @endforeach
                                             </select>
                                         @else
