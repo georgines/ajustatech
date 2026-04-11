@@ -12,6 +12,8 @@ use Ajustatech\ServiceOrder\Providers\EquipmentType\EquipmentTypeServiceProvider
 use Ajustatech\ServiceOrder\Livewire\ServiceOrder\ServiceOrderManagement;
 use Ajustatech\ServiceOrder\Livewire\ServiceOrder\ShowServiceOrder;
 use Ajustatech\ServiceOrder\Providers\Procedure\ProcedureServiceProvider;
+use Ajustatech\ServiceOrder\Services\ServiceOrder\Contracts\ServiceOrderServiceInterface;
+use Ajustatech\ServiceOrder\Services\ServiceOrder\ServiceOrderService;
 
 class ServiceOrderServiceProvider extends ServiceProvider
 {
@@ -23,6 +25,7 @@ class ServiceOrderServiceProvider extends ServiceProvider
         $this->app->register(ProcedureServiceProvider::class);
         $this->app->register(AnalysisServiceProvider::class);
         $this->app->register(EquipmentTypeServiceProvider::class);
+        $this->app->bind(ServiceOrderServiceInterface::class, ServiceOrderService::class);
     }
 
     public function boot(): void
