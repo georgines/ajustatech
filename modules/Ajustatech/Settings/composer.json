@@ -1,0 +1,21 @@
+{
+    "name": "georgines/settings",
+    "description": "Module Settings",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Georgines Bezerra Pereira",
+            "email": "geoginae.p2@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Ajustatech\\Settings\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ajustatech\\Settings\\Tests\\": "modules/Ajustatech/Settings/src/Tests/"
+        }
+    }
+}

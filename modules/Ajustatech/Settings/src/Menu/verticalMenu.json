@@ -1,0 +1,16 @@
+{
+	"menu": [
+		{
+			"name": "Configuracoes",
+			"icon": "menu-icon tf-icons ti ti-settings",
+			"slug": "settings",
+			"submenu": [
+				{
+					"url": "",
+					"name": "Ordem de servico",
+					"slug": "service-order-settings-show"
+				}
+			]
+		}
+	]
+}

@@ -53,6 +53,10 @@ class DevModuleSeedCommand extends BaseCommand
             return self::FAILURE;
         }
 
+        if ($this->executeCommand('module:seed-settings') !== self::SUCCESS) {
+            return self::FAILURE;
+        }
+
         if ($this->commandExists('module:seed-service-order-old')) {
             if ($this->executeCommand('module:seed-service-order-old') !== self::SUCCESS) {
                 return self::FAILURE;
