@@ -94,6 +94,75 @@ class ServiceOrderManagementTest extends TestCase
         ]);
     }
 
+    public function test_can_update_service_order_and_persists_changes_after_validation(): void
+    {
+        ServiceOrderStatusFlow::ensureDefaultRows();
+
+        $customer = Customer::factory()->create([
+            'name' => 'Cliente Edição',
+        ]);
+
+        $equipmentType = ServiceOrderEquipmentType::factory()->create([
+            'name' => 'Notebook',
+        ]);
+
+        $serviceOrder = app(ServiceOrderServiceInterface::class)->createServiceOrder([
+            'customer_id' => $customer->id,
+            'equipment_type_id' => $equipmentType->id,
+            'selected_document_id' => null,
+            'equipment_brand' => 'Dell',
+            'equipment_model' => 'Inspiron 15',
+            'equipment_serial_number' => 'SN-0001',
+            'dynamic_fields' => [],
+            'service_items' => [],
+        ]);
+
+        Livewire::test(ServiceOrderManagement::class, ['serviceOrder' => $serviceOrder])
+            ->set('serviceOrderForm.equipment_model', 'Inspiron 16')
+            ->set('serviceOrderForm.equipment_serial_number', 'SN-9999')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('service-order-list', ['serviceOrder' => $serviceOrder->id]));
+
+        $this->assertDatabaseHas('service_order_bases', [
+            'id' => $serviceOrder->id,
+            'equipment_model' => 'Inspiron 16',
+            'equipment_serial_number' => 'SN-9999',
+        ]);
+    }
+
+    public function test_update_validates_required_order_fields_before_saving(): void
+    {
+        ServiceOrderStatusFlow::ensureDefaultRows();
+
+        $customer = Customer::factory()->create();
+        $equipmentType = ServiceOrderEquipmentType::factory()->create([
+            'name' => 'Notebook',
+        ]);
+
+        $serviceOrder = app(ServiceOrderServiceInterface::class)->createServiceOrder([
+            'customer_id' => $customer->id,
+            'equipment_type_id' => $equipmentType->id,
+            'selected_document_id' => null,
+            'equipment_brand' => 'Dell',
+            'equipment_model' => 'Inspiron 15',
+            'equipment_serial_number' => 'SN-0002',
+            'dynamic_fields' => [],
+            'service_items' => [],
+        ]);
+
+        Livewire::test(ServiceOrderManagement::class, ['serviceOrder' => $serviceOrder])
+            ->set('serviceOrderForm.equipment_model', '')
+            ->call('save')
+            ->assertHasErrors(['serviceOrderForm.equipment_model' => 'required']);
+
+        $this->assertDatabaseHas('service_order_bases', [
+            'id' => $serviceOrder->id,
+            'equipment_model' => 'Inspiron 15',
+            'equipment_serial_number' => 'SN-0002',
+        ]);
+    }
+
     public function test_renders_service_items_as_text_and_shows_subtotal(): void
     {
         ServiceOrderStatusFlow::ensureDefaultRows();

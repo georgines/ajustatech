@@ -627,6 +627,7 @@ class ServiceOrderManagement extends Component
 
         if ($this->serviceOrderId !== null) {
             $service->updateServiceOrder($this->serviceOrderId, $payload);
+            $this->redirectRoute('service-order-list', ['serviceOrder' => $this->serviceOrderId]);
         }
     }
 
