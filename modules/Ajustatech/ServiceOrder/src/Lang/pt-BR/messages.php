@@ -263,7 +263,10 @@ return [
     'services' => 'Servicos',
     'add_service_item' => 'Adicionar servico',
     'select_service' => 'Selecionar servico',
+    'service_item_confirm_delete' => 'Deseja excluir este servico?',
     'apply_discount' => 'Aplicar desconto',
+    'edit_discount' => 'Editar desconto',
+    'subtotal' => 'Subtotal',
     'products' => 'Produtos',
     'products_placeholder' => 'Espaco reservado para itens de produtos. O modulo de produtos sera integrado posteriormente.',
 ];

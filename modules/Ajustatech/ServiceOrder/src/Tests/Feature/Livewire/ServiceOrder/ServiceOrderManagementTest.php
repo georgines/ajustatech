@@ -93,6 +93,59 @@ class ServiceOrderManagementTest extends TestCase
         ]);
     }
 
+    public function test_renders_service_items_as_text_and_shows_subtotal(): void
+    {
+        ServiceOrderStatusFlow::ensureDefaultRows();
+
+        $component = Livewire::test(ServiceOrderManagement::class)
+            ->set('serviceItems', [[
+                'procedure_id' => '',
+                'item_name' => 'Troca de conector USB',
+                'item_notes' => '',
+                'unit_value' => '350.00',
+                'discount_value' => '25.00',
+                'total_value' => '325.00',
+            ]]);
+
+        $component
+            ->assertSee('Troca de conector USB')
+            ->assertSee('R$ 350,00')
+            ->assertSee('R$ 25,00')
+            ->assertSee('R$ 325,00')
+            ->assertSee(trans('service-order::messages.subtotal'))
+            ->assertSee('R$ 325,00');
+
+        $component
+            ->call('openDiscountModal', 0)
+            ->assertSet('showDiscountModal', true)
+            ->assertSet('discountItemIndex', 0)
+            ->assertSet('discountInput', '25.00');
+    }
+
+    public function test_service_item_delete_requests_confirmation_before_removing(): void
+    {
+        ServiceOrderStatusFlow::ensureDefaultRows();
+
+        $component = Livewire::test(ServiceOrderManagement::class)
+            ->set('serviceItems', [[
+                'procedure_id' => '',
+                'item_name' => 'Limpeza interna',
+                'item_notes' => '',
+                'unit_value' => '120.00',
+                'discount_value' => '20.00',
+                'total_value' => '100.00',
+            ]]);
+
+        $component
+            ->call('removeServiceItem', 0)
+            ->assertDispatched('confirmation')
+            ->assertSet('serviceItems.0.item_name', 'Limpeza interna');
+
+        $component
+            ->dispatch('service-order-remove-item', index: 0)
+            ->assertSet('serviceItems', []);
+    }
+
     public function test_renders_equipment_type_as_read_only_and_document_cards(): void
     {
         ServiceOrderStatusFlow::ensureDefaultRows();

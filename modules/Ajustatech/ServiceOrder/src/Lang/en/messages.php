@@ -263,7 +263,10 @@ return [
     'services' => 'Services',
     'add_service_item' => 'Add service',
     'select_service' => 'Select service',
+    'service_item_confirm_delete' => 'Do you want to delete this service?',
     'apply_discount' => 'Apply discount',
+    'edit_discount' => 'Edit discount',
+    'subtotal' => 'Subtotal',
     'products' => 'Products',
     'products_placeholder' => 'Placeholder for product items. The products module will be integrated later.',
 ];

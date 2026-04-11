@@ -217,10 +217,12 @@
 
     <div class="col-12">
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="card-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
                 <h6 class="mb-0">{{ trans('service-order::messages.services') }}</h6>
                 @if ($mode !== 'view')
-                    <button type="button" class="btn btn-sm btn-primary" wire:click="addServiceItem">{{ trans('service-order::messages.add_service_item') }}</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary align-self-start align-self-sm-center" wire:click="addServiceItem">
+                        {{ trans('service-order::messages.add_service_item') }}
+                    </button>
                 @endif
             </div>
             <div class="card-body">
@@ -237,39 +239,41 @@
                         </thead>
                         <tbody>
                             @forelse ($serviceItems as $index => $serviceItem)
-                                <tr>
+                                <tr wire:key="service-item-{{ $index }}">
                                     <td>
-                                        <select class="form-select mb-2" wire:change="applyProcedureToItem({{ $index }}, $event.target.value)" @disabled($mode === 'view')>
-                                            <option value="">{{ trans('service-order::messages.select_service') }}</option>
-                                            @foreach ($procedures as $procedure)
-                                                <option value="{{ $procedure->id }}" @selected(($serviceItem['procedure_id'] ?? '') === $procedure->id)>{{ $procedure->name }}</option>
-                                            @endforeach
-                                        </select>
-                                        <input type="text" class="form-control mb-2" wire:model="serviceItems.{{ $index }}.item_name" placeholder="{{ trans('service-order::messages.item_name') }}" @disabled($mode === 'view')>
-                                        <textarea class="form-control" wire:model="serviceItems.{{ $index }}.item_notes" rows="2" placeholder="{{ trans('service-order::messages.notes_optional') }}" @disabled($mode === 'view')></textarea>
+                                        @if (($serviceItem['item_name'] ?? '') === '' && $mode !== 'view')
+                                            <select class="form-select" wire:change="applyProcedureToItem({{ $index }}, $event.target.value)" @disabled($mode === 'view')>
+                                                <option value="">{{ trans('service-order::messages.select_service') }}</option>
+                                                @foreach ($procedures as $procedure)
+                                                    <option value="{{ $procedure->id }}">{{ $procedure->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        @else
+                                            <div class="fw-semibold text-heading">{{ $serviceItem['item_name'] ?: trans('service-order::messages.select_service') }}</div>
+                                        @endif
                                     </td>
                                     <td>
-                                        <input type="number" step="0.01" min="0" class="form-control" wire:model.blur="serviceItems.{{ $index }}.unit_value" @disabled($mode === 'view')>
+                                        <span class="text-heading">R$ {{ number_format(max(0, (float) ($serviceItem['unit_value'] ?? 0)), 2, ',', '.') }}</span>
                                     </td>
                                     <td>
                                         <div class="d-flex gap-2 align-items-center">
-                                            <input type="number" step="0.01" min="0" class="form-control" wire:model.blur="serviceItems.{{ $index }}.discount_value" @disabled($mode === 'view')>
-                                            @if ($mode !== 'view')
-                                                <button type="button" class="btn btn-sm btn-icon" wire:click="openDiscountModal({{ $index }})" title="{{ trans('service-order::messages.apply_discount') }}" aria-label="{{ trans('service-order::messages.apply_discount') }}">
-                                                    <i class="text-primary ti ti-percentage"></i>
-                                                </button>
-                                            @endif
+                                            <span class="text-heading">R$ {{ number_format(max(0, (float) ($serviceItem['discount_value'] ?? 0)), 2, ',', '.') }}</span>
                                         </div>
                                     </td>
                                     <td>
-                                        R$ {{ number_format(max(0, (float) ($serviceItem['unit_value'] ?? 0) - (float) ($serviceItem['discount_value'] ?? 0)), 2, ',', '.') }}
+                                        <span class="fw-semibold text-primary">R$ {{ number_format(max(0, (float) ($serviceItem['unit_value'] ?? 0) - (float) ($serviceItem['discount_value'] ?? 0)), 2, ',', '.') }}</span>
                                     </td>
                                     <td>
-                                        @if ($mode !== 'view')
-                                            <button type="button" class="btn btn-sm btn-icon" wire:click="removeServiceItem({{ $index }})" title="{{ trans('service-order::messages.delete') }}" aria-label="{{ trans('service-order::messages.delete') }}">
-                                                <i class="text-primary ti ti-trash"></i>
-                                            </button>
-                                        @endif
+                                        <div class="d-flex gap-2 align-items-center">
+                                            @if ($mode !== 'view')
+                                                <button type="button" class="btn btn-sm btn-icon" wire:click="openDiscountModal({{ $index }})" title="{{ trans('service-order::messages.edit') }}" aria-label="{{ trans('service-order::messages.edit') }}">
+                                                    <i class="text-primary ti ti-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-icon" wire:click="removeServiceItem({{ $index }})" title="{{ trans('service-order::messages.delete') }}" aria-label="{{ trans('service-order::messages.delete') }}">
+                                                    <i class="text-primary ti ti-trash"></i>
+                                                </button>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
@@ -278,6 +282,13 @@
                                 </tr>
                             @endforelse
                         </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="3" class="text-end fw-semibold fs-5 text-body-secondary">{{ trans('service-order::messages.subtotal') }}</th>
+                                <th class="text-primary fw-semibold fs-5 text-nowrap">R$ {{ $serviceItemsSubtotal }}</th>
+                                <th></th>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -671,7 +682,7 @@
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">{{ trans('service-order::messages.apply_discount') }}</h5>
+                    <h5 class="modal-title">{{ trans('service-order::messages.edit_discount') }}</h5>
                     <button type="button" class="btn-close" wire:click="closeDiscountModal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">

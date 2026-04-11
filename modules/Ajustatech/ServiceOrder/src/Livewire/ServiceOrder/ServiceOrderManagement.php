@@ -4,6 +4,7 @@ namespace Ajustatech\ServiceOrder\Livewire\ServiceOrder;
 
 use Ajustatech\Core\Rules\CnpjValidation;
 use Ajustatech\Core\Rules\CpfValidator;
+use Ajustatech\Core\Traits\SwitchAlertDispatch;
 use Ajustatech\Customer\Database\Models\Customer;
 use Ajustatech\ServiceOrder\Database\Models\EquipmentType\ServiceOrderEquipmentTypeBrand;
 use Ajustatech\ServiceOrder\Database\Models\EquipmentType\ServiceOrderEquipmentTypeDocument;
@@ -18,6 +19,8 @@ use Livewire\Component;
 #[Layout('core::layouts.app')]
 class ServiceOrderManagement extends Component
 {
+    use SwitchAlertDispatch;
+
     public string $title = '';
 
     public string $mode = 'create';
@@ -314,6 +317,21 @@ class ServiceOrderManagement extends Component
     }
 
     public function removeServiceItem(int $index): void
+    {
+        if (! isset($this->serviceItems[$index])) {
+            return;
+        }
+
+        $this->dispatchConfirmation(trans('service-order::messages.service_item_confirm_delete'))
+            ->typeWarning()
+            ->setButtonOK(trans('service-order::messages.confirm_yes'))
+            ->setButtonCancel(trans('service-order::messages.confirm_no'))
+            ->to('service-order-remove-item', index: $index)
+            ->run();
+    }
+
+    #[On('service-order-remove-item')]
+    public function removeServiceItemConfirmed(int $index): void
     {
         if (! isset($this->serviceItems[$index])) {
             return;
@@ -664,6 +682,13 @@ class ServiceOrderManagement extends Component
             })
             ->all();
 
+        $serviceItemsSubtotal = collect($this->serviceItems)->sum(function (array $item): float {
+            $unitValue = max(0, round((float) ($item['unit_value'] ?? 0), 2));
+            $discountValue = max(0, round((float) ($item['discount_value'] ?? 0), 2));
+
+            return max(0, $unitValue - min($discountValue, $unitValue));
+        });
+
         return view('service-order::livewire.service-order.service-order-management', [
             'selectedCustomer' => $selectedCustomer,
             'currentServiceOrder' => $currentServiceOrder,
@@ -688,6 +713,7 @@ class ServiceOrderManagement extends Component
             'equipmentDocuments' => $documents,
             'procedures' => $service->listProcedures(),
             'statusFlows' => $service->listStatusFlows(),
+            'serviceItemsSubtotal' => number_format($serviceItemsSubtotal, 2, ',', '.'),
             'documentPreviewTitle' => trans('service-order::messages.equipment_type_document_preview_title'),
             'documentPreviewPendingFile' => trans('service-order::messages.equipment_type_pending_file_preview'),
         ]);
