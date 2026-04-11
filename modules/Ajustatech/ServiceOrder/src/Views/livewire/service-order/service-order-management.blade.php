@@ -146,8 +146,8 @@
                 @endif
             </div>
             <div class="card-body">
-                <div class="alert alert-primary bg-label-primary d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3">
-                    <div>
+                <div class="card shadow-none bg-label-primary mb-3">
+                    <div class="card-body py-3">
                         <small class="text-primary d-block mb-1">{{ trans('service-order::messages.equipment_type') }}</small>
                         <div class="fw-semibold text-primary">{{ $selectedEquipmentType?->name ?? '-' }}</div>
                     </div>
@@ -156,19 +156,41 @@
                 <div class="row g-3">
                     <div class="col-12 col-md-4">
                         <label class="form-label">{{ trans('service-order::messages.equipment_brand') }}</label>
-                        <input type="text" class="form-control" wire:model="serviceOrderForm.equipment_brand" @disabled($mode === 'view')>
+                        <div class="input-group">
+                            <input
+                                type="text"
+                                class="form-control border-primary"
+                                wire:model="serviceOrderForm.equipment_brand"
+                                readonly
+                                @disabled($mode === 'view' || ! $selectedEquipmentType)
+                                placeholder="{{ trans('service-order::messages.equipment_brand_placeholder') }}"
+                                x-on:mousedown.prevent="$wire.openEquipmentBrandModal()"
+                                x-on:click.prevent="$wire.openEquipmentBrandModal()"
+                            >
+                        </div>
                         @error('serviceOrderForm.equipment_brand') <small class="text-danger">{{ $message }}</small> @enderror
                     </div>
 
                     <div class="col-12 col-md-4">
                         <label class="form-label">{{ trans('service-order::messages.equipment_model') }}</label>
-                        <input type="text" class="form-control" wire:model="serviceOrderForm.equipment_model" @disabled($mode === 'view')>
+                        <div class="input-group">
+                            <input
+                                type="text"
+                                class="form-control border-primary"
+                                wire:model="serviceOrderForm.equipment_model"
+                                readonly
+                                @disabled($mode === 'view' || ! $selectedEquipmentType)
+                                placeholder="{{ trans('service-order::messages.equipment_model_placeholder') }}"
+                                x-on:mousedown.prevent="$wire.openEquipmentModelModal()"
+                                x-on:click.prevent="$wire.openEquipmentModelModal()"
+                            >
+                        </div>
                         @error('serviceOrderForm.equipment_model') <small class="text-danger">{{ $message }}</small> @enderror
                     </div>
 
                     <div class="col-12 col-md-4">
                         <label class="form-label">{{ trans('service-order::messages.equipment_serial_number') }}</label>
-                        <input type="text" class="form-control" wire:model="serviceOrderForm.equipment_serial_number" @disabled($mode === 'view')>
+                        <input type="text" class="form-control border-primary" wire:model="serviceOrderForm.equipment_serial_number" @disabled($mode === 'view')>
                         @error('serviceOrderForm.equipment_serial_number') <small class="text-danger">{{ $message }}</small> @enderror
                     </div>
 
@@ -439,6 +461,100 @@
                     @if ($customerModalTab === 'create')
                         <button type="button" class="btn btn-primary" wire:click="createCustomerFromModal">{{ trans('service-order::messages.create') }}</button>
                     @endif
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+@endif
+
+@if ($showEquipmentBrandModal)
+    <div class="modal fade show d-block" tabindex="-1" aria-hidden="true" wire:ignore.self>
+        <div class="modal-dialog modal-md modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ trans('service-order::messages.equipment_brand_modal_title') }}</h5>
+                    <button type="button" class="btn-close" wire:click="closeEquipmentBrandModal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @if ($equipmentBrandSearchActive && $equipmentTypeBrands->isEmpty())
+                        <p class="text-body-secondary small mb-3">
+                            {{ trans('service-order::messages.equipment_brand_no_results') }}
+                        </p>
+                    @endif
+
+                    <div class="mb-3">
+                        <label class="form-label" for="equipmentBrandSearch">{{ trans('service-order::messages.equipment_brand') }}</label>
+                        <input id="equipmentBrandSearch" type="text" class="form-control @error('equipmentBrandSearch') is-invalid @enderror" wire:model.live.debounce.300ms="equipmentBrandSearch" placeholder="{{ trans('service-order::messages.equipment_brand_search_placeholder') }}">
+                        @error('equipmentBrandSearch') <small class="text-danger d-block">{{ $message }}</small> @enderror
+                    </div>
+
+                    <div class="list-group">
+                        @if ($equipmentBrandSearchActive && $equipmentTypeBrands->isNotEmpty())
+                            @foreach ($equipmentTypeBrands as $brand)
+                                <button type="button" class="list-group-item list-group-item-action" wire:click="selectEquipmentBrand('{{ $brand->id }}')">
+                                    {{ $brand->name }}
+                                </button>
+                            @endforeach
+                        @endif
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        wire:click="saveEquipmentBrand"
+                        @disabled(blank($equipmentBrandSearch) || $equipmentTypeBrands->isNotEmpty())
+                    >
+                        {{ trans('service-order::messages.save') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+@endif
+
+@if ($showEquipmentModelModal)
+    <div class="modal fade show d-block" tabindex="-1" aria-hidden="true" wire:ignore.self>
+        <div class="modal-dialog modal-md modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ trans('service-order::messages.equipment_model_modal_title') }}</h5>
+                    <button type="button" class="btn-close" wire:click="closeEquipmentModelModal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @if ($selectedEquipmentBrandId && $equipmentModelSearchActive && $equipmentTypeModels->isEmpty())
+                        <p class="text-body-secondary small mb-3">
+                            {{ trans('service-order::messages.equipment_model_no_results') }}
+                        </p>
+                    @endif
+
+                    <div class="mb-3">
+                        <label class="form-label" for="equipmentModelSearch">{{ trans('service-order::messages.equipment_model') }}</label>
+                        <input id="equipmentModelSearch" type="text" class="form-control @error('equipmentModelSearch') is-invalid @enderror" wire:model.live.debounce.300ms="equipmentModelSearch" placeholder="{{ trans('service-order::messages.equipment_model_search_placeholder') }}">
+                        @error('equipmentModelSearch') <small class="text-danger d-block">{{ $message }}</small> @enderror
+                    </div>
+
+                    <div class="list-group">
+                        @if ($selectedEquipmentBrandId && $equipmentModelSearchActive && $equipmentTypeModels->isNotEmpty())
+                            @foreach ($equipmentTypeModels as $equipmentModel)
+                                <button type="button" class="list-group-item list-group-item-action" wire:click="selectEquipmentModel('{{ $equipmentModel->id }}')">
+                                    {{ $equipmentModel->name }}
+                                </button>
+                            @endforeach
+                        @endif
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        wire:click="saveEquipmentModel"
+                        @disabled(blank($equipmentModelSearch) || blank($selectedEquipmentBrandId) || $equipmentTypeModels->isNotEmpty())
+                    >
+                        {{ trans('service-order::messages.save') }}
+                    </button>
                 </div>
             </div>
         </div>

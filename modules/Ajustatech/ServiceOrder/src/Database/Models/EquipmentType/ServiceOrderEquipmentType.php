@@ -3,11 +3,12 @@
 namespace Ajustatech\ServiceOrder\Database\Models\EquipmentType;
 
 use Ajustatech\ServiceOrder\Database\Factories\EquipmentType\ServiceOrderEquipmentTypeFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -47,6 +48,27 @@ class ServiceOrderEquipmentType extends Model
         return $this->hasMany(ServiceOrderEquipmentTypeField::class, 'equipment_type_id')
             ->orderBy('sort_order')
             ->orderBy('created_at');
+    }
+
+    public function brands(): HasMany
+    {
+        return $this->hasMany(ServiceOrderEquipmentTypeBrand::class, 'equipment_type_id')
+            ->orderByDesc('usage_count')
+            ->orderBy('name');
+    }
+
+    public function models(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            ServiceOrderEquipmentTypeModel::class,
+            ServiceOrderEquipmentTypeBrand::class,
+            'equipment_type_id',
+            'equipment_type_brand_id',
+            'id',
+            'id'
+        )
+            ->orderByDesc('usage_count')
+            ->orderBy('name');
     }
 
     public static function listForIndex(string $search = '', string $status = 'all', int $limitPerPage = 10): Collection
@@ -202,6 +224,7 @@ class ServiceOrderEquipmentType extends Model
         foreach ($existingCopyNames as $name) {
             if ($name === $firstCopyName) {
                 $maxSuffix = max($maxSuffix, 1);
+
                 continue;
             }
 

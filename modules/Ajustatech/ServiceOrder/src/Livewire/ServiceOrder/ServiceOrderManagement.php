@@ -5,7 +5,9 @@ namespace Ajustatech\ServiceOrder\Livewire\ServiceOrder;
 use Ajustatech\Core\Rules\CnpjValidation;
 use Ajustatech\Core\Rules\CpfValidator;
 use Ajustatech\Customer\Database\Models\Customer;
+use Ajustatech\ServiceOrder\Database\Models\EquipmentType\ServiceOrderEquipmentTypeBrand;
 use Ajustatech\ServiceOrder\Database\Models\EquipmentType\ServiceOrderEquipmentTypeDocument;
+use Ajustatech\ServiceOrder\Database\Models\EquipmentType\ServiceOrderEquipmentTypeModel;
 use Ajustatech\ServiceOrder\Database\Models\ServiceOrder\ServiceOrder;
 use Ajustatech\ServiceOrder\Services\ServiceOrder\Contracts\ServiceOrderServiceInterface;
 use Illuminate\Validation\Rule;
@@ -87,6 +89,20 @@ class ServiceOrderManagement extends Component
 
     public string $equipmentTypeDraftId = '';
 
+    public bool $showEquipmentBrandModal = false;
+
+    public string $equipmentBrandSearch = '';
+
+    public bool $equipmentBrandSearchActive = false;
+
+    public ?string $selectedEquipmentBrandId = null;
+
+    public bool $showEquipmentModelModal = false;
+
+    public string $equipmentModelSearch = '';
+
+    public bool $equipmentModelSearchActive = false;
+
     public function mount(ServiceOrderServiceInterface $service, ?ServiceOrder $serviceOrder = null): void
     {
         if ($serviceOrder && $serviceOrder->exists) {
@@ -102,6 +118,8 @@ class ServiceOrderManagement extends Component
                 'equipment_model' => (string) ($loaded->equipment_model ?? ''),
                 'equipment_serial_number' => (string) ($loaded->equipment_serial_number ?? ''),
             ];
+
+            $this->selectedEquipmentBrandId = $this->resolveSelectedEquipmentBrandId();
 
             $this->serviceItems = $loaded->serviceItems
                 ->map(fn ($serviceItem) => [
@@ -371,8 +389,164 @@ class ServiceOrderManagement extends Component
 
         $this->serviceOrderForm['equipment_type_id'] = $validated['equipmentTypeDraftId'];
         $this->serviceOrderForm['selected_document_id'] = '';
+        $this->serviceOrderForm['equipment_brand'] = '';
+        $this->serviceOrderForm['equipment_model'] = '';
         $this->refreshEquipmentTypeContext($service, $validated['equipmentTypeDraftId']);
         $this->closeEquipmentTypeModal();
+    }
+
+    public function openEquipmentBrandModal(): void
+    {
+        if ($this->mode === 'view' || $this->serviceOrderForm['equipment_type_id'] === '') {
+            return;
+        }
+
+        $this->selectedEquipmentBrandId = $this->resolveSelectedEquipmentBrandId();
+        $this->equipmentBrandSearch = '';
+        $this->equipmentBrandSearchActive = false;
+        $this->showEquipmentBrandModal = true;
+    }
+
+    public function closeEquipmentBrandModal(): void
+    {
+        $this->showEquipmentBrandModal = false;
+        $this->equipmentBrandSearch = '';
+        $this->equipmentBrandSearchActive = false;
+    }
+
+    public function updatedEquipmentBrandSearch(string $value): void
+    {
+        $this->equipmentBrandSearch = trim($value);
+        $this->equipmentBrandSearchActive = filled($this->equipmentBrandSearch);
+    }
+
+    public function saveEquipmentBrand(): void
+    {
+        if ($this->mode === 'view' || $this->serviceOrderForm['equipment_type_id'] === '') {
+            return;
+        }
+
+        $validated = $this->validate([
+            'equipmentBrandSearch' => ['required', 'string', 'max:120'],
+        ], [], [
+            'equipmentBrandSearch' => trans('service-order::messages.equipment_brand'),
+        ]);
+
+        $brand = ServiceOrderEquipmentTypeBrand::recordUsage(
+            (string) $this->serviceOrderForm['equipment_type_id'],
+            $validated['equipmentBrandSearch']
+        );
+
+        $this->serviceOrderForm['equipment_brand'] = $brand->name;
+        $this->selectedEquipmentBrandId = $brand->id;
+        $this->serviceOrderForm['equipment_model'] = '';
+        $this->closeEquipmentBrandModal();
+    }
+
+    public function selectEquipmentBrand(string $brandId): void
+    {
+        if ($this->mode === 'view' || $this->serviceOrderForm['equipment_type_id'] === '') {
+            return;
+        }
+
+        $brand = ServiceOrderEquipmentTypeBrand::query()
+            ->where('equipment_type_id', $this->serviceOrderForm['equipment_type_id'])
+            ->find($brandId);
+
+        if (! $brand) {
+            return;
+        }
+
+        $this->serviceOrderForm['equipment_brand'] = ServiceOrderEquipmentTypeBrand::recordUsage(
+            (string) $this->serviceOrderForm['equipment_type_id'],
+            $brand->name
+        )->name;
+        $this->selectedEquipmentBrandId = $brand->id;
+        $this->serviceOrderForm['equipment_model'] = '';
+
+        $this->closeEquipmentBrandModal();
+    }
+
+    public function openEquipmentModelModal(): void
+    {
+        if ($this->mode === 'view' || $this->serviceOrderForm['equipment_type_id'] === '') {
+            return;
+        }
+
+        $this->selectedEquipmentBrandId = $this->selectedEquipmentBrandId ?: $this->resolveSelectedEquipmentBrandId();
+        $this->equipmentModelSearch = '';
+        $this->equipmentModelSearchActive = false;
+        $this->showEquipmentModelModal = true;
+    }
+
+    public function closeEquipmentModelModal(): void
+    {
+        $this->showEquipmentModelModal = false;
+        $this->equipmentModelSearch = '';
+        $this->equipmentModelSearchActive = false;
+    }
+
+    public function updatedEquipmentModelSearch(string $value): void
+    {
+        $this->equipmentModelSearch = trim($value);
+        $this->equipmentModelSearchActive = filled($this->equipmentModelSearch);
+    }
+
+    public function saveEquipmentModel(): void
+    {
+        if ($this->mode === 'view' || $this->serviceOrderForm['equipment_type_id'] === '') {
+            return;
+        }
+
+        if ($this->selectedEquipmentBrandId === null) {
+            $this->selectedEquipmentBrandId = $this->resolveSelectedEquipmentBrandId();
+        }
+
+        if ($this->selectedEquipmentBrandId === null) {
+            $this->addError('equipmentModelSearch', trans('service-order::messages.equipment_model_brand_required'));
+
+            return;
+        }
+
+        $validated = $this->validate([
+            'equipmentModelSearch' => ['required', 'string', 'max:120'],
+        ], [], [
+            'equipmentModelSearch' => trans('service-order::messages.equipment_model'),
+        ]);
+
+        $model = ServiceOrderEquipmentTypeModel::recordUsage(
+            $this->selectedEquipmentBrandId,
+            $validated['equipmentModelSearch']
+        );
+
+        $this->serviceOrderForm['equipment_model'] = $model->name;
+        $this->closeEquipmentModelModal();
+    }
+
+    public function selectEquipmentModel(string $modelId): void
+    {
+        if ($this->mode === 'view' || $this->serviceOrderForm['equipment_type_id'] === '') {
+            return;
+        }
+
+        if ($this->selectedEquipmentBrandId === null) {
+            $this->selectedEquipmentBrandId = $this->resolveSelectedEquipmentBrandId();
+        }
+
+        $model = ServiceOrderEquipmentTypeModel::query()
+            ->where('equipment_type_brand_id', $this->selectedEquipmentBrandId)
+            ->find($modelId);
+
+        if (! $model) {
+            return;
+        }
+
+        $this->serviceOrderForm['equipment_model'] = ServiceOrderEquipmentTypeModel::recordUsage(
+            $this->selectedEquipmentBrandId,
+            $model->name
+        )->name;
+
+        $this->closeEquipmentModelModal();
     }
 
     public function applyDiscount(): void
@@ -499,6 +673,18 @@ class ServiceOrderManagement extends Component
             'availableCustomers' => $service->searchCustomers($this->customerSearch, 20),
             'equipmentTypes' => $equipmentTypes,
             'selectedEquipmentType' => $selectedEquipmentType,
+            'equipmentTypeBrands' => $selectedEquipmentType
+                ? ServiceOrderEquipmentTypeBrand::listForEquipmentType(
+                    (string) $selectedEquipmentType->id,
+                    $this->equipmentBrandSearchActive ? $this->equipmentBrandSearch : ''
+                )
+                : collect(),
+            'equipmentTypeModels' => $selectedEquipmentType && $this->selectedEquipmentBrandId
+                ? ServiceOrderEquipmentTypeModel::listForBrand(
+                    $this->selectedEquipmentBrandId,
+                    $this->equipmentModelSearchActive ? $this->equipmentModelSearch : ''
+                )
+                : collect(),
             'equipmentDocuments' => $documents,
             'procedures' => $service->listProcedures(),
             'statusFlows' => $service->listStatusFlows(),
@@ -539,6 +725,24 @@ class ServiceOrderManagement extends Component
             ])
             ->values()
             ->all();
+
+        $this->serviceOrderForm['equipment_brand'] = '';
+        $this->serviceOrderForm['equipment_model'] = '';
+        $this->selectedEquipmentBrandId = null;
+    }
+
+    private function resolveSelectedEquipmentBrandId(): ?string
+    {
+        $brandName = trim((string) ($this->serviceOrderForm['equipment_brand'] ?? ''));
+
+        if ($brandName === '' || $this->serviceOrderForm['equipment_type_id'] === '') {
+            return null;
+        }
+
+        return ServiceOrderEquipmentTypeBrand::query()
+            ->where('equipment_type_id', $this->serviceOrderForm['equipment_type_id'])
+            ->where('name', $brandName)
+            ->value('id');
     }
 
     private function fillCustomerCorrectionFromCurrent(): void

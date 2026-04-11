@@ -4,8 +4,10 @@ namespace Ajustatech\ServiceOrder\Tests\Feature\Livewire\ServiceOrder;
 
 use Ajustatech\Customer\Database\Models\Customer;
 use Ajustatech\ServiceOrder\Database\Models\EquipmentType\ServiceOrderEquipmentType;
+use Ajustatech\ServiceOrder\Database\Models\EquipmentType\ServiceOrderEquipmentTypeBrand;
 use Ajustatech\ServiceOrder\Database\Models\EquipmentType\ServiceOrderEquipmentTypeDocument;
 use Ajustatech\ServiceOrder\Database\Models\EquipmentType\ServiceOrderEquipmentTypeField;
+use Ajustatech\ServiceOrder\Database\Models\EquipmentType\ServiceOrderEquipmentTypeModel;
 use Ajustatech\ServiceOrder\Database\Models\Procedure\ServiceOrderProcedure;
 use Ajustatech\ServiceOrder\Database\Models\ServiceOrder\ServiceOrder;
 use Ajustatech\ServiceOrder\Livewire\ServiceOrder\ServiceOrderManagement;
@@ -101,6 +103,7 @@ class ServiceOrderManagementTest extends TestCase
 
         $equipmentType = ServiceOrderEquipmentType::factory()->create([
             'name' => 'Notebook',
+            'is_active' => true,
         ]);
 
         $document = ServiceOrderEquipmentTypeDocument::factory()->create([
@@ -125,6 +128,130 @@ class ServiceOrderManagementTest extends TestCase
             ->assertSee('Visualizar documento');
     }
 
+    public function test_can_add_brand_and_model_through_their_modals(): void
+    {
+        ServiceOrderStatusFlow::ensureDefaultRows();
+
+        $customer = Customer::factory()->create();
+        $equipmentType = ServiceOrderEquipmentType::factory()->create([
+            'name' => 'Notebook',
+        ]);
+
+        $existingBrand = ServiceOrderEquipmentTypeBrand::factory()->create([
+            'equipment_type_id' => $equipmentType->id,
+            'name' => 'Lenovo',
+            'usage_count' => 4,
+        ]);
+
+        $otherBrand = ServiceOrderEquipmentTypeBrand::factory()->create([
+            'equipment_type_id' => $equipmentType->id,
+            'name' => 'Dell',
+            'usage_count' => 8,
+        ]);
+
+        $existingModel = ServiceOrderEquipmentTypeModel::factory()->create([
+            'equipment_type_brand_id' => $existingBrand->id,
+            'name' => 'ThinkPad E14',
+            'usage_count' => 6,
+        ]);
+
+        ServiceOrderEquipmentTypeModel::factory()->create([
+            'equipment_type_brand_id' => $otherBrand->id,
+            'name' => 'Inspiron 15',
+            'usage_count' => 3,
+        ]);
+
+        $serviceOrder = app(ServiceOrderServiceInterface::class)->createServiceOrder([
+            'customer_id' => $customer->id,
+            'equipment_type_id' => $equipmentType->id,
+            'selected_document_id' => null,
+            'equipment_brand' => 'Samsung',
+            'equipment_model' => 'Book 2',
+            'equipment_serial_number' => 'SN-001',
+            'dynamic_fields' => [],
+            'service_items' => [],
+        ]);
+
+        Livewire::test(ServiceOrderManagement::class, ['serviceOrder' => $serviceOrder])
+            ->call('openEquipmentBrandModal')
+            ->assertSet('showEquipmentBrandModal', true)
+            ->assertDontSee(trans('service-order::messages.equipment_brand_no_results'))
+            ->assertDontSee('Lenovo')
+            ->set('equipmentBrandSearch', 'Lenovo')
+            ->assertSee('Lenovo')
+            ->call('selectEquipmentBrand', $existingBrand->id)
+            ->assertSet('showEquipmentBrandModal', false)
+            ->assertSet('serviceOrderForm.equipment_brand', 'Lenovo')
+            ->assertSet('selectedEquipmentBrandId', $existingBrand->id)
+            ->call('openEquipmentModelModal')
+            ->assertSet('showEquipmentModelModal', true)
+            ->set('equipmentModelSearch', '')
+            ->assertDontSee('ThinkPad E14')
+            ->set('equipmentModelSearch', 'ThinkPad X1')
+            ->assertSee('Nenhum resultado para esta busca')
+            ->call('saveEquipmentModel')
+            ->assertSet('showEquipmentModelModal', false)
+            ->assertSet('serviceOrderForm.equipment_model', 'ThinkPad X1');
+
+        $this->assertDatabaseHas('service_order_equipment_type_brands', [
+            'equipment_type_id' => $equipmentType->id,
+            'name' => 'Lenovo',
+            'usage_count' => 5,
+        ]);
+
+        $this->assertDatabaseHas('service_order_equipment_type_models', [
+            'equipment_type_brand_id' => $existingBrand->id,
+            'name' => 'ThinkPad X1',
+            'usage_count' => 1,
+        ]);
+
+        $this->assertDatabaseHas('service_order_equipment_type_models', [
+            'equipment_type_brand_id' => $existingBrand->id,
+            'name' => $existingModel->name,
+        ]);
+    }
+
+    public function test_brand_and_model_lists_stay_empty_without_search_term(): void
+    {
+        ServiceOrderStatusFlow::ensureDefaultRows();
+
+        $customer = Customer::factory()->create();
+        $equipmentType = ServiceOrderEquipmentType::factory()->create([
+            'name' => 'Notebook',
+        ]);
+
+        $brand = ServiceOrderEquipmentTypeBrand::factory()->create([
+            'equipment_type_id' => $equipmentType->id,
+            'name' => 'Lenovo',
+        ]);
+
+        ServiceOrderEquipmentTypeModel::factory()->create([
+            'equipment_type_brand_id' => $brand->id,
+            'name' => 'ThinkPad E14',
+        ]);
+
+        $serviceOrder = app(ServiceOrderServiceInterface::class)->createServiceOrder([
+            'customer_id' => $customer->id,
+            'equipment_type_id' => $equipmentType->id,
+            'selected_document_id' => null,
+            'equipment_brand' => '',
+            'equipment_model' => '',
+            'equipment_serial_number' => 'SN-002',
+            'dynamic_fields' => [],
+            'service_items' => [],
+        ]);
+
+        Livewire::test(ServiceOrderManagement::class, ['serviceOrder' => $serviceOrder])
+            ->call('openEquipmentBrandModal')
+            ->assertSet('showEquipmentBrandModal', true)
+            ->assertDontSee(trans('service-order::messages.equipment_brand_no_results'))
+            ->assertDontSee('Lenovo')
+            ->call('openEquipmentModelModal')
+            ->assertSet('showEquipmentModelModal', true)
+            ->assertDontSee(trans('service-order::messages.equipment_model_no_results'))
+            ->assertDontSee('ThinkPad E14');
+    }
+
     public function test_can_change_equipment_type_through_modal_and_refresh_dependent_fields(): void
     {
         ServiceOrderStatusFlow::ensureDefaultRows();
@@ -135,10 +262,12 @@ class ServiceOrderManagementTest extends TestCase
 
         $currentEquipmentType = ServiceOrderEquipmentType::factory()->create([
             'name' => 'Notebook',
+            'is_active' => true,
         ]);
 
         $newEquipmentType = ServiceOrderEquipmentType::factory()->create([
             'name' => 'Celular',
+            'is_active' => true,
         ]);
 
         ServiceOrderEquipmentTypeDocument::factory()->create([
