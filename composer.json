@@ -10,6 +10,7 @@
         "laravel/framework": "^11.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
+        "league/flysystem-aws-s3-v3": "^3.25.1",
         "livewire/livewire": "^3.5"
     },
     "require-dev": {
@@ -30,7 +31,9 @@
             "Ajustatech\\Core\\": "modules/Ajustatech/Core/src",
             "Ajustatech\\Customer\\": "modules/Ajustatech/Customer/src",
             "Ajustatech\\Financial\\": "modules/Ajustatech/Financial/src",
-            "Ajustatech\\ServiceOrder\\": "modules/Ajustatech/ServiceOrder/src"
+            "Ajustatech\\ServiceOrder\\": "modules/Ajustatech/ServiceOrder/src",
+            "Ajustatech\\ServiceOrderOld\\": "modules/Ajustatech/ServiceOrderOld/src"
+
         }
     },
     "autoload-dev": {

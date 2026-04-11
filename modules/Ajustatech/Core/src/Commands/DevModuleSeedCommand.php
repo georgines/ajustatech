@@ -2,31 +2,84 @@
 
 namespace Ajustatech\Core\Commands;
 
-use Illuminate\Support\Facades\Artisan;
-
 class DevModuleSeedCommand extends BaseCommand
 {
     protected $signature = 'module:seed';
     protected $description = 'Seed specific modules';
 
-    public function handle()
+    public function handle(): int
     {
-
-        $commands = Artisan::all();
-        $filteredCommands = array_filter(array_keys($commands), function ($command) {
-            return strpos($command, 'module:seed') === 0 && $command !== 'module:seed';
-        });
-
-        if (empty($filteredCommands)) {
-            $this->error("No commands found with the prefix 'module:seed'.");
-            return;
+        if ($this->executeCommand('module:seed-customer') !== self::SUCCESS) {
+            return self::FAILURE;
         }
 
-        foreach ($filteredCommands as $command) {
-            $this->info("Running command: {$command}");
-            Artisan::call($command, [], $this->getOutput());
+        if ($this->executeCommand('module:seed-company-cash-transactions') !== self::SUCCESS) {
+            return self::FAILURE;
         }
 
-        $this->info("🔥 All commands with the prefix 'module:seed' have been executed.");
+        if ($this->executeCommand('module:seed-company-cash-balances') !== self::SUCCESS) {
+            return self::FAILURE;
+        }
+
+        if ($this->executeCommand('module:seed-company-cash') !== self::SUCCESS) {
+            return self::FAILURE;
+        }
+
+        if ($this->executeCommand('module:seed-financial-card-brands') !== self::SUCCESS) {
+            return self::FAILURE;
+        }
+
+        if ($this->executeCommand('module:seed-financial-payment-methods') !== self::SUCCESS) {
+            return self::FAILURE;
+        }
+
+        if ($this->executeCommand('module:seed-financial-receivables') !== self::SUCCESS) {
+            return self::FAILURE;
+        }
+
+        if ($this->executeCommand('module:seed-financial-payables') !== self::SUCCESS) {
+            return self::FAILURE;
+        }
+
+        if ($this->executeCommand('module:seed-financial-cash-flow-routes') !== self::SUCCESS) {
+            return self::FAILURE;
+        }
+
+        if ($this->executeCommand('module:seed-sales-cash-sessions') !== self::SUCCESS) {
+            return self::FAILURE;
+        }
+
+        if ($this->executeCommand('module:seed-service-order') !== self::SUCCESS) {
+            return self::FAILURE;
+        }
+
+        if ($this->commandExists('module:seed-service-order-old')) {
+            if ($this->executeCommand('module:seed-service-order-old') !== self::SUCCESS) {
+                return self::FAILURE;
+            }
+        } else {
+            $this->warn('Skipping optional command: module:seed-service-order-old (not registered).');
+        }
+
+        $this->info('All module seed commands were executed.');
+
+        return self::SUCCESS;
+    }
+
+    private function executeCommand(string $command): int
+    {
+        $this->info("Running command: {$command}");
+        $exitCode = $this->call($command);
+
+        if ($exitCode !== self::SUCCESS) {
+            $this->error("Command failed: {$command}");
+        }
+
+        return $exitCode;
+    }
+
+    private function commandExists(string $command): bool
+    {
+        return $this->getApplication()?->has($command) ?? false;
     }
 }

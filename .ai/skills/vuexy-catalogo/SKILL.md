@@ -1,3 +1,8 @@
+---
+name: vuexy-catalogo
+description: "Use quando precisar localizar rapidamente referencias do Vuexy em templete/Vuexy/resources para layouts, paginas, assets, modais e menus."
+---
+
 # Skill: Catalogo Vuexy Resources
 
 ## Objetivo
@@ -28,3 +33,6 @@ Usar o arquivo `/.ai/guidelines/projeto/vuexy-recursos-catalogo.md` como indice 
 ## Nao fazer
 - Nao mover arquivos do template para producao sem revisao.
 - Nao criar acoplamento de negocio com arquivos de referencia.
+## Regra obrigatoria de qualidade profissional
+- Seguir `/.ai/skills/qualidade-profissional/SKILL.md` como fonte unica de qualidade de codigo e performance de banco (incluindo prevencao de N+1).
+

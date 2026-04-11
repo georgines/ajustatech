@@ -1,5 +1,10 @@
 @php
 $menuCollapsed = ($configData['menuCollapsed'] === 'layout-menu-collapsed') ? json_encode(true) : false;
+$appLocaleRaw = app()->getLocale();
+$appLocaleBase = explode('-', $appLocaleRaw)[0];
+$templateCustomizerLang = in_array($appLocaleRaw, ['en', 'fr', 'ar', 'de'], true)
+  ? $appLocaleRaw
+  : (in_array($appLocaleBase, ['en', 'fr', 'ar', 'de'], true) ? $appLocaleBase : 'en');
 @endphp
 <!-- laravel style -->
 @vite(['resources/assets/vendor/js/helpers.js'])
@@ -21,7 +26,7 @@ $menuCollapsed = ($configData['menuCollapsed'] === 'layout-menu-collapsed') ? js
     defaultStyle: "{{$configData['styleOpt']}}",
     defaultShowDropdownOnHover: "{{$configData['showDropdownOnHover']}}", // true/false (for horizontal layout only)
     displayCustomizer: "{{$configData['displayCustomizer']}}",
-    lang: '{{ app()->getLocale() }}',
+    lang: '{{ $templateCustomizerLang }}',
     pathResolver: function(path) {
       var resolvedPaths = {
         // Core stylesheets

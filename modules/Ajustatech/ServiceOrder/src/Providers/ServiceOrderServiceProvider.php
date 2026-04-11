@@ -2,38 +2,41 @@
 
 namespace Ajustatech\ServiceOrder\Providers;
 
-use Ajustatech\ServiceOrder\Commands\SeedServiceOrderCommand;
-use Ajustatech\Core\Helpers\MenuManagerInterface;
-use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
-use Ajustatech\ServiceOrder\Livewire\ShowServiceOrders;
-use Ajustatech\ServiceOrder\Livewire\ShowServiceOrderDocuments;
-use Ajustatech\ServiceOrder\Livewire\ShowServiceCatalog;
-use Ajustatech\ServiceOrder\Livewire\ShowEquipmentTypes;
-use Ajustatech\ServiceOrder\Livewire\EditServiceOrderManagement;
-use Ajustatech\ServiceOrder\Livewire\NewServiceOrderManagement;
-use Ajustatech\ServiceOrder\Livewire\EquipmentTypeManagement;
-use Ajustatech\ServiceOrder\Livewire\ServiceCatalogManagement;
+use Illuminate\Support\ServiceProvider;
+use Ajustatech\Core\Helpers\MenuManagerInterface;
+use Ajustatech\ServiceOrder\Commands\SeedServiceOrderCommand;
+use Ajustatech\ServiceOrder\Commands\WipeServiceOrderMediaCommand;
+use Ajustatech\ServiceOrder\Providers\Analysis\AnalysisServiceProvider;
+use Ajustatech\ServiceOrder\Providers\EquipmentType\EquipmentTypeServiceProvider;
+use Ajustatech\ServiceOrder\Livewire\ServiceOrder\ServiceOrderManagement;
+use Ajustatech\ServiceOrder\Livewire\ServiceOrder\ShowServiceOrder;
+use Ajustatech\ServiceOrder\Providers\Procedure\ProcedureServiceProvider;
 
 class ServiceOrderServiceProvider extends ServiceProvider
 {
-    protected string $path = __DIR__ . '/..';
+
+    protected $path = __DIR__ . "/..";
 
     public function register(): void
     {
+        $this->app->register(ProcedureServiceProvider::class);
+        $this->app->register(AnalysisServiceProvider::class);
+        $this->app->register(EquipmentTypeServiceProvider::class);
     }
 
     public function boot(): void
     {
-        $this->loadMigrationsFrom("$this->path/Database/Migrations");
         $this->loadRoutesFrom("$this->path/Routes/web.php");
-        $this->loadViewsFrom("$this->path/Views", 'service-order');
+        $this->loadViewsFrom("$this->path/Views", "service-order");
+        $this->loadMigrationsFrom("$this->path/Database/Migrations/ServiceOrder");
+        $this->loadTranslationsFrom("$this->path/Lang", "service-order");
         $this->loadCommands();
         $this->initializeMenus();
         $this->initializeLivewireComponents();
     }
 
-    private function initializeMenus(): void
+    private function initializeMenus()
     {
         $verticalMenu = json_decode(file_get_contents("$this->path/Menu/verticalMenu.json"));
         $horizontalMenu = json_decode(file_get_contents("$this->path/Menu/horizontalMenu.json"));
@@ -43,22 +46,17 @@ class ServiceOrderServiceProvider extends ServiceProvider
         $menu->addHorizontalMenu($horizontalMenu);
     }
 
-    private function initializeLivewireComponents(): void
+	private function initializeLivewireComponents()
     {
-        Livewire::component('service-order-show-equipment-types', ShowEquipmentTypes::class);
-        Livewire::component('service-order-equipment-type-management', EquipmentTypeManagement::class);
-        Livewire::component('service-order-show-orders', ShowServiceOrders::class);
-        Livewire::component('service-order-order-documents', ShowServiceOrderDocuments::class);
-        Livewire::component('service-order-order-edit', EditServiceOrderManagement::class);
-        Livewire::component('service-order-new-order-management', NewServiceOrderManagement::class);
-        Livewire::component('service-order-show-services', ShowServiceCatalog::class);
-        Livewire::component('service-order-service-management', ServiceCatalogManagement::class);
+		Livewire::component('show-service-order', ShowServiceOrder::class);
+		Livewire::component('service-order-management', ServiceOrderManagement::class);
     }
 
     private function loadCommands(): void
     {
         $this->commands([
             SeedServiceOrderCommand::class,
+            WipeServiceOrderMediaCommand::class,
         ]);
     }
 }

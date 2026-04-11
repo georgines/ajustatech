@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Ajustatech\Customer\Providers\CustomerServiceProvider;
 use Ajustatech\Financial\Providers\FinancialServiceProvider;
 use Ajustatech\ServiceOrder\Providers\ServiceOrderServiceProvider;
+use Ajustatech\ServiceOrderOld\Providers\ServiceOrderOldServiceProvider;
 
 class CoreServiceProvider extends ServiceProvider
 {
@@ -18,6 +19,7 @@ class CoreServiceProvider extends ServiceProvider
         $this->app->register(CustomerServiceProvider::class);
         $this->app->register(FinancialServiceProvider::class);
         $this->app->register(ServiceOrderServiceProvider::class);
+        // $this->app->register(ServiceOrderOldServiceProvider::class);
         $this->app->register(ViewServiceProvider::class);
     }
 

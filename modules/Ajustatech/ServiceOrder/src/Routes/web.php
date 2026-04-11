@@ -1,42 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Ajustatech\ServiceOrder\Livewire\ShowServiceOrders;
-use Ajustatech\ServiceOrder\Livewire\ShowServiceOrderDocuments;
-use Ajustatech\ServiceOrder\Livewire\ShowServiceCatalog;
-use Ajustatech\ServiceOrder\Livewire\ShowEquipmentTypes;
-use Ajustatech\ServiceOrder\Livewire\NewServiceOrderManagement;
-use Ajustatech\ServiceOrder\Livewire\EquipmentTypeManagement;
-use Ajustatech\ServiceOrder\Livewire\ServiceCatalogManagement;
+use Ajustatech\ServiceOrder\Livewire\ServiceOrder\ShowServiceOrder;
+use Ajustatech\ServiceOrder\Livewire\ServiceOrder\ServiceOrderManagement;
 
-Route::middleware(['web'])->group(function () {
-    Route::get('/os/tipos-equipamento', ShowEquipmentTypes::class)
-        ->name('service-order-equipment-types-show');
-
-    Route::get('/os/tipos-equipamento/cadastro', EquipmentTypeManagement::class)
-        ->name('service-order-equipment-types-create');
-
-    Route::get('/os/tipos-equipamento/{id}/editar', EquipmentTypeManagement::class)
-        ->name('service-order-equipment-types-edit');
-
-    Route::get('/os/nova', NewServiceOrderManagement::class)
-        ->name('service-order-orders-create');
-
-    Route::get('/os/ordens-servico', ShowServiceOrders::class)
-        ->name('service-order-orders-show');
-
-    Route::get('/os/ordens-servico/{id}/editar', NewServiceOrderManagement::class)
-        ->name('service-order-orders-edit');
-
-    Route::get('/os/ordens-servico/{id}/documentos', ShowServiceOrderDocuments::class)
-        ->name('service-order-orders-documents');
-
-    Route::get('/os/servicos', ShowServiceCatalog::class)
-        ->name('service-order-services-show');
-
-    Route::get('/os/servicos/cadastro', ServiceCatalogManagement::class)
-        ->name('service-order-services-create');
-
-    Route::get('/os/servicos/{id}/editar', ServiceCatalogManagement::class)
-        ->name('service-order-services-edit');
-});
+Route::get('/ordens-servico', ShowServiceOrder::class)->name('service-order-show');
+Route::get('/ordens-servico/cadastro', ServiceOrderManagement::class)->name('service-order-create');
+Route::get('/ordens-servico/{serviceOrder}/editar', ServiceOrderManagement::class)->name('service-order-edit');

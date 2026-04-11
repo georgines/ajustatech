@@ -280,10 +280,14 @@ class TemplateCustomizer {
   }
 
   setLang(lang, updateStorage = true, force = false) {
-    if (lang === this.settings.lang && !force) return
-    if (!TemplateCustomizer.LANGUAGES[lang]) throw new Error(`Language "${lang}" not found!`)
+    const normalizedLang = String(lang || '').toLowerCase().split('-')[0]
+    const safeLang = TemplateCustomizer.LANGUAGES[lang]
+      ? lang
+      : (TemplateCustomizer.LANGUAGES[normalizedLang] ? normalizedLang : 'en')
 
-    const t = TemplateCustomizer.LANGUAGES[lang]
+    if (safeLang === this.settings.lang && !force) return
+
+    const t = TemplateCustomizer.LANGUAGES[safeLang]
 
     ;[
       'panel_header',
@@ -321,9 +325,9 @@ class TemplateCustomizer {
         tt[themeName] || this._getThemeByName(themeName).title
     }
 
-    this.settings.lang = lang
+    this.settings.lang = safeLang
 
-    if (updateStorage) this._setSetting('Lang', lang)
+    if (updateStorage) this._setSetting('Lang', safeLang)
 
     if (updateStorage) this.settings.onSettingsChange.call(this, this.settings)
   }

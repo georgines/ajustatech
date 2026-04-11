@@ -1,31 +1,31 @@
 {
-    "menu": [
-        {
-            "name": "OS",
-            "icon": "menu-icon tf-icons ti ti-tool",
-            "slug": "service-order",
-            "submenu": [
-                {
-                    "url": "",
-                    "name": "Nova Ordem de Servico",
-                    "slug": "service-order-orders-create"
-                },
-                {
-                    "url": "",
-                    "name": "Ordens de Servico",
-                    "slug": "service-order-orders-show"
-                },
-                {
-                    "url": "",
-                    "name": "Tipos de Equipamento",
-                    "slug": "service-order-equipment-types-show"
-                },
-                {
-                    "url": "",
-                    "name": "Servicos",
-                    "slug": "service-order-services-show"
-                }
-            ]
-        }
-    ]
+	"menu": [
+		{
+			"name": "Ordem de Servico",
+			"icon": "menu-icon tf-icons ti ti-receipt-2",
+			"slug": "service-order",
+			"submenu": [
+				{
+					"url": "",
+					"name": "Ordens de Servico",
+					"slug": "service-order-show"
+				},
+				{
+					"url": "",
+					"name": "Procedimentos",
+					"slug": "service-order-procedures-show"
+				},
+				{
+					"url": "",
+					"name": "Servicos de analises",
+					"slug": "service-order-analyses-show"
+				},
+				{
+					"url": "",
+					"name": "Tipos de equipamentos",
+					"slug": "service-order-equipment-types-show"
+				}
+			]
+		}
+	]
 }

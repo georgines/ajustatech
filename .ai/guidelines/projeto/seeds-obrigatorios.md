@@ -3,6 +3,17 @@
 ## Regra principal
 Ao criar um recurso novo ou um modulo novo, sempre criar seeds com o maximo de cenarios possiveis para povoar o banco.
 
+## Regra de nomenclatura e realismo dos dados (obrigatoria)
+- Todo seed deve usar nomes e valores reais/coerentes com a funcionalidade pedida.
+- Evitar dados genericos sem contexto como `Teste`, `Item 1`, `Example`, `Foo`, `Bar`.
+- Os registros seedados devem refletir linguagem de negocio do dominio (servicos, categorias, tipos, status e descricoes reais).
+- Quando houver valores monetarios, percentuais, prazos ou textos de apoio, usar faixas e conteudos plausiveis para o cenario.
+- Factories usadas por seeds devem seguir a mesma regra de realismo.
+
+Exemplos:
+- Bom: `Troca de tela`, `Limpeza interna`, `Diagnostico eletrico`.
+- Ruim: `Servico 1`, `Procedimento teste`, `Nome exemplo`.
+
 ## Objetivo
 - Garantir base de dados rica para desenvolvimento e testes.
 - Facilitar validacao de fluxos reais da aplicacao.
@@ -13,11 +24,15 @@ Ao criar um recurso novo ou um modulo novo, sempre criar seeds com o maximo de c
 - Casos comuns de uso.
 - Casos de borda relevantes para o recurso.
 - Relacionamentos entre entidades, quando existirem.
+- Relacionamentos devem ser preenchidos de forma correta e consistente (FKs validas, cardinalidade esperada e coerencia de negocio).
+- Cobertura completa das funcionalidades do modulo e submodulos (features), incluindo fluxos relacionais entre elas.
 
 ## Regras por modulo
 - Cada modulo deve ter seus seeders em `Database/Seeders`.
 - Cada modulo deve expor comando `module:seed-*`.
 - O comando global `module:seed` deve conseguir executar todos os seeds de modulos.
+- Para seeders com multiplos registros, seguir performance em lote:
+  - `/.ai/guidelines/projeto/seeds-em-lote-performance.md`.
 
 ## Execucao obrigatoria apos criar/alterar recurso
 Sempre rodar:
@@ -30,5 +45,6 @@ Ou, quando necessario:
 ## Criterio de pronto
 Uma feature/modulo so e considerada pronta quando:
 - seeds cobrindo cenarios relevantes foram criados/atualizados;
+- seeds cobrem dados relacionais corretamente;
+- seeds contemplam todas as funcionalidades do modulo/submodulo;
 - o povoamento global dos modulos foi executado com sucesso.
-

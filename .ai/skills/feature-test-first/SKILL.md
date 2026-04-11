@@ -1,3 +1,8 @@
+---
+name: feature-test-first
+description: "Use quando desenvolver uma nova feature com TDD, escrevendo testes de Feature primeiro e validando o fluxo RED -> GREEN."
+---
+
 # Skill: Feature Test First
 
 ## Objetivo
@@ -32,4 +37,6 @@ Para cada feature nova:
 - Nao implementar feature antes do teste de Feature.
 - Nao fechar tarefa sem evidenciar RED -> GREEN.
 - Nao substituir Feature Test por Unit Test quando o objetivo for comportamento de feature.
+## Regra obrigatoria de qualidade profissional
+- Seguir `/.ai/skills/qualidade-profissional/SKILL.md` como fonte unica de qualidade de codigo e performance de banco (incluindo prevencao de N+1).
 
