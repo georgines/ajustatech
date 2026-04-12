@@ -76,6 +76,32 @@ class CompanySettingsManagementTest extends TestCase
         ]);
     }
 
+    public function test_save_without_new_logo_keeps_current_logo(): void
+    {
+        $setting = CompanySetting::singleton();
+        $existingLogoPath = 'settings/company/logo/'.$setting->id.'/logo-atual.png';
+
+        CompanySetting::updateSingleton([
+            'logo_disk' => 'public',
+            'logo_path' => $existingLogoPath,
+            'logo_original_name' => 'logo-atual.png',
+            'logo_mime_type' => 'image/png',
+            'logo_size' => 1024,
+        ]);
+
+        Livewire::test(CompanySettingsManagement::class)
+            ->set('companyName', 'TechNova Assistencia')
+            ->set('cnpj', '12.345.678/0001-95')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertDispatched('settings-saved');
+
+        $updated = CompanySetting::singleton();
+
+        $this->assertSame($existingLogoPath, $updated->logo_path);
+        $this->assertSame('logo-atual.png', $updated->logo_original_name);
+    }
+
     public function test_validates_invalid_payload(): void
     {
         Livewire::test(CompanySettingsManagement::class)
@@ -89,7 +115,8 @@ class CompanySettingsManagementTest extends TestCase
                 'cnpj',
                 'state' => 'size',
                 'email' => 'email',
-            ]);
+            ])
+            ->assertSee('O campo Nome da empresa é obrigatório.');
     }
 
     public function test_validates_logo_dimensions_as_1080_by_1080(): void

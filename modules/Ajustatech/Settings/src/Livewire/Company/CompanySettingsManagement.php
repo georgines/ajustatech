@@ -5,9 +5,11 @@ namespace Ajustatech\Settings\Livewire\Company;
 use Ajustatech\Core\Rules\CnpjValidation;
 use Ajustatech\Core\Traits\HandlesFileUploads;
 use Ajustatech\Settings\Services\Company\Contracts\CompanySettingsServiceInterface;
+use Illuminate\Http\UploadedFile;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
 
 #[Layout('core::layouts.app')]
@@ -84,6 +86,20 @@ class CompanySettingsManagement extends Component
         ];
     }
 
+    protected function validationAttributes(): array
+    {
+        return [
+            'companyName' => trans('settings::messages.company_name_label'),
+            'cnpj' => trans('settings::messages.company_cnpj_label'),
+            'addressLine' => trans('settings::messages.company_address_label'),
+            'neighborhood' => trans('settings::messages.company_neighborhood_label'),
+            'city' => trans('settings::messages.company_city_label'),
+            'state' => trans('settings::messages.company_state_label'),
+            'phone' => trans('settings::messages.company_phone_label'),
+            'email' => trans('settings::messages.company_email_label'),
+        ];
+    }
+
     public function updatedLogo(): void
     {
         if (! $this->logo) {
@@ -97,7 +113,8 @@ class CompanySettingsManagement extends Component
 
     public function save()
     {
-        $this->validate();
+        $this->validate($this->rules(), [], $this->validationAttributes());
+        $logo = $this->selectedLogoForSave();
 
         $this->settingsService->saveSettings(
             settingId: $this->companySettingId,
@@ -111,7 +128,7 @@ class CompanySettingsManagement extends Component
                 'phone' => $this->phone,
                 'email' => $this->email,
             ],
-            logo: $this->logo
+            logo: $logo
         );
 
         $this->dispatch('settings-saved', [
@@ -122,5 +139,23 @@ class CompanySettingsManagement extends Component
     public function render()
     {
         return view('settings::livewire.company.company-settings-management');
+    }
+
+    private function selectedLogoForSave(): mixed
+    {
+        if (! $this->logo instanceof TemporaryUploadedFile) {
+            return $this->logo instanceof UploadedFile ? $this->logo : null;
+        }
+
+        $realPath = $this->logo->getRealPath();
+
+        if (! is_string($realPath) || $realPath === '' || ! is_file($realPath)) {
+            $this->logo = null;
+            $this->temporaryLogoUrl = null;
+
+            return null;
+        }
+
+        return $this->logo;
     }
 }
