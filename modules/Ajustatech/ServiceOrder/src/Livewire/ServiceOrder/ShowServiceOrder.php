@@ -4,7 +4,6 @@ namespace Ajustatech\ServiceOrder\Livewire\ServiceOrder;
 
 use Ajustatech\Customer\Database\Models\Customer;
 use Ajustatech\ServiceOrder\Services\ServiceOrder\Contracts\ServiceOrderServiceInterface;
-use Ajustatech\Settings\Database\Models\ServiceOrder\ServiceOrderSetting;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -220,7 +219,8 @@ class ShowServiceOrder extends Component
 
     public function render(ServiceOrderServiceInterface $service)
     {
-        $settings = ServiceOrderSetting::singleton();
+        $workingDays = $service->workingDays();
+        $holidays = $service->holidays();
         $serviceOrders = $service->listServiceOrders(
             $this->search,
             $this->statusFlowId,
@@ -229,7 +229,7 @@ class ShowServiceOrder extends Component
             $this->limitePerPage
         );
 
-        $rows = $serviceOrders->through(function ($serviceOrder) use ($settings) {
+        $rows = $serviceOrders->through(function ($serviceOrder) use ($workingDays, $holidays) {
             $documents = $serviceOrder->equipmentType?->documents ?? collect();
             $snapshot = $serviceOrder->customer_snapshot_json ?? [];
 
@@ -268,8 +268,8 @@ class ShowServiceOrder extends Component
                 'id' => $serviceOrder->id,
                 'order_number' => $serviceOrder->order_number,
                 'business_days' => $serviceOrder->businessDaysSinceCreation(
-                    $settings->working_days_json,
-                    $settings->holidays_json ?? []
+                    $workingDays,
+                    $holidays
                 ),
                 'customer_name' => $snapshot['name'] ?? $serviceOrder->customer?->name,
                 'status_name' => $serviceOrder->statusFlow?->name,

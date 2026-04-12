@@ -9,9 +9,15 @@ use Illuminate\Support\Facades\Validator;
 
 class CompanyHoursSettingsService implements CompanyHoursSettingsServiceInterface
 {
+    private ?CompanyHour $settingsCache = null;
+
     public function getSettings(): CompanyHour
     {
-        return CompanyHour::singleton();
+        if ($this->settingsCache !== null) {
+            return $this->settingsCache;
+        }
+
+        return $this->settingsCache = CompanyHour::singleton();
     }
 
     public function saveSettings(array $payload): CompanyHour
@@ -19,7 +25,7 @@ class CompanyHoursSettingsService implements CompanyHoursSettingsServiceInterfac
         $validated = $this->validatePayload($payload);
 
         return DB::transaction(function () use ($validated) {
-            return CompanyHour::updateSingleton([
+            return $this->settingsCache = CompanyHour::updateSingleton([
                 'working_days' => $validated['working_days'],
                 'holidays' => $validated['holidays'] ?? [],
             ]);

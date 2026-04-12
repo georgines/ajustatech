@@ -40,6 +40,28 @@ class CompanyHoursSettingsManagementTest extends TestCase
         $this->assertLessThanOrEqual(3, count($queries));
     }
 
+    public function test_get_settings_is_cached_within_the_same_service_instance(): void
+    {
+        $service = $this->app->make(CompanyHoursSettingsServiceInterface::class);
+
+        $queries = [];
+
+        DB::listen(function ($query) use (&$queries): void {
+            if (str_contains($query->sql, 'company_hours')) {
+                $queries[] = $query->sql;
+            }
+        });
+
+        $service->getSettings();
+        $firstCount = count($queries);
+
+        $service->getSettings();
+        $secondCount = count($queries);
+
+        $this->assertGreaterThan(0, $firstCount);
+        $this->assertSame($firstCount, $secondCount);
+    }
+
     public function test_locked_properties_cannot_be_tampered(): void
     {
         Livewire::test(CompanyHoursSettingsManagement::class)

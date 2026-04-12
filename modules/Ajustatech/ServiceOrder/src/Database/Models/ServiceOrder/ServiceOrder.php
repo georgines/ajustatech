@@ -175,7 +175,7 @@ class ServiceOrder extends Model
         return $query;
     }
 
-    public function businessDaysSinceCreation(array $workingDays, array $holidays = []): int
+    public function businessDaysSinceCreation(?array $workingDays = null, ?array $holidays = null): int
     {
         $openedAt = $this->opened_at?->toImmutable() ?? CarbonImmutable::instance($this->created_at);
         $today = now()->toImmutable();
@@ -184,11 +184,11 @@ class ServiceOrder extends Model
             return 0;
         }
 
-        $workingDaysMap = collect($workingDays)
+        $workingDaysMap = collect($workingDays ?? $this->defaultWorkingDays())
             ->map(fn (string $day) => strtolower($day))
             ->flip();
 
-        $holidayMap = collect($holidays)
+        $holidayMap = collect($holidays ?? [])
             ->filter(fn ($date) => is_string($date))
             ->flip();
 
@@ -208,5 +208,10 @@ class ServiceOrder extends Model
         }
 
         return max(0, $businessDays - 1);
+    }
+
+    private function defaultWorkingDays(): array
+    {
+        return ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
     }
 }

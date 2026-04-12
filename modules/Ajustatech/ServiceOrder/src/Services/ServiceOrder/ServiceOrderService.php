@@ -11,8 +11,8 @@ use Ajustatech\ServiceOrder\Database\Models\ServiceOrder\ServiceOrder;
 use Ajustatech\ServiceOrder\Database\Models\ServiceOrder\ServiceOrderEquipmentFieldValue;
 use Ajustatech\ServiceOrder\Database\Models\ServiceOrder\ServiceOrderServiceItem;
 use Ajustatech\ServiceOrder\Services\ServiceOrder\Contracts\ServiceOrderServiceInterface;
-use Ajustatech\Settings\Database\Models\ServiceOrder\ServiceOrderSetting;
 use Ajustatech\Settings\Database\Models\ServiceOrder\ServiceOrderStatusFlow;
+use Ajustatech\Settings\Services\CompanyHours\Contracts\CompanyHoursSettingsServiceInterface;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +20,10 @@ use Illuminate\Support\Str;
 
 class ServiceOrderService implements ServiceOrderServiceInterface
 {
+    public function __construct(
+        protected CompanyHoursSettingsServiceInterface $companyHoursSettingsService,
+    ) {}
+
     public function listServiceOrders(
         string $search = '',
         ?string $statusFlowId = null,
@@ -246,12 +250,24 @@ class ServiceOrderService implements ServiceOrderServiceInterface
 
     public function workingDays(): array
     {
-        return ServiceOrderSetting::singleton()->working_days_json;
+        $settings = $this->companyHoursSettingsService->getSettings();
+
+        return $settings->workingDays
+            ->sortBy('sort_order')
+            ->pluck('day_key')
+            ->values()
+            ->all();
     }
 
     public function holidays(): array
     {
-        return ServiceOrderSetting::singleton()->holidays_json ?? [];
+        $settings = $this->companyHoursSettingsService->getSettings();
+
+        return $settings->holidays
+            ->sortBy('holiday_date')
+            ->pluck('holiday_date')
+            ->values()
+            ->all();
     }
 
     private function buildCustomerSnapshot(Customer $customer): array

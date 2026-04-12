@@ -37,4 +37,8 @@ interface ServiceOrderServiceInterface
     public function listAnalysisServices(): Collection;
 
     public function searchCustomers(string $search = '', int $limit = 15): Collection;
+
+    public function workingDays(): array;
+
+    public function holidays(): array;
 }
