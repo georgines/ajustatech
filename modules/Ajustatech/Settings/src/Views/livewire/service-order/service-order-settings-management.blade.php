@@ -82,9 +82,22 @@
             <small class="text-muted">{{ trans('settings::messages.service_order_status_flow_auto_hint') }}</small>
         </div>
         <div class="card-body">
-            <div class="d-flex flex-wrap gap-2">
+            <div class="d-flex flex-column gap-2">
                 @foreach ($statusFlows as $flow)
-                    <span class="badge bg-label-secondary">{{ $flow['name'] }}</span>
+                    <div class="border rounded-2 p-2">
+                        <div class="d-flex align-items-center justify-content-between gap-2">
+                            <div class="fw-semibold">{{ $flow['name'] }}</div>
+                            <div class="d-flex align-items-center gap-1">
+                                @if ($flow['is_default_initial'])
+                                    <span class="badge bg-label-primary">{{ trans('settings::messages.status_flow_initial') }}</span>
+                                @endif
+                                @if ($flow['is_terminal'])
+                                    <span class="badge bg-label-secondary">{{ trans('settings::messages.status_flow_terminal') }}</span>
+                                @endif
+                            </div>
+                        </div>
+                        <small class="text-muted d-block mt-1">{{ $flow['description'] }}</small>
+                    </div>
                 @endforeach
             </div>
         </div>

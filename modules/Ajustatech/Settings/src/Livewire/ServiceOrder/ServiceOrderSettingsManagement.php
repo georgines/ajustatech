@@ -45,7 +45,10 @@ class ServiceOrderSettingsManagement extends Component
         $this->dayOptions = $this->settingsService->dayOptions();
         $this->statusFlows = $this->settingsService->listStatusFlows()
             ->map(fn ($flow) => [
+                'code' => $flow->code,
                 'name' => $flow->name,
+                'description' => trans("settings::messages.service_order_status_flow_description_{$flow->code}"),
+                'is_default_initial' => (bool) $flow->is_default_initial,
                 'is_terminal' => (bool) $flow->is_terminal,
             ])
             ->all();

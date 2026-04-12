@@ -15,7 +15,9 @@ class ShowServiceOrderSettingsTest extends TestCase
         $this->get(route('settings-service-order-show'))
             ->assertOk()
             ->assertSeeText(trans('settings::messages.service_order_settings_form_title'))
-            ->assertSeeText(trans('settings::messages.service_order_status_flow_title'));
+            ->assertSeeText(trans('settings::messages.service_order_status_flow_title'))
+            ->assertSeeText(trans('settings::messages.service_order_status_flow_description_entrada'))
+            ->assertSeeText(trans('settings::messages.service_order_status_flow_description_concluido'));
     }
 
     public function test_edit_settings_path_resolves_to_settings_route(): void
