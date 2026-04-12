@@ -12,28 +12,14 @@ class ServiceOrderSetting extends Model
     use HasFactory;
     use HasUuids;
 
-    public const DAY_KEYS = [
-        'monday',
-        'tuesday',
-        'wednesday',
-        'thursday',
-        'friday',
-        'saturday',
-        'sunday',
-    ];
-
     protected $table = 'service_order_settings';
 
     protected $fillable = [
         'initial_order_number',
-        'working_days_json',
-        'holidays_json',
     ];
 
     protected $casts = [
         'initial_order_number' => 'integer',
-        'working_days_json' => 'array',
-        'holidays_json' => 'array',
     ];
 
     protected static function newFactory()
@@ -58,8 +44,6 @@ class ServiceOrderSetting extends Model
 
         $setting->update([
             'initial_order_number' => max(1, (int) ($attributes['initial_order_number'] ?? 1)),
-            'working_days_json' => static::normalizeWorkingDays($attributes['working_days_json'] ?? []),
-            'holidays_json' => static::normalizeHolidays($attributes['holidays_json'] ?? []),
         ]);
 
         return $setting->refresh();
@@ -69,54 +53,6 @@ class ServiceOrderSetting extends Model
     {
         return [
             'initial_order_number' => 1000,
-            'working_days_json' => ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
-            'holidays_json' => [],
         ];
     }
-
-    public static function normalizeWorkingDays(array $days): array
-    {
-        $normalized = collect($days)
-            ->map(fn ($day) => strtolower(trim((string) $day)))
-            ->filter(fn (string $day) => in_array($day, static::DAY_KEYS, true))
-            ->unique()
-            ->values();
-
-        if ($normalized->isEmpty()) {
-            return static::defaultAttributes()['working_days_json'];
-        }
-
-        return collect(static::DAY_KEYS)
-            ->filter(fn (string $day) => $normalized->contains($day))
-            ->values()
-            ->all();
-    }
-
-    public static function normalizeHolidays(array $holidays): array
-    {
-        return collect($holidays)
-            ->map(function ($holiday): array {
-                if (is_array($holiday)) {
-                    return [
-                        'name' => trim((string) ($holiday['name'] ?? '')),
-                        'date' => trim((string) ($holiday['date'] ?? '')),
-                    ];
-                }
-
-                return [
-                    'name' => 'Feriado',
-                    'date' => trim((string) $holiday),
-                ];
-            })
-            ->filter(function (array $holiday): bool {
-                return $holiday['name'] !== ''
-                    && preg_match('/^\d{4}-\d{2}-\d{2}$/', $holiday['date']) === 1;
-            })
-            ->unique('date')
-            ->sortBy('date')
-            ->values()
-            ->all();
-    }
 }
-
-

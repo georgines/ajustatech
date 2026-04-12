@@ -12,8 +12,13 @@
 				},
 				{
 					"url": "",
+					"name": "Horarios da empresa",
+					"slug": "settings-company-hours-edit"
+				},
+				{
+					"url": "",
 					"name": "Ordem de servico",
-					"slug": "settings-service-order-show"
+					"slug": "settings-service-order-edit"
 				}
 			]
 		}

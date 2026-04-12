@@ -12,8 +12,4 @@ interface ServiceOrderSettingsServiceInterface
     public function listStatusFlows(): Collection;
 
     public function saveSettings(array $payload): ServiceOrderSetting;
-
-    public function dayOptions(): array;
 }
-
-

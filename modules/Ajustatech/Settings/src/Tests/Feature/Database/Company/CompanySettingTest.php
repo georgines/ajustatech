@@ -14,7 +14,7 @@ class CompanySettingTest extends TestCase
     {
         $setting = CompanySetting::singleton();
 
-        $this->assertDatabaseHas('company_settings', [
+        $this->assertDatabaseHas('company', [
             'id' => $setting->id,
             'company_name' => 'TechNova Assistencia',
             'cnpj' => '12345678000195',
@@ -29,7 +29,7 @@ class CompanySettingTest extends TestCase
             'state' => 'CE',
         ]);
 
-        $this->assertDatabaseHas('company_settings', [
+        $this->assertDatabaseHas('company', [
             'id' => $updated->id,
             'company_name' => 'Ajustatech Centro',
             'city' => 'Aurora',

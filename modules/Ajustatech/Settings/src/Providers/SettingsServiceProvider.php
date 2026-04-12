@@ -6,7 +6,7 @@ use Ajustatech\Core\Helpers\MenuManagerInterface;
 use Ajustatech\Settings\Commands\ServiceOrder\SeedServiceOrderSettingsCommand;
 use Ajustatech\Settings\Livewire\Company\CompanySettingsManagement;
 use Ajustatech\Settings\Livewire\ServiceOrder\ServiceOrderSettingsManagement;
-use Ajustatech\Settings\Livewire\ServiceOrder\ShowServiceOrderSettings;
+use Ajustatech\Settings\Providers\CompanyHours\CompanyHoursServiceProvider;
 use Ajustatech\Settings\Services\Company\CompanySettingsService;
 use Ajustatech\Settings\Services\Company\Contracts\CompanySettingsServiceInterface;
 use Ajustatech\Settings\Services\ServiceOrder\Contracts\ServiceOrderSettingsServiceInterface;
@@ -21,6 +21,8 @@ class SettingsServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom("{$this->path}/config/settings.php", 'settings');
+
+        $this->app->register(CompanyHoursServiceProvider::class);
 
         $this->app->bind(
             ServiceOrderSettingsServiceInterface::class,
@@ -57,7 +59,6 @@ class SettingsServiceProvider extends ServiceProvider
 
     private function initializeLivewireComponents(): void
     {
-        Livewire::component('show-service-order-settings', ShowServiceOrderSettings::class);
         Livewire::component('service-order-settings-management', ServiceOrderSettingsManagement::class);
         Livewire::component('company-settings-management', CompanySettingsManagement::class);
     }

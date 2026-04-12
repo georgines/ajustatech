@@ -6,7 +6,5 @@ use Illuminate\Support\Facades\Route;
 Route::get('/ordens-servico/configuracoes', ServiceOrderSettingsManagement::class)
     ->name('settings-service-order-show');
 
-Route::redirect('/ordens-servico/configuracoes/editar', '/ordens-servico/configuracoes')
+Route::get('/ordens-servico/configuracoes/editar', ServiceOrderSettingsManagement::class)
     ->name('settings-service-order-edit');
-
-

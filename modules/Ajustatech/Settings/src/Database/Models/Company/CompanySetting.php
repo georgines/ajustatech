@@ -12,7 +12,7 @@ class CompanySetting extends Model
     use HasFactory;
     use HasUuids;
 
-    protected $table = 'company_settings';
+    protected $table = 'company';
 
     protected $fillable = [
         'company_name',

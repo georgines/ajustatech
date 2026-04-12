@@ -17,6 +17,10 @@ class SeedServiceOrderSettingsCommand extends Command
         ]);
 
         $this->call('db:seed', [
+            '--class' => 'Ajustatech\Settings\Database\Seeders\CompanyHours\CompanyHoursSeeder',
+        ]);
+
+        $this->call('db:seed', [
             '--class' => 'Ajustatech\Settings\Database\Seeders\ServiceOrder\ServiceOrderSettingsSeeder',
         ]);
     }
