@@ -4,7 +4,9 @@ namespace Ajustatech\Settings\Tests\Feature\Livewire\CompanyHours;
 
 use Ajustatech\Settings\Database\Models\CompanyHours\CompanyHour;
 use Ajustatech\Settings\Livewire\CompanyHours\CompanyHoursSettingsManagement;
+use Ajustatech\Settings\Services\CompanyHours\Contracts\CompanyHoursSettingsServiceInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -19,6 +21,23 @@ class CompanyHoursSettingsManagementTest extends TestCase
             ->assertSeeText(trans('settings::messages.company_hours_form_title'))
             ->assertSeeText(trans('settings::messages.company_open_days'))
             ->assertSeeText(trans('settings::messages.company_holidays'));
+    }
+
+    public function test_initial_render_uses_minimum_queries(): void
+    {
+        CompanyHour::singleton();
+
+        $queries = [];
+
+        DB::listen(function ($query) use (&$queries): void {
+            if (str_contains($query->sql, 'company_hours')) {
+                $queries[] = $query->sql;
+            }
+        });
+
+        $this->app->make(CompanyHoursSettingsServiceInterface::class)->getSettings();
+
+        $this->assertLessThanOrEqual(3, count($queries));
     }
 
     public function test_locked_properties_cannot_be_tampered(): void
@@ -43,7 +62,7 @@ class CompanyHoursSettingsManagementTest extends TestCase
             ])
             ->call('save')
             ->assertHasNoErrors()
-            ->assertRedirect(route('settings-company-hours-show'));
+            ->assertDispatched('company-hours-saved');
 
         $companyHour = CompanyHour::singleton();
 
@@ -59,6 +78,31 @@ class CompanyHoursSettingsManagementTest extends TestCase
             'holiday_name' => 'Natal',
             'holiday_date' => '2026-12-25',
         ]);
+    }
+
+    public function test_save_uses_minimum_queries_when_persisting_existing_settings(): void
+    {
+        CompanyHour::singleton();
+
+        $component = Livewire::test(CompanyHoursSettingsManagement::class)
+            ->set('workingDays', ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'])
+            ->set('holidays', [
+                ['name' => 'Confraternizacao Universal', 'date' => '2026-01-01'],
+                ['name' => 'Natal', 'date' => '2026-12-25'],
+            ]);
+
+        $queries = [];
+
+        DB::listen(function ($query) use (&$queries): void {
+            $queries[] = $query->sql;
+        });
+
+        $component
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertDispatched('company-hours-saved');
+
+        $this->assertLessThanOrEqual(5, count($queries));
     }
 
     public function test_validates_invalid_payload(): void

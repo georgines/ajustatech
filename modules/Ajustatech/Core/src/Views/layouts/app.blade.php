@@ -79,6 +79,20 @@
                     }
                 });
             });
+
+            Livewire.on('company-hours-saved', event => {
+                const data = event[0];
+
+                Swal.fire({
+                    icon: 'success',
+                    title: data.message,
+                    confirmButtonText: 'OK',
+                    customClass: {
+                        confirmButton: 'btn btn-primary'
+                    },
+                    buttonsStyling: false
+                });
+            });
         });
     </script>
     @isset($vendor_script)

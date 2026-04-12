@@ -30,6 +30,7 @@ return [
     'confirm_yes' => 'Yes',
     'confirm_no' => 'No',
     'confirm_delete_holiday' => 'Confirm holiday deletion?',
+    'company_hours_saved_success' => 'Company hours saved successfully.',
     'edit_settings' => 'Edit settings',
     'service_order_status_flow_title' => 'Service order status flow',
     'service_order_status_flow_auto_hint' => 'This flow is changed automatically by other modules and is not manually editable here.',

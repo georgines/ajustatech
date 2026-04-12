@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class CompanyHour extends Model
 {
@@ -59,11 +60,19 @@ class CompanyHour extends Model
 
     public static function updateSingleton(array $attributes): self
     {
-        $companyHour = static::singleton();
-        $companyHour->syncWorkingDays((array) ($attributes['working_days'] ?? []));
-        $companyHour->syncHolidays((array) ($attributes['holidays'] ?? []));
+        $companyHour = static::query()->first();
 
-        return $companyHour->load(['workingDays', 'holidays']);
+        if ($companyHour === null) {
+            $companyHour = new self;
+            $companyHour->save();
+        }
+
+        $workingDayRows = $companyHour->syncWorkingDays((array) ($attributes['working_days'] ?? []));
+        $holidayRows = $companyHour->syncHolidays((array) ($attributes['holidays'] ?? []));
+
+        return $companyHour
+            ->setRelation('workingDays', CompanyHourWorkingDay::hydrate($workingDayRows))
+            ->setRelation('holidays', CompanyHourHoliday::hydrate($holidayRows));
     }
 
     public static function defaultWorkingDays(): array
@@ -115,40 +124,56 @@ class CompanyHour extends Model
             ->all();
     }
 
-    public function syncWorkingDays(array $days): void
+    public function syncWorkingDays(array $days): array
     {
         $normalized = static::normalizeWorkingDays($days);
 
-        $this->workingDays()->delete();
+        CompanyHourWorkingDay::query()
+            ->where('company_hour_id', $this->id)
+            ->delete();
 
         $rows = collect($normalized)
             ->values()
             ->map(fn (string $day, int $index) => [
+                'id' => (string) Str::uuid(),
+                'company_hour_id' => $this->id,
                 'day_key' => $day,
                 'sort_order' => $index + 1,
+                'created_at' => now(),
+                'updated_at' => now(),
             ])
             ->all();
 
         if ($rows !== []) {
-            $this->workingDays()->createMany($rows);
+            CompanyHourWorkingDay::query()->insert($rows);
         }
+
+        return $rows;
     }
 
-    public function syncHolidays(array $holidays): void
+    public function syncHolidays(array $holidays): array
     {
         $normalized = static::normalizeHolidays($holidays);
 
-        $this->holidays()->delete();
+        CompanyHourHoliday::query()
+            ->where('company_hour_id', $this->id)
+            ->delete();
 
         $rows = collect($normalized)
             ->map(fn (array $holiday) => [
+                'id' => (string) Str::uuid(),
+                'company_hour_id' => $this->id,
                 'holiday_name' => $holiday['name'],
                 'holiday_date' => $holiday['date'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ])
             ->all();
 
         if ($rows !== []) {
-            $this->holidays()->createMany($rows);
+            CompanyHourHoliday::query()->insert($rows);
         }
+
+        return $rows;
     }
 }

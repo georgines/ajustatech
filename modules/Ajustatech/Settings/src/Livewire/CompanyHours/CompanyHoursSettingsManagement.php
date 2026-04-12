@@ -46,17 +46,18 @@ class CompanyHoursSettingsManagement extends Component
 
         $settings = $this->settingsService->getSettings();
 
-        $this->workingDays = $settings->workingDays()
-            ->orderBy('sort_order')
+        $this->workingDays = $settings->workingDays
+            ->sortBy('sort_order')
             ->pluck('day_key')
+            ->values()
             ->all();
-        $this->holidays = $settings->holidays()
-            ->orderBy('holiday_date')
-            ->get(['holiday_name', 'holiday_date'])
+        $this->holidays = $settings->holidays
+            ->sortBy('holiday_date')
             ->map(fn ($holiday) => [
                 'name' => (string) $holiday->holiday_name,
                 'date' => (string) $holiday->holiday_date,
             ])
+            ->values()
             ->all();
         $this->dayOptions = $this->settingsService->dayOptions();
     }
@@ -183,12 +184,29 @@ class CompanyHoursSettingsManagement extends Component
 
         $validated = $this->validate();
 
-        $this->settingsService->saveSettings([
+        $savedSettings = $this->settingsService->saveSettings([
             'working_days' => (array) $validated['workingDays'],
             'holidays' => CompanyHour::normalizeHolidays((array) ($validated['holidays'] ?? [])),
         ]);
 
-        return redirect()->route('settings-company-hours-show');
+        $this->workingDays = $savedSettings->workingDays
+            ->sortBy('sort_order')
+            ->pluck('day_key')
+            ->values()
+            ->all();
+
+        $this->holidays = $savedSettings->holidays
+            ->sortBy('holiday_date')
+            ->map(fn ($holiday) => [
+                'name' => (string) $holiday->holiday_name,
+                'date' => (string) $holiday->holiday_date,
+            ])
+            ->values()
+            ->all();
+
+        $this->dispatch('company-hours-saved', [
+            'message' => trans('settings::messages.company_hours_saved_success'),
+        ]);
     }
 
     public function render()

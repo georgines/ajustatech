@@ -30,6 +30,7 @@ return [
     'confirm_yes' => 'Sim',
     'confirm_no' => 'Nao',
     'confirm_delete_holiday' => 'Confirma exclusao deste feriado?',
+    'company_hours_saved_success' => 'Horarios da empresa salvos com sucesso.',
     'edit_settings' => 'Editar configuracoes',
     'service_order_status_flow_title' => 'Fluxo de status da ordem de servico',
     'service_order_status_flow_auto_hint' => 'O fluxo e alterado automaticamente por outros modulos e nao e editavel manualmente aqui.',
