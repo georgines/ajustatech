@@ -44,3 +44,8 @@
 - `/.ai/guidelines/projeto/comandos-core.md`
 - `/.ai/guidelines/projeto/validacoes-sanitizacao-seguranca.md`
 - `/.ai/guidelines/projeto/testes-feature-tdd.md`
+
+## 9. Encoding e acentuacao (obrigatorio)
+- Arquivos de codigo, Lang e testes devem ser salvos em `UTF-8 sem BOM`.
+- Mensagens pt-BR devem preservar acentuacao correta (ex.: `valida`, `obrigatorio`, `configuracoes` podem aparecer sem acento por padrao textual, mas nunca com mojibake como `vÃ¡lida`).
+- Ao revisar PRs, validar que nao houve corrupcao de caracteres em textos de usuario e asserts de testes.

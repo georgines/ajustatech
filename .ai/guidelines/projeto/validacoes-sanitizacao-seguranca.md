@@ -17,6 +17,8 @@ Todo input novo deve passar por:
 
 ## Idioma das mensagens
 - Mensagens de validacao para usuario final: portugues (pt-BR).
+- Arquivos de mensagens e testes relacionados devem permanecer em `UTF-8 sem BOM`.
+- Nunca aceitar texto com mojibake (ex.: `Ã©`, `Ã£`, `vÃ¡lida`) em mensagens exibidas ao usuario.
 
 ## Uploads
 - Validar extensao, mime, tamanho e dimensao quando aplicavel.
@@ -26,4 +28,5 @@ Todo input novo deve passar por:
 1. Todos os campos relevantes foram validados?
 2. Sanitizacao aplicada antes de salvar?
 3. Mensagens de erro estao em pt-BR?
-4. Temporarios de upload sao limpos?
+4. Mensagens/arquivos estao em UTF-8 sem mojibake?
+5. Temporarios de upload sao limpos?
