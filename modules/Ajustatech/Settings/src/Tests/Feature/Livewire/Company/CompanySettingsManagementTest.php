@@ -6,6 +6,7 @@ use Ajustatech\Settings\Database\Models\Company\CompanySetting;
 use Ajustatech\Settings\Livewire\Company\CompanySettingsManagement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -32,14 +33,47 @@ class CompanySettingsManagementTest extends TestCase
             ->set('logo', UploadedFile::fake()->image('logo-ajustatech.png', 1080, 1080))
             ->call('save')
             ->assertHasNoErrors()
-            ->assertRedirect(route('settings-company-edit'));
+            ->assertDispatched('settings-saved')
+            ->assertSet('companyName', 'TechNova Assistencia');
 
         $setting = CompanySetting::singleton();
 
         $this->assertSame('TechNova Assistencia', $setting->company_name);
         $this->assertSame('12345678000195', $setting->cnpj);
         $this->assertNotNull($setting->logo_path);
-        Storage::disk('public')->assertExists((string) $setting->logo_path);
+        $this->assertTrue(Storage::disk('public')->exists((string) $setting->logo_path));
+    }
+
+    public function test_save_uses_minimum_queries_without_redirect(): void
+    {
+        $setting = CompanySetting::singleton();
+
+        $queries = [];
+
+        DB::listen(function ($query) use (&$queries): void {
+            if (str_contains($query->sql, 'company')) {
+                $queries[] = $query->sql;
+            }
+        });
+
+        Livewire::test(CompanySettingsManagement::class)
+            ->set('companyName', 'TechNova Assistencia')
+            ->set('cnpj', '12.345.678/0001-95')
+            ->set('addressLine', 'Rua das Oficinas, 245')
+            ->set('neighborhood', 'Distrito Industrial')
+            ->set('city', 'Fortaleza')
+            ->set('state', 'CE')
+            ->set('phone', '(85) 4000-1234')
+            ->set('email', 'contato@technova.com.br')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertDispatched('settings-saved');
+
+        $this->assertLessThanOrEqual(2, count($queries));
+        $this->assertDatabaseHas('company', [
+            'id' => $setting->id,
+            'company_name' => 'TechNova Assistencia',
+        ]);
     }
 
     public function test_validates_invalid_payload(): void
@@ -100,7 +134,7 @@ class CompanySettingsManagementTest extends TestCase
         $updated = CompanySetting::singleton();
 
         $this->assertNotSame($oldPath, $updated->logo_path);
-        Storage::disk('public')->assertMissing($oldPath);
-        Storage::disk('public')->assertExists((string) $updated->logo_path);
+        $this->assertFalse(Storage::disk('public')->exists($oldPath));
+        $this->assertTrue(Storage::disk('public')->exists((string) $updated->logo_path));
     }
 }

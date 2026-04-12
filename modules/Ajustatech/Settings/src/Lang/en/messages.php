@@ -73,4 +73,5 @@ return [
     'company_logo_preview_current' => 'Current logo',
     'company_logo_preview_new' => 'New logo preview',
     'company_logo_preview_empty' => 'No logo registered.',
+    'company_settings_saved_success' => 'Company data saved successfully.',
 ];

@@ -21,7 +21,7 @@ class CompanySettingsService implements CompanySettingsServiceInterface
         return CompanySetting::singleton();
     }
 
-    public function saveSettings(array $payload, ?UploadedFile $logo = null): CompanySetting
+    public function saveSettings(string $settingId, array $payload, ?UploadedFile $logo = null): CompanySetting
     {
         $validated = $this->validatePayload($payload);
 
@@ -29,7 +29,7 @@ class CompanySettingsService implements CompanySettingsServiceInterface
             $this->validateLogo($logo);
         }
 
-        $setting = $this->getSettings();
+        $setting = CompanySetting::query()->findOrFail($settingId);
         $oldLogo = [
             'logo_disk' => $setting->logo_disk,
             'logo_path' => $setting->logo_path,
@@ -55,7 +55,10 @@ class CompanySettingsService implements CompanySettingsServiceInterface
                     $shouldDeleteOldLogo = filled(Arr::get($oldLogo, 'logo_path'));
                 }
 
-                return CompanySetting::updateSingleton($attributes);
+                $setting->fill($attributes);
+                $setting->save();
+
+                return $setting;
             });
         } catch (\Throwable $exception) {
             $this->deleteLogo(

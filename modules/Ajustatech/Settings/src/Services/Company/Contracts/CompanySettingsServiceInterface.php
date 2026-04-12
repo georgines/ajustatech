@@ -9,7 +9,7 @@ interface CompanySettingsServiceInterface
 {
     public function getSettings(): CompanySetting;
 
-    public function saveSettings(array $payload, ?UploadedFile $logo = null): CompanySetting;
+    public function saveSettings(string $settingId, array $payload, ?UploadedFile $logo = null): CompanySetting;
 
     public function validateLogo(UploadedFile $logo): void;
 

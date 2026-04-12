@@ -6,6 +6,7 @@ use Ajustatech\Core\Rules\CnpjValidation;
 use Ajustatech\Core\Traits\HandlesFileUploads;
 use Ajustatech\Settings\Services\Company\Contracts\CompanySettingsServiceInterface;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
 
@@ -16,6 +17,9 @@ class CompanySettingsManagement extends Component
     use WithFileUploads;
 
     public string $title = '';
+
+    #[Locked]
+    public string $companySettingId = '';
 
     public string $companyName = '';
 
@@ -54,6 +58,7 @@ class CompanySettingsManagement extends Component
         $this->logoAccept = $this->settingsService->acceptAttribute();
 
         $settings = $this->settingsService->getSettings();
+        $this->companySettingId = $settings->id;
         $this->companyName = (string) $settings->company_name;
         $this->cnpj = $settings->cnpj;
         $this->addressLine = $settings->address_line;
@@ -95,6 +100,7 @@ class CompanySettingsManagement extends Component
         $this->validate();
 
         $this->settingsService->saveSettings(
+            settingId: $this->companySettingId,
             payload: [
                 'company_name' => $this->companyName,
                 'cnpj' => $this->cnpj,
@@ -108,7 +114,9 @@ class CompanySettingsManagement extends Component
             logo: $this->logo
         );
 
-        return redirect()->route('settings-company-edit');
+        $this->dispatch('settings-saved', [
+            'message' => trans('settings::messages.company_settings_saved_success'),
+        ]);
     }
 
     public function render()

@@ -73,4 +73,5 @@ return [
     'company_logo_preview_current' => 'Logo atual',
     'company_logo_preview_new' => 'Preview da nova logo',
     'company_logo_preview_empty' => 'Nenhuma logo cadastrada.',
+    'company_settings_saved_success' => 'Dados da empresa salvos com sucesso.',
 ];
