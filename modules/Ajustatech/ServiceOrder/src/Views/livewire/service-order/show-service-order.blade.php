@@ -2,19 +2,6 @@
 
 <div
     x-data="{
-        showDocsModal: false,
-        docsModalTitle: '',
-        docsItems: [],
-        openDocs(orderNumber, docsItems) {
-            this.docsModalTitle = `Documentos da OS #${orderNumber}`;
-            this.docsItems = docsItems;
-            this.showDocsModal = true;
-        },
-        closeDocs() {
-            this.showDocsModal = false;
-            this.docsModalTitle = '';
-            this.docsItems = [];
-        },
         confirmDelete(id) {
             const runDelete = () => $wire.deleteServiceOrder(id);
 
@@ -127,14 +114,15 @@
 
     <div class="card">
         <div class="table-responsive">
-            <table class="table">
+            <table class="table align-middle mb-0">
                 <thead>
                     <tr>
-                        <th>{{ trans('service-order::messages.service_order_number') }}</th>
-                        <th>{{ trans('service-order::messages.business_days_since_opening') }}</th>
-                        <th>{{ trans('service-order::messages.customer') }}</th>
-                        <th>{{ trans('service-order::messages.status') }}</th>
-                        <th>{{ trans('service-order::messages.actions') }}</th>
+                        <th>{{ trans('service-order::messages.so_number') }}</th>
+                        <th>{{ trans('service-order::messages.so_days') }}</th>
+                        <th>{{ trans('service-order::messages.so_opened_at') }}</th>
+                        <th>{{ trans('service-order::messages.so_customer') }}</th>
+                        <th>{{ trans('service-order::messages.so_status') }}</th>
+                        <th>{{ trans('service-order::messages.so_actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -142,21 +130,12 @@
                         <tr>
                             <td>#{{ $serviceOrder['order_number'] }}</td>
                             <td>{{ $serviceOrder['business_days'] }}</td>
+                            <td>{{ $serviceOrder['opened_at']?->format('d/m/Y') ?? '-' }}</td>
                             <td>{{ $serviceOrder['customer_name'] }}</td>
                             <td>
                                 <span class="badge bg-label-info">{{ $serviceOrder['status_name'] }}</span>
                             </td>
                             <td>
-                                <button
-                                    type="button"
-                                    class="btn btn-sm btn-icon"
-                                    title="{{ trans('service-order::messages.service_order_documents') }}"
-                                    aria-label="{{ trans('service-order::messages.service_order_documents') }}"
-                                    x-on:click='openDocs("{{ $serviceOrder['order_number'] }}", @js($serviceOrder['documents']))'
-                                >
-                                    <i class="text-primary ti ti-help-circle"></i>
-                                </button>
-
                                 <a
                                     class="btn btn-sm btn-icon"
                                     href="{{ route('service-order-edit', ['serviceOrder' => $serviceOrder['id']]) }}"
@@ -176,15 +155,6 @@
                                     <i class="text-primary ti ti-copy"></i>
                                 </button>
 
-                                <a
-                                    class="btn btn-sm btn-icon"
-                                    href="{{ route('service-order-list', ['serviceOrder' => $serviceOrder['id']]) }}"
-                                    title="{{ trans('service-order::messages.list') }}"
-                                    aria-label="{{ trans('service-order::messages.list') }}"
-                                >
-                                    <i class="text-primary ti ti-list-details"></i>
-                                </a>
-
                                 <button
                                     type="button"
                                     class="btn btn-sm btn-icon"
@@ -198,61 +168,17 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center">{{ trans('service-order::messages.no_records') }}</td>
+                            <td colspan="6" class="text-center">{{ trans('service-order::messages.no_records') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
 
-        <div class="card-footer">
-            {{ $serviceOrders->links() }}
+        <div class="card-footer pt-3">
+            {{ $serviceOrders->links('service-order::vendor.pagination.vuexy-bootstrap-5') }}
         </div>
     </div>
-
-    <div class="modal fade" :class="showDocsModal ? 'show d-block' : ''" tabindex="-1" x-cloak>
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" x-text="docsModalTitle"></h5>
-                    <button type="button" class="btn-close" x-on:click="closeDocs()" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <template x-if="docsItems.length === 0">
-                        <p class="mb-0 text-muted">{{ trans('service-order::messages.no_records') }}</p>
-                    </template>
-
-                    <template x-for="doc in docsItems" :key="doc.id">
-                        <div class="card mb-2">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-                                    <div>
-                                        <h6 class="mb-1" x-text="doc.title"></h6>
-                                        <span class="badge bg-label-secondary" x-text="doc.type"></span>
-                                    </div>
-                                    <a
-                                        x-show="doc.path"
-                                        :href="doc.path"
-                                        target="_blank"
-                                        class="btn btn-sm btn-outline-primary"
-                                    >
-                                        {{ trans('service-order::messages.view') }}
-                                    </a>
-                                </div>
-                                <template x-if="doc.template_preview">
-                                    <div class="mt-2 p-2 bg-lighter rounded">
-                                        <small class="text-muted" x-text="doc.template_preview"></small>
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-backdrop fade" :class="showDocsModal ? 'show' : ''" x-show="showDocsModal" x-cloak></div>
 
     @if ($showCreateWizardModal)
         <div class="modal fade show d-block" tabindex="-1" style="z-index: 3000;" wire:key="so-create-wizard-modal">

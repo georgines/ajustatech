@@ -4,6 +4,7 @@ namespace Ajustatech\ServiceOrder\Livewire\ServiceOrder;
 
 use Ajustatech\Customer\Database\Models\Customer;
 use Ajustatech\ServiceOrder\Services\ServiceOrder\Contracts\ServiceOrderServiceInterface;
+use Carbon\Carbon;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -46,6 +47,8 @@ class ShowServiceOrder extends Component
     public function mount(): void
     {
         $this->title = trans('service-order::messages.title');
+        $this->openedFrom = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $this->openedTo = Carbon::now()->endOfMonth()->format('Y-m-d');
     }
 
     public function updatedSearch(): void
@@ -227,46 +230,15 @@ class ShowServiceOrder extends Component
             $this->openedFrom,
             $this->openedTo,
             $this->limitePerPage
-        );
+        )->onEachSide(1);
 
         $rows = $serviceOrders->through(function ($serviceOrder) use ($workingDays, $holidays) {
-            $documents = $serviceOrder->equipmentType?->documents ?? collect();
             $snapshot = $serviceOrder->customer_snapshot_json ?? [];
-
-            $documentsMapped = $documents
-                ->map(function ($document) use ($snapshot, $serviceOrder) {
-                    $templatePreview = null;
-
-                    if ($document->document_type === 'editable_template' && filled($document->template_content)) {
-                        $templatePreview = str_replace(
-                            [
-                                '{{dados_cliente}}',
-                                '{{equipamento_modelo}}',
-                                '{{numero_ordem_servico}}',
-                            ],
-                            [
-                                (string) ($snapshot['name'] ?? ''),
-                                (string) ($serviceOrder->equipment_model ?? ''),
-                                (string) ($serviceOrder->order_number ?? ''),
-                            ],
-                            $document->template_content
-                        );
-                    }
-
-                    return [
-                        'id' => $document->id,
-                        'title' => $document->title,
-                        'type' => $document->document_type,
-                        'path' => $document->path,
-                        'template_preview' => $templatePreview,
-                    ];
-                })
-                ->values()
-                ->all();
 
             return [
                 'id' => $serviceOrder->id,
                 'order_number' => $serviceOrder->order_number,
+                'opened_at' => $serviceOrder->opened_at,
                 'business_days' => $serviceOrder->businessDaysSinceCreation(
                     $workingDays,
                     $holidays
@@ -274,7 +246,6 @@ class ShowServiceOrder extends Component
                 'customer_name' => $snapshot['name'] ?? $serviceOrder->customer?->name,
                 'status_name' => $serviceOrder->statusFlow?->name,
                 'status_code' => $serviceOrder->statusFlow?->code,
-                'documents' => $documentsMapped,
             ];
         });
 

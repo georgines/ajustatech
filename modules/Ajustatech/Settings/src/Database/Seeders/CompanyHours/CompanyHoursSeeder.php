@@ -11,11 +11,15 @@ class CompanyHoursSeeder extends Seeder
     {
         $companyHour = CompanyHour::singleton();
 
-        $companyHour->syncWorkingDays(['monday', 'tuesday', 'wednesday', 'thursday', 'friday']);
+        $companyHour->syncWorkingDays(['monday', 'wednesday', 'friday']);
         $companyHour->syncHolidays([
             [
                 'name' => 'Confraternizacao Universal',
                 'date' => now()->startOfYear()->format('Y-m-d'),
+            ],
+            [
+                'name' => 'Dia do Trabalho',
+                'date' => now()->year.'-05-01',
             ],
             [
                 'name' => 'Natal',

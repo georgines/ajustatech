@@ -11,6 +11,7 @@ use Ajustatech\ServiceOrder\Database\Models\ServiceOrder\ServiceOrderEquipmentFi
 use Ajustatech\ServiceOrder\Database\Models\ServiceOrder\ServiceOrderServiceItem;
 use Ajustatech\ServiceOrder\Livewire\ServiceOrder\ShowServiceOrder;
 use Ajustatech\Settings\Database\Models\ServiceOrder\ServiceOrderStatusFlow;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -23,6 +24,15 @@ class ShowServiceOrderTest extends TestCase
     {
         Livewire::test(ShowServiceOrder::class)
             ->assertStatus(200);
+    }
+
+    public function test_defaults_date_filters_to_current_month(): void
+    {
+        $now = Carbon::now();
+
+        Livewire::test(ShowServiceOrder::class)
+            ->assertSet('openedFrom', $now->copy()->startOfMonth()->format('Y-m-d'))
+            ->assertSet('openedTo', $now->copy()->endOfMonth()->format('Y-m-d'));
     }
 
     public function test_can_duplicate_service_order_with_related_items(): void
@@ -59,6 +69,12 @@ class ShowServiceOrderTest extends TestCase
         ]);
 
         Livewire::test(ShowServiceOrder::class)
+            ->assertSeeText(trans('service-order::messages.so_number'))
+            ->assertSeeText(trans('service-order::messages.so_days'))
+            ->assertSeeText(trans('service-order::messages.so_opened_at'))
+            ->assertSeeText(trans('service-order::messages.so_customer'))
+            ->assertSeeText(trans('service-order::messages.so_status'))
+            ->assertSeeText(trans('service-order::messages.so_actions'))
             ->call('duplicateServiceOrder', $serviceOrder->id);
 
         $this->assertDatabaseCount('service_order_bases', 2);
@@ -74,6 +90,34 @@ class ShowServiceOrderTest extends TestCase
             'service_order_id' => $copy->id,
             'item_name' => 'Diagnostico inicial',
         ]);
+    }
+
+    public function test_renders_expected_columns_and_vuexy_pagination_footer(): void
+    {
+        ServiceOrderStatusFlow::ensureDefaultRows();
+
+        $customer = Customer::factory()->create();
+        $equipmentType = ServiceOrderEquipmentType::factory()->create();
+
+        ServiceOrder::factory()
+            ->count(11)
+            ->create([
+                'customer_id' => $customer->id,
+                'equipment_type_id' => $equipmentType->id,
+            ]);
+
+        Livewire::test(ShowServiceOrder::class)
+            ->assertSeeText(trans('service-order::messages.so_number'))
+            ->assertSeeText(trans('service-order::messages.so_days'))
+            ->assertSeeText(trans('service-order::messages.so_opened_at'))
+            ->assertSeeText(trans('service-order::messages.so_customer'))
+            ->assertSeeText(trans('service-order::messages.so_status'))
+            ->assertSeeText(trans('service-order::messages.so_actions'))
+            ->assertSeeText(trans('service-order::messages.pagination_showing_results', [
+                'first' => 1,
+                'last' => 10,
+                'total' => 11,
+            ]));
     }
 
     public function test_can_delete_service_order_and_cascade_related_items(): void
