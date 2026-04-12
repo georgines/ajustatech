@@ -239,6 +239,7 @@ return [
     'create_customer' => 'Cadastrar cliente',
     'continue' => 'Continuar',
     'confirm' => 'Confirmar',
+    'confirm_selection' => 'Confirmar seleção',
     'customer_search_to_select' => 'Busque o cliente para selecionar',
     'customer_not_found_for_search' => 'Nenhum cliente encontrado para a busca informada.',
     'customer_search_placeholder' => 'Buscar por nome, CPF/CNPJ ou email',

@@ -5,14 +5,6 @@
         </div>
 
         <ul class="pagination mb-0 pagination-rounded pagination-outline-primary">
-            <li class="page-item first {{ $paginator->onFirstPage() ? 'disabled' : '' }}">
-                @if ($paginator->onFirstPage())
-                    <span class="page-link" aria-hidden="true">«</span>
-                @else
-                    <a class="page-link" href="{{ $paginator->url(1) }}" rel="first" aria-label="{{ __('pagination.first') }}">«</a>
-                @endif
-            </li>
-
             <li class="page-item prev {{ $paginator->onFirstPage() ? 'disabled' : '' }}">
                 @if ($paginator->onFirstPage())
                     <span class="page-link" aria-hidden="true">‹</span>
@@ -44,14 +36,6 @@
                     <a class="page-link" href="{{ $paginator->nextPageUrl() }}" rel="next" aria-label="{{ __('pagination.next') }}">›</a>
                 @else
                     <span class="page-link" aria-hidden="true">›</span>
-                @endif
-            </li>
-
-            <li class="page-item last {{ $paginator->hasMorePages() ? '' : 'disabled' }}">
-                @if ($paginator->hasMorePages())
-                    <a class="page-link" href="{{ $paginator->url($paginator->lastPage()) }}" rel="last" aria-label="{{ __('pagination.last') }}">»</a>
-                @else
-                    <span class="page-link" aria-hidden="true">»</span>
                 @endif
             </li>
         </ul>

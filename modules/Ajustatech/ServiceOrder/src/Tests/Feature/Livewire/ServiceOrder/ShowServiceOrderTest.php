@@ -9,10 +9,12 @@ use Ajustatech\ServiceOrder\Database\Models\Procedure\ServiceOrderProcedure;
 use Ajustatech\ServiceOrder\Database\Models\ServiceOrder\ServiceOrder;
 use Ajustatech\ServiceOrder\Database\Models\ServiceOrder\ServiceOrderEquipmentFieldValue;
 use Ajustatech\ServiceOrder\Database\Models\ServiceOrder\ServiceOrderServiceItem;
+use Ajustatech\ServiceOrder\Livewire\ServiceOrder\CreateServiceOrderWizard;
 use Ajustatech\ServiceOrder\Livewire\ServiceOrder\ShowServiceOrder;
 use Ajustatech\Settings\Database\Models\ServiceOrder\ServiceOrderStatusFlow;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -35,12 +37,44 @@ class ShowServiceOrderTest extends TestCase
             ->assertSet('openedTo', $now->copy()->endOfMonth()->format('Y-m-d'));
     }
 
+    public function test_initial_render_does_not_load_equipment_type_tables(): void
+    {
+        $queries = [];
+
+        DB::listen(function ($query) use (&$queries): void {
+            $queries[] = $query->sql;
+        });
+
+        Livewire::test(ShowServiceOrder::class);
+
+        $sql = implode("\n", $queries);
+
+        $this->assertStringNotContainsString('service_order_equipment_type_documents', $sql);
+        $this->assertStringNotContainsString('service_order_equipment_type_fields', $sql);
+    }
+
+    public function test_wizard_component_loads_equipment_types_only_when_opened(): void
+    {
+        $equipmentType = ServiceOrderEquipmentType::factory()->create([
+            'is_active' => true,
+        ]);
+
+        Livewire::test(CreateServiceOrderWizard::class)
+            ->assertSet('showCreateWizardModal', false)
+            ->assertSet('equipmentTypes', [])
+            ->call('openWizard')
+            ->assertSet('showCreateWizardModal', true)
+            ->assertSee($equipmentType->name);
+    }
+
     public function test_can_duplicate_service_order_with_related_items(): void
     {
         ServiceOrderStatusFlow::ensureDefaultRows();
 
         $customer = Customer::factory()->create();
-        $equipmentType = ServiceOrderEquipmentType::factory()->create();
+        $equipmentType = ServiceOrderEquipmentType::factory()->create([
+            'is_active' => true,
+        ]);
         $field = ServiceOrderEquipmentTypeField::factory()->create([
             'equipment_type_id' => $equipmentType->id,
         ]);
@@ -144,8 +178,8 @@ class ShowServiceOrderTest extends TestCase
     {
         $customer = Customer::factory()->create();
 
-        Livewire::test(ShowServiceOrder::class)
-            ->call('openCreateWizard')
+        Livewire::test(CreateServiceOrderWizard::class)
+            ->call('openWizard')
             ->call('openCreateWizardCustomerCreateModal')
             ->call('handleCustomerCreated', $customer->id)
             ->assertSet('createWizard.customer_id', $customer->id)
@@ -162,8 +196,8 @@ class ShowServiceOrderTest extends TestCase
         $customer = Customer::factory()->create();
         $equipmentType = ServiceOrderEquipmentType::factory()->create();
 
-        Livewire::test(ShowServiceOrder::class)
-            ->call('openCreateWizard')
+        Livewire::test(CreateServiceOrderWizard::class)
+            ->call('openWizard')
             ->set('createWizard.equipment_type_id', $equipmentType->id)
             ->set('createWizard.customer_id', $customer->id)
             ->call('confirmCreateWizard');

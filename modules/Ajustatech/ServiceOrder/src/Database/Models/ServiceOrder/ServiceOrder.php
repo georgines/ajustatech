@@ -122,9 +122,6 @@ class ServiceOrder extends Model
             ->with([
                 'statusFlow:id,name,code',
                 'customer:id,name,cpf_cnpj',
-                'equipmentType:id,name',
-                'equipmentType.documents:id,equipment_type_id,document_type,title,template_content,path,disk,original_name',
-                'selectedDocument:id,title,document_type',
             ])
             ->search($search)
             ->forStatus($statusFlowId)

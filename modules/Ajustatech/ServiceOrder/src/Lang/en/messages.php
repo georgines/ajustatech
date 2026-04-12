@@ -239,6 +239,7 @@ return [
     'create_customer' => 'Create customer',
     'continue' => 'Continue',
     'confirm' => 'Confirm',
+    'confirm_selection' => 'Confirm selection',
     'customer_search_to_select' => 'Search customer to select',
     'customer_not_found_for_search' => 'No customer found for the provided search.',
     'customer_search_placeholder' => 'Search by name, CPF/CNPJ, or email',

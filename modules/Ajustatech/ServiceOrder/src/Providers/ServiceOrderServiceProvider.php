@@ -9,6 +9,7 @@ use Ajustatech\ServiceOrder\Commands\SeedServiceOrderCommand;
 use Ajustatech\ServiceOrder\Commands\WipeServiceOrderMediaCommand;
 use Ajustatech\ServiceOrder\Providers\Analysis\AnalysisServiceProvider;
 use Ajustatech\ServiceOrder\Providers\EquipmentType\EquipmentTypeServiceProvider;
+use Ajustatech\ServiceOrder\Livewire\ServiceOrder\CreateServiceOrderWizard;
 use Ajustatech\ServiceOrder\Livewire\ServiceOrder\ServiceOrderManagement;
 use Ajustatech\ServiceOrder\Livewire\ServiceOrder\ShowServiceOrder;
 use Ajustatech\ServiceOrder\Providers\Procedure\ProcedureServiceProvider;
@@ -52,6 +53,7 @@ class ServiceOrderServiceProvider extends ServiceProvider
 	private function initializeLivewireComponents()
     {
 		Livewire::component('show-service-order', ShowServiceOrder::class);
+        Livewire::component('service-order-create-wizard', CreateServiceOrderWizard::class);
 		Livewire::component('service-order-management', ServiceOrderManagement::class);
     }
 
