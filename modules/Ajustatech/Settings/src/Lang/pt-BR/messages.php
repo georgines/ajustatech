@@ -3,6 +3,8 @@
 return [
     'save' => 'Salvar',
     'add' => 'Adicionar',
+    'update' => 'Atualizar',
+    'edit' => 'Editar',
     'cancel' => 'Cancelar',
     'close' => 'Fechar',
     'delete' => 'Excluir',
@@ -15,7 +17,8 @@ return [
     'company_open_days' => 'Dias em que a empresa esta aberta',
     'company_holidays' => 'Feriados e datas sem atendimento',
     'add_holiday_date' => 'Adicionar feriado',
-    'holiday_modal_title' => 'Cadastrar feriado',
+    'holiday_modal_title_create' => 'Cadastrar feriado',
+    'holiday_modal_title_edit' => 'Editar feriado',
     'holiday_name_label' => 'Nome do feriado',
     'holiday_name_placeholder' => 'Ex.: Natal',
     'holiday_date_label' => 'Data do feriado',

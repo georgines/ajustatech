@@ -3,6 +3,8 @@
 return [
     'save' => 'Save',
     'add' => 'Add',
+    'update' => 'Update',
+    'edit' => 'Edit',
     'cancel' => 'Cancel',
     'close' => 'Close',
     'delete' => 'Delete',
@@ -15,7 +17,8 @@ return [
     'company_open_days' => 'Business open days',
     'company_holidays' => 'Holidays and closed dates',
     'add_holiday_date' => 'Add holiday date',
-    'holiday_modal_title' => 'Register holiday',
+    'holiday_modal_title_create' => 'Register holiday',
+    'holiday_modal_title_edit' => 'Edit holiday',
     'holiday_name_label' => 'Holiday name',
     'holiday_name_placeholder' => 'Ex.: Christmas',
     'holiday_date_label' => 'Holiday date',

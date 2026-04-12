@@ -26,6 +26,8 @@ class ServiceOrderSettingsManagement extends Component
 
     public string $holidayDate = '';
 
+    public ?int $editingHolidayIndex = null;
+
     #[Locked]
     public array $dayOptions = [];
 
@@ -85,6 +87,20 @@ class ServiceOrderSettingsManagement extends Component
         $this->resetValidation(['holidayName', 'holidayDate']);
         $this->holidayName = '';
         $this->holidayDate = '';
+        $this->editingHolidayIndex = null;
+        $this->isHolidayModalOpen = true;
+    }
+
+    public function openHolidayEditModal(int $index): void
+    {
+        if (! array_key_exists($index, $this->holidays)) {
+            return;
+        }
+
+        $this->resetValidation(['holidayName', 'holidayDate']);
+        $this->holidayName = (string) data_get($this->holidays, "{$index}.name", '');
+        $this->holidayDate = (string) data_get($this->holidays, "{$index}.date", '');
+        $this->editingHolidayIndex = $index;
         $this->isHolidayModalOpen = true;
     }
 
@@ -94,14 +110,21 @@ class ServiceOrderSettingsManagement extends Component
         $this->resetValidation(['holidayName', 'holidayDate']);
         $this->holidayName = '';
         $this->holidayDate = '';
+        $this->editingHolidayIndex = null;
     }
 
-    public function addHoliday(): void
+    public function saveHolidayFromModal(): void
     {
         $validated = $this->validate($this->holidayModalRules());
 
         $alreadyExists = collect($this->holidays)
-            ->contains(fn (array $holiday) => ($holiday['date'] ?? '') === $validated['holidayDate']);
+            ->contains(function (array $holiday, int $index) use ($validated): bool {
+                if ($this->editingHolidayIndex !== null && $index === $this->editingHolidayIndex) {
+                    return false;
+                }
+
+                return ($holiday['date'] ?? '') === $validated['holidayDate'];
+            });
 
         if ($alreadyExists) {
             $this->addError('holidayDate', trans('validation.distinct', ['attribute' => trans('settings::messages.holiday_date_label')]));
@@ -109,10 +132,16 @@ class ServiceOrderSettingsManagement extends Component
             return;
         }
 
-        $this->holidays[] = [
+        $holidayData = [
             'name' => trim($validated['holidayName']),
             'date' => trim($validated['holidayDate']),
         ];
+
+        if ($this->editingHolidayIndex !== null && array_key_exists($this->editingHolidayIndex, $this->holidays)) {
+            $this->holidays[$this->editingHolidayIndex] = $holidayData;
+        } else {
+            $this->holidays[] = $holidayData;
+        }
 
         $this->holidays = ServiceOrderSetting::normalizeHolidays($this->holidays);
         $this->closeHolidayModal();

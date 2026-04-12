@@ -111,7 +111,7 @@ class ServiceOrderSettingsManagementTest extends TestCase
             ->call('openHolidayModal')
             ->set('holidayName', 'Corpus Christi')
             ->set('holidayDate', '2026-06-04')
-            ->call('addHoliday')
+            ->call('saveHolidayFromModal')
             ->assertSet('isHolidayModalOpen', false)
             ->assertSet('holidays.0.name', 'Corpus Christi')
             ->assertSet('holidays.0.date', '2026-06-04');
@@ -126,9 +126,26 @@ class ServiceOrderSettingsManagementTest extends TestCase
             ->call('openHolidayModal')
             ->set('holidayName', 'Ano Novo')
             ->set('holidayDate', '2026-01-01')
-            ->call('addHoliday')
+            ->call('saveHolidayFromModal')
             ->assertHasErrors([
                 'holidayDate',
             ]);
+    }
+
+    public function test_edits_holiday_using_modal_fields(): void
+    {
+        Livewire::test(ServiceOrderSettingsManagement::class)
+            ->set('holidays', [
+                ['name' => 'Natal', 'date' => '2026-12-25'],
+            ])
+            ->call('openHolidayEditModal', 0)
+            ->assertSet('holidayName', 'Natal')
+            ->assertSet('holidayDate', '2026-12-25')
+            ->set('holidayName', 'Natal Nacional')
+            ->set('holidayDate', '2026-12-24')
+            ->call('saveHolidayFromModal')
+            ->assertSet('isHolidayModalOpen', false)
+            ->assertSet('holidays.0.name', 'Natal Nacional')
+            ->assertSet('holidays.0.date', '2026-12-24');
     }
 }

@@ -39,26 +39,41 @@
                     </div>
                     @error('workingDays') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                 </div>
+            </div>
+        </div>
+    </div>
 
-                <div class="col-12">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <label class="form-label mb-0">{{ trans('settings::messages.company_holidays') }}</label>
-                        <button type="button" class="btn btn-sm btn-outline-primary" wire:click="openHolidayModal">
-                            {{ trans('settings::messages.add_holiday_date') }}
-                        </button>
-                    </div>
-
-                    <div class="d-flex flex-column gap-2">
-                        @forelse ($holidays as $index => $holiday)
-                            @php
-                                $holidayDate = (string) ($holiday['date'] ?? '');
-                                $formattedDate = preg_match('/^\d{4}-\d{2}-\d{2}$/', $holidayDate) === 1
-                                    ? \Carbon\Carbon::parse($holidayDate)->format('d/m/Y')
-                                    : $holidayDate;
-                            @endphp
-                            <div class="d-flex align-items-center gap-2">
-                                <input class="form-control" type="text" value="{{ $holiday['name'] }}" readonly>
-                                <input class="form-control" type="text" value="{{ $formattedDate }}" readonly>
+    <div class="card mb-4">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <h5 class="mb-0">{{ trans('settings::messages.company_holidays') }}</h5>
+            <button type="button" class="btn btn-sm btn-outline-primary" wire:click="openHolidayModal">
+                {{ trans('settings::messages.add_holiday_date') }}
+            </button>
+        </div>
+        <div class="card-body">
+            @if (count($holidays) > 0)
+                <ul class="list-group list-group-flush border rounded-2">
+                    @foreach ($holidays as $index => $holiday)
+                        @php
+                            $holidayDate = (string) ($holiday['date'] ?? '');
+                            $formattedDate = preg_match('/^\d{4}-\d{2}-\d{2}$/', $holidayDate) === 1
+                                ? \Carbon\Carbon::parse($holidayDate)->format('d/m/Y')
+                                : $holidayDate;
+                        @endphp
+                        <li class="list-group-item d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                            <div>
+                                <div class="fw-semibold">{{ $holiday['name'] }}</div>
+                                <small class="text-muted"><i class="ti ti-calendar me-1"></i>{{ $formattedDate }}</small>
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-icon"
+                                    wire:click="openHolidayEditModal({{ $index }})"
+                                    title="{{ trans('settings::messages.edit') }}"
+                                    aria-label="{{ trans('settings::messages.edit') }}">
+                                    <i class="text-primary ti ti-pencil"></i>
+                                </button>
                                 <button
                                     type="button"
                                     class="btn btn-sm btn-icon"
@@ -68,14 +83,12 @@
                                     <i class="text-primary ti ti-trash"></i>
                                 </button>
                             </div>
-                            @error('holidays.'.$index.'.name') <small class="text-danger d-block">{{ $message }}</small> @enderror
-                            @error('holidays.'.$index.'.date') <small class="text-danger d-block">{{ $message }}</small> @enderror
-                        @empty
-                            <div class="text-muted">{{ trans('settings::messages.no_holidays_registered') }}</div>
-                        @endforelse
-                    </div>
-                </div>
-            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            @else
+                <div class="text-muted">{{ trans('settings::messages.no_holidays_registered') }}</div>
+            @endif
         </div>
     </div>
 
@@ -117,7 +130,9 @@
             <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">{{ trans('settings::messages.holiday_modal_title') }}</h5>
+                        <h5 class="modal-title">
+                            {{ $editingHolidayIndex !== null ? trans('settings::messages.holiday_modal_title_edit') : trans('settings::messages.holiday_modal_title_create') }}
+                        </h5>
                         <button type="button" class="btn-close" aria-label="{{ trans('settings::messages.close') }}" wire:click="closeHolidayModal"></button>
                     </div>
                     <div class="modal-body">
@@ -134,7 +149,9 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-label-secondary" wire:click="closeHolidayModal">{{ trans('settings::messages.cancel') }}</button>
-                        <button type="button" class="btn btn-primary" wire:click="addHoliday">{{ trans('settings::messages.add') }}</button>
+                        <button type="button" class="btn btn-primary" wire:click="saveHolidayFromModal">
+                            {{ $editingHolidayIndex !== null ? trans('settings::messages.update') : trans('settings::messages.add') }}
+                        </button>
                     </div>
                 </div>
             </div>
