@@ -54,11 +54,15 @@ class ServiceOrderSettingsManagement extends Component
     {
         $validated = $this->validate();
 
-        $this->settingsService->saveSettings([
+        $settings = $this->settingsService->saveSettings([
             'initial_order_number' => (int) $validated['initialOrderNumber'],
         ]);
 
-        return redirect()->route('settings-service-order-show');
+        $this->initialOrderNumber = (int) $settings->initial_order_number;
+
+        $this->dispatch('settings-saved', [
+            'message' => trans('settings::messages.service_order_settings_saved_success'),
+        ]);
     }
 
     public function render()

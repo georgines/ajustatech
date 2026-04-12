@@ -40,7 +40,8 @@ class ServiceOrderSettingsManagementTest extends TestCase
             ->set('initialOrderNumber', 3000)
             ->call('save')
             ->assertHasNoErrors()
-            ->assertRedirect(route('settings-service-order-show'));
+            ->assertDispatched('settings-saved')
+            ->assertSet('initialOrderNumber', 3000);
 
         $this->assertDatabaseHas('service_order_settings', [
             'initial_order_number' => 3000,

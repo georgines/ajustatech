@@ -14,6 +14,7 @@ return [
     'service_order_settings_form_title' => 'Parametros operacionais da ordem de servico',
     'service_order_settings_summary' => 'Resumo das configuracoes',
     'service_order_initial_number' => 'Numero inicial da ordem de servico',
+    'service_order_settings_saved_success' => 'Configuracoes da ordem de servico salvas com sucesso.',
     'company_hours_title' => 'Horarios da empresa',
     'company_hours_edit_title' => 'Editar horarios da empresa',
     'company_hours_form_title' => 'Cadastro dos horarios da empresa',

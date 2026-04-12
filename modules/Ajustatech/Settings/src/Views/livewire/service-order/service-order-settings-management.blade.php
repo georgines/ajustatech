@@ -52,11 +52,10 @@
     </div>
 
     <div class="d-flex justify-content-end">
-        <button type="button" class="btn btn-primary" wire:click="save">
+        <button type="button" class="btn btn-primary" wire:click="save" wire:loading.attr="disabled" wire:target="save">
             {{ trans('settings::messages.save') }}
         </button>
     </div>
-</div>
 </div>
 
 

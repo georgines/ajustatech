@@ -80,7 +80,7 @@
                 });
             });
 
-            Livewire.on('company-hours-saved', event => {
+            const showSuccessAlert = event => {
                 const data = event[0];
 
                 Swal.fire({
@@ -92,7 +92,10 @@
                     },
                     buttonsStyling: false
                 });
-            });
+            };
+
+            Livewire.on('company-hours-saved', showSuccessAlert);
+            Livewire.on('settings-saved', showSuccessAlert);
         });
     </script>
     @isset($vendor_script)

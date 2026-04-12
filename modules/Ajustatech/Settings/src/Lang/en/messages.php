@@ -14,6 +14,7 @@ return [
     'service_order_settings_form_title' => 'Service order operational settings',
     'service_order_settings_summary' => 'Settings summary',
     'service_order_initial_number' => 'Initial service order number',
+    'service_order_settings_saved_success' => 'Service order settings saved successfully.',
     'company_hours_title' => 'Company hours',
     'company_hours_edit_title' => 'Edit company hours',
     'company_hours_form_title' => 'Company hours registration',
