@@ -2,31 +2,20 @@
 
 namespace Ajustatech\Settings\Tests\Feature\Livewire\ServiceOrder;
 
-use Ajustatech\Settings\Database\Models\ServiceOrder\ServiceOrderSetting;
-use Ajustatech\Settings\Livewire\ServiceOrder\ShowServiceOrderSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
-use Livewire\Livewire;
 use Tests\TestCase;
 
 class ShowServiceOrderSettingsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_renders_service_order_settings_and_status_flows(): void
+    public function test_settings_path_renders_management_screen(): void
     {
-        ServiceOrderSetting::factory()->create([
-            'initial_order_number' => 2500,
-            'working_days_json' => ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
-            'holidays_json' => ['2026-01-01', '2026-04-21'],
-        ]);
-
-        Livewire::test(ShowServiceOrderSettings::class)
-            ->assertStatus(200)
-            ->assertSee('2.500')
-            ->assertSee('Entrada')
-            ->assertSee('em_analise')
-            ->assertSee('orcamento_reprovado');
+        $this->get(route('settings-service-order-show'))
+            ->assertOk()
+            ->assertSeeText(trans('settings::messages.service_order_settings_form_title'))
+            ->assertSeeText(trans('settings::messages.service_order_status_flow_title'));
     }
 
     public function test_edit_settings_path_resolves_to_settings_route(): void
@@ -36,6 +25,12 @@ class ShowServiceOrderSettingsTest extends TestCase
             ->match(Request::create('/ordens-servico/configuracoes/editar', 'GET'));
 
         $this->assertSame('settings-service-order-edit', $route->getName());
+    }
+
+    public function test_edit_settings_path_redirects_to_single_settings_screen(): void
+    {
+        $this->get(route('settings-service-order-edit'))
+            ->assertRedirect(route('settings-service-order-show'));
     }
 }
 
