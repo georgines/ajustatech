@@ -1,48 +1,20 @@
-# Testes de Feature (TDD Obrigatorio)
+﻿# Testes de Feature (TDD)
 
-## Regra principal
-Antes de implementar qualquer feature:
-1. Criar o teste de **Feature** primeiro.
-2. Executar o teste e confirmar que ele **falha** (RED).
-3. Implementar a feature (GREEN).
-4. Executar novamente e confirmar que o teste **passa**.
-5. Refatorar mantendo todos os testes verdes (REFACTOR).
+## Fluxo obrigatorio
+1. RED: criar teste e comprovar falha.
+2. GREEN: implementar minimo para passar.
+3. REFACTOR: limpar sem quebrar comportamento.
 
-## Escopo
-- O tipo de teste padrao para novas features deve ser **Feature Test**.
-- Para modulos, priorizar:
-  - `modules/Ajustatech/<Modulo>/src/Tests/Feature/*`
-- Para app base (quando nao modular):
-  - `tests/Feature/*`
+## Cobertura minima por mudanca
+- Caso valido.
+- Caso invalido.
+- Persistencia/relacionamento quando houver banco.
+- Seguranca e performance quando houver superficie sensivel.
 
-## Padrao de fluxo (Red-Green-Refactor)
-- RED:
-  - escrever o cenario esperado da feature;
-  - rodar o teste alvo isolado e validar falha.
-- GREEN:
-  - implementar o minimo necessario para passar.
-- REFACTOR:
-  - limpar codigo sem alterar comportamento;
-  - rodar suite relevante novamente.
+## Recurso com persistencia
+- Garantir migration, factory e seeder coerentes.
+- Priorizar factories em testes, evitando dado manual repetido.
 
-## Regras de qualidade
-- Cada teste deve validar comportamento observavel da feature.
-- Evitar teste acoplado a detalhes internos de implementacao.
-- Em telas Livewire, validar renderizacao, acao e resultado esperado.
-- Em persistencia, validar banco com asserts de database.
-
-## Comandos uteis
-- Rodar todos os testes:
-  - `php artisan test`
-- Rodar somente testes de Feature:
-  - `php artisan test --testsuite=Feature`
-- Rodar arquivo especifico:
-  - `php artisan test modules/Ajustatech/<Modulo>/src/Tests/Feature/<Arquivo>Test.php`
-
-## Criterio de pronto
-Uma feature so e considerada pronta quando:
-- existe teste de Feature criado antes da implementacao;
-- foi comprovada falha inicial (RED);
-- passou apos implementacao (GREEN);
-- nao houve regressao nos testes relacionados.
-
+## Finalizacao
+- Executar suite relevante.
+- Rodar `php artisan dev:reinstall` ao final.

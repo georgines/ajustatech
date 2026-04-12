@@ -1,48 +1,27 @@
-# Arquitetura do Projeto Ajustatech
+﻿# Arquitetura do Projeto Ajustatech
 
-## Regra de Ouro
-Este projeto **nao segue a estrutura padrao monolitica do Laravel para features de dominio**.
-A arquitetura principal e **modular**, com modulos em `modules/Ajustatech/*`.
+## Resumo
+- Base: Laravel 11 + Livewire 3 + Vuexy (referencia visual).
+- Arquitetura de dominio: modular em `modules/Ajustatech/*`.
+- Bootstrap principal: `Ajustatech\Core\Providers\CoreServiceProvider`.
 
-## Estrutura Base
-- Aplicacao base Laravel 11 + Livewire 3.
-- Template visual baseado em Vuexy.
-- Modulos ativos:
-  - `modules/Ajustatech/Core`
-  - `modules/Ajustatech/Customer`
-  - `modules/Ajustatech/Financial`
+## Modulos ativos
+- `Core`: orquestracao (providers, comandos `dev:*`, menu manager, regras reutilizaveis).
+- `Customer`, `Financial`, `ServiceOrder`, `Settings`: dominio com ciclo completo (Models, Livewire, Services, Tests, Seeders).
 
-## Papel de cada modulo
-- `Core`:
-  - Orquestra providers centrais.
-  - Registra comandos de scaffolding e comandos `dev:*`.
-  - Disponibiliza `MenuManager`, `MenuRouteResolver`, `SwitchAlertDispatch`, regras CPF/CNPJ.
-  - Fornece stubs para geracao de novos modulos.
-- `Customer`, `Financial` e novo modulo que for criado:
-  - Cada modulo contem seu proprio ciclo completo: `Commands`, `Database` (Factories/Migrations/Models/Seeders), `Lang` (en e pt-BR), `Livewire`, `Menu`(horizontalMenu.json e verticalMenu.json), `Providers`, `Routes`, `Tests`, `Views` e `composer.json`.
+## Regra de implementacao
+- Feature de dominio nova nasce em modulo, nao em `app/`.
+- Cada modulo deve manter estrutura previsivel: `Database`, `Livewire`, `Services`, `Providers`, `Routes`, `Tests`, `Lang`, `Views`.
+- Quando houver multiplas features, separar por funcionalidade (ex.: `EquipmentType`, `Procedure`, `Analysis`).
 
-## Bootstrap e Registro
-- Provider modular raiz: `Ajustatech\Core\Providers\CoreServiceProvider` em `bootstrap/providers.php`.
-- `CoreServiceProvider` registra:
-  - `CommandServiceProvider`
-  - `MenuServiceProvider`
-  - Modulos de dominio (ex.: `CustomerServiceProvider`, `FinancialServiceProvider`)
-  - `ViewServiceProvider` (deve permanecer como ultimo, conforme convencao dos comandos do Core).
+## Providers e ordem
+- `CoreServiceProvider` registra providers dos modulos.
+- `ViewServiceProvider` deve permanecer por ultimo no registro.
 
-## Namespace e Autoload
-O `composer.json` raiz usa PSR-4 para modulos:
-- `Ajustatech\Core\` -> `modules/Ajustatech/Core/src`
-- `Ajustatech\Customer\` -> `modules/Ajustatech/Customer/src`
-- `Ajustatech\Financial\` -> `modules/Ajustatech/Financial/src`
+## Menus e rotas
+- Menus por modulo em JSON (`Menu/verticalMenu.json`, `Menu/horizontalMenu.json`).
+- `slug` do menu deve apontar para rota nomeada existente.
 
-## Menus modulares
-- Cada modulo publica JSONs de menu (`Menu/verticalMenu.json` e `Menu/horizontalMenu.json`).
-- `MenuManager` agrega menus dos modulos.
-- `MenuRouteResolver` tenta resolver `slug` em rotas e ajusta URL relativa quando a rota existe.
-- `ViewServiceProvider` compartilha `menuData` globalmente para os layouts Vuexy.
-
-## Importante sobre Vuexy (Referencia)
-A pasta `templete/Vuexy/resources` e **somente referencia**.
-- Nao editar para implementar feature real.
-- Implementacao real deve ocorrer em `resources/*` e/ou `modules/Ajustatech/*`.
-- Objetivo: manter padrao visual e estrutural, sem acoplamento direto ao template de referencia.
+## Vuexy
+- `templete/Vuexy/resources` e somente referencia de UI.
+- Implementacao real sempre em `resources/*` e `modules/Ajustatech/*`.
