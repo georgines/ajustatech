@@ -2,6 +2,9 @@
 
 return [
     'save' => 'Save',
+    'add' => 'Add',
+    'cancel' => 'Cancel',
+    'close' => 'Close',
     'delete' => 'Delete',
     'back_to_list' => 'Back to list',
     'service_order_settings_title' => 'Service order settings',
@@ -12,6 +15,10 @@ return [
     'company_open_days' => 'Business open days',
     'company_holidays' => 'Holidays and closed dates',
     'add_holiday_date' => 'Add holiday date',
+    'holiday_modal_title' => 'Register holiday',
+    'holiday_name_label' => 'Holiday name',
+    'holiday_name_placeholder' => 'Ex.: Christmas',
+    'holiday_date_label' => 'Holiday date',
     'no_holidays_registered' => 'No holiday dates registered.',
     'edit_settings' => 'Edit settings',
     'service_order_status_flow_title' => 'Service order status flow',

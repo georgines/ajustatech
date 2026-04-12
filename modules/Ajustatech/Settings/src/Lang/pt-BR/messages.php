@@ -2,6 +2,9 @@
 
 return [
     'save' => 'Salvar',
+    'add' => 'Adicionar',
+    'cancel' => 'Cancelar',
+    'close' => 'Fechar',
     'delete' => 'Excluir',
     'back_to_list' => 'Voltar para listagem',
     'service_order_settings_title' => 'Configuracoes da ordem de servico',
@@ -12,6 +15,10 @@ return [
     'company_open_days' => 'Dias em que a empresa esta aberta',
     'company_holidays' => 'Feriados e datas sem atendimento',
     'add_holiday_date' => 'Adicionar feriado',
+    'holiday_modal_title' => 'Cadastrar feriado',
+    'holiday_name_label' => 'Nome do feriado',
+    'holiday_name_placeholder' => 'Ex.: Natal',
+    'holiday_date_label' => 'Data do feriado',
     'no_holidays_registered' => 'Nenhuma data de feriado cadastrada.',
     'edit_settings' => 'Editar configuracoes',
     'service_order_status_flow_title' => 'Fluxo de status da ordem de servico',

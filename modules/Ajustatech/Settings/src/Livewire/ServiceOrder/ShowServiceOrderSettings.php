@@ -3,6 +3,7 @@
 namespace Ajustatech\Settings\Livewire\ServiceOrder;
 
 use Ajustatech\Settings\Services\ServiceOrder\Contracts\ServiceOrderSettingsServiceInterface;
+use Ajustatech\Settings\Database\Models\ServiceOrder\ServiceOrderSetting;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -28,7 +29,7 @@ class ShowServiceOrderSettings extends Component
         $settings = $service->getSettings();
         $this->initialOrderNumber = (int) $settings->initial_order_number;
         $this->workingDays = (array) ($settings->working_days_json ?? []);
-        $this->holidayDates = (array) ($settings->holidays_json ?? []);
+        $this->holidayDates = ServiceOrderSetting::normalizeHolidays((array) ($settings->holidays_json ?? []));
 
         $this->statusFlows = $service->listStatusFlows()
             ->map(fn ($flow) => [

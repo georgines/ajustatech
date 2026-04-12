@@ -92,13 +92,28 @@ class ServiceOrderSetting extends Model
             ->all();
     }
 
-    public static function normalizeHolidays(array $dates): array
+    public static function normalizeHolidays(array $holidays): array
     {
-        return collect($dates)
-            ->map(fn ($date) => trim((string) $date))
-            ->filter(fn (string $date) => preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) === 1)
-            ->unique()
-            ->sort()
+        return collect($holidays)
+            ->map(function ($holiday): array {
+                if (is_array($holiday)) {
+                    return [
+                        'name' => trim((string) ($holiday['name'] ?? '')),
+                        'date' => trim((string) ($holiday['date'] ?? '')),
+                    ];
+                }
+
+                return [
+                    'name' => 'Feriado',
+                    'date' => trim((string) $holiday),
+                ];
+            })
+            ->filter(function (array $holiday): bool {
+                return $holiday['name'] !== ''
+                    && preg_match('/^\d{4}-\d{2}-\d{2}$/', $holiday['date']) === 1;
+            })
+            ->unique('date')
+            ->sortBy('date')
             ->values()
             ->all();
     }

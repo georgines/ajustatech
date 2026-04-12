@@ -36,8 +36,10 @@
                 <small class="text-muted d-block mb-2">{{ trans('settings::messages.company_holidays') }}</small>
                 @if (count($holidayDates) > 0)
                     <div class="d-flex flex-column gap-2">
-                        @foreach ($holidayDates as $date)
-                            <span class="badge bg-label-secondary text-start">{{ \Carbon\Carbon::parse($date)->format('d/m/Y') }}</span>
+                        @foreach ($holidayDates as $holiday)
+                            <span class="badge bg-label-secondary text-start">
+                                {{ $holiday['name'] }} - {{ \Carbon\Carbon::parse($holiday['date'])->format('d/m/Y') }}
+                            </span>
                         @endforeach
                     </div>
                 @else

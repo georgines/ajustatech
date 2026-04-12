@@ -15,7 +15,10 @@ class ServiceOrderSettingFactory extends Factory
             'initial_order_number' => $this->faker->numberBetween(1000, 9999),
             'working_days_json' => ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
             'holidays_json' => [
-                now()->startOfYear()->format('Y-m-d'),
+                [
+                    'name' => 'Confraternizacao Universal',
+                    'date' => now()->startOfYear()->format('Y-m-d'),
+                ],
             ],
         ];
     }

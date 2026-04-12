@@ -18,7 +18,13 @@ class ServiceOrderSettingsManagement extends Component
 
     public array $workingDays = [];
 
-    public array $holidayDates = [];
+    public array $holidays = [];
+
+    public bool $isHolidayModalOpen = false;
+
+    public string $holidayName = '';
+
+    public string $holidayDate = '';
 
     #[Locked]
     public array $dayOptions = [];
@@ -41,7 +47,7 @@ class ServiceOrderSettingsManagement extends Component
 
         $this->initialOrderNumber = (int) $settings->initial_order_number;
         $this->workingDays = (array) ($settings->working_days_json ?? []);
-        $this->holidayDates = array_values((array) ($settings->holidays_json ?? []));
+        $this->holidays = ServiceOrderSetting::normalizeHolidays((array) ($settings->holidays_json ?? []));
         $this->dayOptions = $this->settingsService->dayOptions();
         $this->statusFlows = $this->settingsService->listStatusFlows()
             ->map(fn ($flow) => [
@@ -60,46 +66,85 @@ class ServiceOrderSettingsManagement extends Component
             'initialOrderNumber' => ['required', 'integer', 'min:1', 'max:999999999'],
             'workingDays' => ['required', 'array', 'min:1', 'max:7'],
             'workingDays.*' => ['required', 'in:'.implode(',', ServiceOrderSetting::DAY_KEYS)],
-            'holidayDates' => ['nullable', 'array', 'max:366'],
-            'holidayDates.*' => ['nullable', 'date_format:Y-m-d', 'distinct'],
+            'holidays' => ['nullable', 'array', 'max:366'],
+            'holidays.*.name' => ['required', 'string', 'min:2', 'max:100'],
+            'holidays.*.date' => ['required', 'date_format:Y-m-d', 'distinct'],
         ];
     }
 
-    public function addHolidayDate(): void
+    protected function holidayModalRules(): array
     {
-        $this->holidayDates[] = '';
+        return [
+            'holidayName' => ['required', 'string', 'min:2', 'max:100'],
+            'holidayDate' => ['required', 'date_format:Y-m-d'],
+        ];
     }
 
-    public function removeHolidayDate(int $index): void
+    public function openHolidayModal(): void
     {
-        if (! array_key_exists($index, $this->holidayDates)) {
+        $this->resetValidation(['holidayName', 'holidayDate']);
+        $this->holidayName = '';
+        $this->holidayDate = '';
+        $this->isHolidayModalOpen = true;
+    }
+
+    public function closeHolidayModal(): void
+    {
+        $this->isHolidayModalOpen = false;
+        $this->resetValidation(['holidayName', 'holidayDate']);
+        $this->holidayName = '';
+        $this->holidayDate = '';
+    }
+
+    public function addHoliday(): void
+    {
+        $validated = $this->validate($this->holidayModalRules());
+
+        $alreadyExists = collect($this->holidays)
+            ->contains(fn (array $holiday) => ($holiday['date'] ?? '') === $validated['holidayDate']);
+
+        if ($alreadyExists) {
+            $this->addError('holidayDate', trans('validation.distinct', ['attribute' => trans('settings::messages.holiday_date_label')]));
+
             return;
         }
 
-        unset($this->holidayDates[$index]);
-        $this->holidayDates = array_values($this->holidayDates);
+        $this->holidays[] = [
+            'name' => trim($validated['holidayName']),
+            'date' => trim($validated['holidayDate']),
+        ];
+
+        $this->holidays = ServiceOrderSetting::normalizeHolidays($this->holidays);
+        $this->closeHolidayModal();
+    }
+
+    public function removeHoliday(int $index): void
+    {
+        if (! array_key_exists($index, $this->holidays)) {
+            return;
+        }
+
+        unset($this->holidays[$index]);
+        $this->holidays = array_values($this->holidays);
     }
 
     public function save()
     {
-        $this->holidayDates = collect($this->holidayDates)
-            ->map(fn ($date) => trim((string) $date))
+        $this->holidays = collect($this->holidays)
+            ->map(fn ($holiday) => [
+                'name' => trim((string) data_get($holiday, 'name', '')),
+                'date' => trim((string) data_get($holiday, 'date', '')),
+            ])
+            ->reject(fn (array $holiday) => $holiday['name'] === '' && $holiday['date'] === '')
             ->values()
             ->all();
 
         $validated = $this->validate();
 
-        $holidays = collect((array) ($validated['holidayDates'] ?? []))
-            ->map(fn ($date) => trim((string) $date))
-            ->filter(fn (string $date) => $date !== '')
-            ->unique()
-            ->values()
-            ->all();
-
         $this->settingsService->saveSettings([
             'initial_order_number' => (int) $validated['initialOrderNumber'],
             'working_days_json' => (array) $validated['workingDays'],
-            'holidays_json' => $holidays,
+            'holidays_json' => ServiceOrderSetting::normalizeHolidays((array) ($validated['holidays'] ?? [])),
         ]);
 
         return redirect()->route('settings-service-order-show');

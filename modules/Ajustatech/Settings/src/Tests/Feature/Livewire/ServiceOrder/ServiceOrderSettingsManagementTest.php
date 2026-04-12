@@ -32,7 +32,10 @@ class ServiceOrderSettingsManagementTest extends TestCase
         Livewire::test(ServiceOrderSettingsManagement::class)
             ->set('initialOrderNumber', 3000)
             ->set('workingDays', ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'])
-            ->set('holidayDates', ['2026-01-01', '2026-11-02'])
+            ->set('holidays', [
+                ['name' => 'Confraternizacao Universal', 'date' => '2026-01-01'],
+                ['name' => 'Finados', 'date' => '2026-11-02'],
+            ])
             ->call('save')
             ->assertHasNoErrors()
             ->assertRedirect(route('settings-service-order-show'));
@@ -42,7 +45,10 @@ class ServiceOrderSettingsManagementTest extends TestCase
         ]);
 
         $this->assertDatabaseHas('service_order_settings', [
-            'holidays_json' => json_encode(['2026-01-01', '2026-11-02']),
+            'holidays_json' => json_encode([
+                ['name' => 'Confraternizacao Universal', 'date' => '2026-01-01'],
+                ['name' => 'Finados', 'date' => '2026-11-02'],
+            ]),
         ]);
     }
 
@@ -51,12 +57,15 @@ class ServiceOrderSettingsManagementTest extends TestCase
         Livewire::test(ServiceOrderSettingsManagement::class)
             ->set('initialOrderNumber', 0)
             ->set('workingDays', [])
-            ->set('holidayDates', ['invalid-date'])
+            ->set('holidays', [
+                ['name' => '', 'date' => 'invalid-date'],
+            ])
             ->call('save')
             ->assertHasErrors([
                 'initialOrderNumber' => 'min',
                 'workingDays' => 'required',
-                'holidayDates.0' => 'date_format',
+                'holidays.0.name' => 'required',
+                'holidays.0.date' => 'date_format',
             ]);
     }
 
@@ -65,10 +74,13 @@ class ServiceOrderSettingsManagementTest extends TestCase
         Livewire::test(ServiceOrderSettingsManagement::class)
             ->set('initialOrderNumber', 3000)
             ->set('workingDays', ['monday', 'tuesday'])
-            ->set('holidayDates', ['2026-01-01', '2026-01-01'])
+            ->set('holidays', [
+                ['name' => 'Confraternizacao Universal', 'date' => '2026-01-01'],
+                ['name' => 'Ano Novo Extra', 'date' => '2026-01-01'],
+            ])
             ->call('save')
             ->assertHasErrors([
-                'holidayDates.1' => 'distinct',
+                'holidays.1.date' => 'distinct',
             ]);
     }
 
@@ -77,12 +89,46 @@ class ServiceOrderSettingsManagementTest extends TestCase
         Livewire::test(ServiceOrderSettingsManagement::class)
             ->set('initialOrderNumber', 3000)
             ->set('workingDays', ['monday', 'tuesday'])
-            ->set('holidayDates', ['2026-12-25', ' 2026-01-01 ', ''])
+            ->set('holidays', [
+                ['name' => ' Natal ', 'date' => '2026-12-25'],
+                ['name' => ' Confraternizacao Universal ', 'date' => ' 2026-01-01 '],
+                ['name' => '', 'date' => ''],
+            ])
             ->call('save')
             ->assertHasNoErrors();
 
         $setting = ServiceOrderSetting::singleton();
 
-        $this->assertSame(['2026-01-01', '2026-12-25'], (array) $setting->holidays_json);
+        $this->assertSame([
+            ['name' => 'Confraternizacao Universal', 'date' => '2026-01-01'],
+            ['name' => 'Natal', 'date' => '2026-12-25'],
+        ], (array) $setting->holidays_json);
+    }
+
+    public function test_adds_holiday_using_modal_fields(): void
+    {
+        Livewire::test(ServiceOrderSettingsManagement::class)
+            ->call('openHolidayModal')
+            ->set('holidayName', 'Corpus Christi')
+            ->set('holidayDate', '2026-06-04')
+            ->call('addHoliday')
+            ->assertSet('isHolidayModalOpen', false)
+            ->assertSet('holidays.0.name', 'Corpus Christi')
+            ->assertSet('holidays.0.date', '2026-06-04');
+    }
+
+    public function test_blocks_duplicate_holiday_date_in_modal(): void
+    {
+        Livewire::test(ServiceOrderSettingsManagement::class)
+            ->set('holidays', [
+                ['name' => 'Confraternizacao Universal', 'date' => '2026-01-01'],
+            ])
+            ->call('openHolidayModal')
+            ->set('holidayName', 'Ano Novo')
+            ->set('holidayDate', '2026-01-01')
+            ->call('addHoliday')
+            ->assertHasErrors([
+                'holidayDate',
+            ]);
     }
 }
