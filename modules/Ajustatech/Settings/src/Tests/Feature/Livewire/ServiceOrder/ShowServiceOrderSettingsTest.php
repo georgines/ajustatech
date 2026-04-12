@@ -5,6 +5,7 @@ namespace Ajustatech\Settings\Tests\Feature\Livewire\ServiceOrder;
 use Ajustatech\Settings\Database\Models\ServiceOrder\ServiceOrderSetting;
 use Ajustatech\Settings\Livewire\ServiceOrder\ShowServiceOrderSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -26,6 +27,15 @@ class ShowServiceOrderSettingsTest extends TestCase
             ->assertSee('Entrada')
             ->assertSee('em_analise')
             ->assertSee('orcamento_reprovado');
+    }
+
+    public function test_edit_settings_path_resolves_to_settings_route(): void
+    {
+        $route = app('router')
+            ->getRoutes()
+            ->match(Request::create('/ordens-servico/configuracoes/editar', 'GET'));
+
+        $this->assertSame('settings-service-order-edit', $route->getName());
     }
 }
 
