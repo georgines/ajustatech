@@ -67,6 +67,33 @@ class ShowServiceOrderTest extends TestCase
             ->assertSee($equipmentType->name);
     }
 
+    public function test_wizard_rerender_keeps_selected_customer_in_memory_without_requerying_customers(): void
+    {
+        ServiceOrderStatusFlow::ensureDefaultRows();
+
+        $customer = Customer::factory()->create();
+        $queries = [];
+
+        DB::listen(function ($query) use (&$queries): void {
+            $queries[] = $query->sql;
+        });
+
+        Livewire::test(CreateServiceOrderWizard::class)
+            ->call('openWizard')
+            ->set('selectedWizardCustomer', [
+                'id' => $customer->id,
+                'name' => $customer->name,
+                'cpf_cnpj' => (string) $customer->cpf_cnpj,
+                'document_masked' => '123.***.***-00',
+            ])
+            ->assertSee($customer->name);
+
+        $sql = implode("\n", $queries);
+
+        $this->assertStringNotContainsString('from "customers"', $sql);
+        $this->assertStringNotContainsString('from `customers`', $sql);
+    }
+
     public function test_can_duplicate_service_order_with_related_items(): void
     {
         ServiceOrderStatusFlow::ensureDefaultRows();
@@ -194,7 +221,9 @@ class ShowServiceOrderTest extends TestCase
         ServiceOrderStatusFlow::ensureDefaultRows();
 
         $customer = Customer::factory()->create();
-        $equipmentType = ServiceOrderEquipmentType::factory()->create();
+        $equipmentType = ServiceOrderEquipmentType::factory()->create([
+            'is_active' => true,
+        ]);
 
         Livewire::test(CreateServiceOrderWizard::class)
             ->call('openWizard')

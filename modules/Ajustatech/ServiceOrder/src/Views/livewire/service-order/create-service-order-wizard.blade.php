@@ -19,10 +19,10 @@
                             @error('createWizard.equipment_type_id') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
 
-                        @if ($selectedWizardCustomer)
+                        @if (filled(data_get($selectedWizardCustomer, 'name')))
                             <div class="alert alert-primary py-2">
-                                <div class="fw-semibold">{{ $selectedWizardCustomer->name }}</div>
-                                <small>CPF/CNPJ: {{ $selectedWizardCustomerDocumentMasked }}</small>
+                                <div class="fw-semibold">{{ data_get($selectedWizardCustomer, 'name') }}</div>
+                                <small>CPF/CNPJ: {{ data_get($selectedWizardCustomer, 'document_masked', '-') }}</small>
                             </div>
                         @endif
 
@@ -65,14 +65,14 @@
                             @error('createWizardCustomerSelectedId') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                         </div>
 
-                        @if (filled(trim($createWizardCustomerSearch)) && $wizardCustomerCandidates->isEmpty())
+                        @if (filled(trim($createWizardCustomerSearch)) && collect($wizardCustomerCandidates)->isEmpty())
                             <div class="alert alert-warning py-2 mb-0">
                                 {{ trans('service-order::messages.customer_not_found_for_search') }}
                             </div>
                         @endif
 
-                        @if ($wizardCustomerCandidates->isNotEmpty())
-                            <div class="d-flex flex-column gap-2 service-order-customer-candidates {{ $wizardCustomerCandidates->count() > 3 ? 'service-order-customer-candidates-scroll' : '' }}">
+                        @if (collect($wizardCustomerCandidates)->isNotEmpty())
+                            <div class="d-flex flex-column gap-2 service-order-customer-candidates {{ collect($wizardCustomerCandidates)->count() > 3 ? 'service-order-customer-candidates-scroll' : '' }}">
                                 @foreach ($wizardCustomerCandidates as $customerCandidate)
                                     <button
                                         type="button"

@@ -22,6 +22,10 @@ class CreateServiceOrderWizard extends Component
 
     public array $equipmentTypes = [];
 
+    public array $wizardCustomerCandidates = [];
+
+    public array $selectedWizardCustomer = [];
+
     public int $createWizardCustomerCreateKey = 0;
 
     public array $createWizard = [
@@ -52,6 +56,8 @@ class CreateServiceOrderWizard extends Component
         $this->showCreateWizardCustomerSelectModal = false;
         $this->showCreateWizardCustomerCreateModal = false;
         $this->createWizardCustomerSearch = '';
+        $this->wizardCustomerCandidates = [];
+        $this->selectedWizardCustomer = [];
         $this->createWizard = [
             'equipment_type_id' => '',
             'customer_id' => '',
@@ -94,11 +100,37 @@ class CreateServiceOrderWizard extends Component
     {
         $this->createWizardCustomerSearch = mb_substr(trim($this->createWizardCustomerSearch), 0, 120);
         $this->createWizardCustomerSelectedId = null;
+
+        if ($this->createWizardCustomerSearch === '') {
+            $this->wizardCustomerCandidates = [];
+
+            return;
+        }
+
+        $service = app(ServiceOrderServiceInterface::class);
+
+        $this->wizardCustomerCandidates = $service->searchCustomers($this->createWizardCustomerSearch, 20)
+            ->map(function ($customer) {
+                return [
+                    'id' => $customer->id,
+                    'name' => $customer->name,
+                    'cpf_cnpj' => (string) $customer->cpf_cnpj,
+                    'document_masked' => $this->maskDocument((string) $customer->cpf_cnpj),
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     public function selectCreateWizardCustomerCandidate(string $customerId): void
     {
         $this->createWizardCustomerSelectedId = $customerId;
+
+        $customer = collect($this->wizardCustomerCandidates)->firstWhere('id', $customerId);
+
+        if ($customer) {
+            $this->selectedWizardCustomer = $customer;
+        }
     }
 
     public function confirmCreateWizardSelectedCustomer(): void
@@ -110,6 +142,18 @@ class CreateServiceOrderWizard extends Component
         ]);
 
         $this->createWizard['customer_id'] = $validated['createWizardCustomerSelectedId'];
+
+        if ($this->selectedWizardCustomer === []) {
+            $customer = Customer::query()->findOrFail($this->createWizard['customer_id']);
+
+            $this->selectedWizardCustomer = [
+                'id' => $customer->id,
+                'name' => $customer->name,
+                'cpf_cnpj' => (string) $customer->cpf_cnpj,
+                'document_masked' => $this->maskDocument((string) $customer->cpf_cnpj),
+            ];
+        }
+
         $this->closeCreateWizardCustomerSelectModal();
     }
 
@@ -120,8 +164,16 @@ class CreateServiceOrderWizard extends Component
             return;
         }
 
+        $customer = Customer::query()->findOrFail($id);
+
         $this->createWizard['customer_id'] = $id;
         $this->createWizardCustomerSelectedId = $id;
+        $this->selectedWizardCustomer = [
+            'id' => $customer->id,
+            'name' => $customer->name,
+            'cpf_cnpj' => (string) $customer->cpf_cnpj,
+            'document_masked' => $this->maskDocument((string) $customer->cpf_cnpj),
+        ];
         $this->closeCreateWizardCustomerCreateModal();
     }
 
@@ -171,24 +223,9 @@ class CreateServiceOrderWizard extends Component
 
     public function render(ServiceOrderServiceInterface $service)
     {
-        $selectedWizardCustomer = filled($this->createWizard['customer_id'])
-            ? Customer::query()->find($this->createWizard['customer_id'])
-            : null;
-
         return view('service-order::livewire.service-order.create-service-order-wizard', [
-            'selectedWizardCustomer' => $selectedWizardCustomer,
-            'selectedWizardCustomerDocumentMasked' => $selectedWizardCustomer
-                ? $this->maskDocument((string) $selectedWizardCustomer->cpf_cnpj)
-                : '',
-            'wizardCustomerCandidates' => filled(trim($this->createWizardCustomerSearch))
-                ? $service->searchCustomers($this->createWizardCustomerSearch, 20)->map(function ($customer) {
-                    return [
-                        'id' => $customer->id,
-                        'name' => $customer->name,
-                        'document_masked' => $this->maskDocument((string) $customer->cpf_cnpj),
-                    ];
-                })
-                : collect(),
+            'selectedWizardCustomer' => $this->selectedWizardCustomer,
+            'wizardCustomerCandidates' => collect($this->wizardCustomerCandidates),
         ]);
     }
 
