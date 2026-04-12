@@ -6,6 +6,7 @@ description: "Use quando otimizar requests HTTP/Livewire e queries de banco em f
 # Skill: Otimizacao de Solicitacoes
 
 ## Procedimento
+
 1. Mapear requests por fluxo.
 2. Evitar request para acao puramente visual.
 3. Garantir consultas com relacionamento sem N+1.
@@ -13,5 +14,6 @@ description: "Use quando otimizar requests HTTP/Livewire e queries de banco em f
 5. Aplicar lote para insert/update/delete quando houver volume.
 
 ## Fonte
+
 - `/.ai/guidelines/projeto/padroes.md`
 - `/.ai/guidelines/projeto/filtros-tabelas-modulo.md`

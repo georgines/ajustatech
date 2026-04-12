@@ -6,10 +6,12 @@ description: "Use quando criar ou alterar codigo relevante e precisar validar ar
 # Skill: Gate de Codigo Novo
 
 ## Quando usar
+
 - Qualquer codigo novo.
 - Mudanca de regra de negocio, persistencia, validacao, Livewire, seeds ou servicos.
 
 ## Procedimento
+
 1. Validar arquitetura e camada correta.
 2. Validar sanitizacao + validacao backend.
 3. Garantir mensagens de validacao em pt-BR.
@@ -20,5 +22,6 @@ description: "Use quando criar ou alterar codigo relevante e precisar validar ar
 8. Rodar `php artisan dev:reinstall`.
 
 ## Fonte
+
 - `/.ai/guidelines/projeto/verificacao-obrigatoria-codigo-novo.md`
 - `/.ai/guidelines/projeto/padroes.md`

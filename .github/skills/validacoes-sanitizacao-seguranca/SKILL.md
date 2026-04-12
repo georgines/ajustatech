@@ -6,6 +6,7 @@ description: "Use quando trabalhar com inputs, formularios e uploads aplicando s
 # Skill: Validacoes, Sanitizacao e Seguranca
 
 ## Procedimento
+
 1. Mapear campos de entrada.
 2. Sanitizar e validar no backend.
 3. Garantir mensagens de validacao em pt-BR.
@@ -13,5 +14,6 @@ description: "Use quando trabalhar com inputs, formularios e uploads aplicando s
 5. Validar e limpar uploads temporarios.
 
 ## Fonte
+
 - `/.ai/guidelines/projeto/validacoes-sanitizacao-seguranca.md`
 - `/.ai/guidelines/projeto/seguranca.md`

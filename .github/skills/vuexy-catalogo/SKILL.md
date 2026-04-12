@@ -6,6 +6,7 @@ description: "Use quando precisar localizar rapidamente referencias Vuexy em `te
 # Skill: Vuexy Catalogo
 
 ## Uso
+
 1. Consultar `/.ai/guidelines/projeto/vuexy-recursos-catalogo.md`.
 1. Consultar `/.ai/guidelines/projeto/vuexy-recursos-dependencias.md`.
 2. Identificar bloco visual equivalente no template.

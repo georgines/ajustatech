@@ -6,6 +6,7 @@ description: "Use quando precisar reforcar simplicidade, manutenibilidade e perf
 # Skill: Qualidade Profissional
 
 ## Foco
+
 - Codigo simples e claro.
 - Responsabilidade correta por camada.
 - Consultas otimizadas com relacionamento e sem N+1.
@@ -13,5 +14,6 @@ description: "Use quando precisar reforcar simplicidade, manutenibilidade e perf
 - Aderencia ao padrao do Laravel 11 do projeto.
 
 ## Fonte
+
 - `/.ai/guidelines/projeto/padroes.md`
 - `/.ai/guidelines/projeto/verificacao-obrigatoria-codigo-novo.md`

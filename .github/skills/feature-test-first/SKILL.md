@@ -6,6 +6,7 @@ description: "Use quando desenvolver feature com TDD, iniciando por teste de Fea
 # Skill: Feature Test First
 
 ## Procedimento
+
 1. Escrever teste de Feature antes da implementacao (RED).
 2. Implementar minimo para passar (GREEN).
 3. Refatorar mantendo comportamento (REFACTOR).
@@ -13,5 +14,6 @@ description: "Use quando desenvolver feature com TDD, iniciando por teste de Fea
 5. Executar `php artisan dev:reinstall` ao final.
 
 ## Fonte
+
 - `/.ai/guidelines/projeto/testes-feature-tdd.md`
 - `/.ai/guidelines/projeto/padroes.md`
