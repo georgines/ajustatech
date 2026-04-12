@@ -16,8 +16,6 @@ class ServiceOrderSettingsService implements ServiceOrderSettingsServiceInterfac
 
     public function listStatusFlows(): Collection
     {
-        ServiceOrderStatusFlow::ensureDefaultRows();
-
         return ServiceOrderStatusFlow::listForSettings();
     }
 
