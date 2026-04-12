@@ -5,11 +5,13 @@ namespace Ajustatech\Settings\Livewire\ServiceOrder;
 use Ajustatech\Settings\Database\Models\ServiceOrder\ServiceOrderSetting;
 use Ajustatech\Settings\Services\ServiceOrder\Contracts\ServiceOrderSettingsServiceInterface;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 #[Layout('core::layouts.app')]
 class ServiceOrderSettingsManagement extends Component
 {
+    #[Locked]
     public string $title = '';
 
     public int $initialOrderNumber = 1000;
@@ -18,8 +20,10 @@ class ServiceOrderSettingsManagement extends Component
 
     public array $holidayDates = [];
 
+    #[Locked]
     public array $dayOptions = [];
 
+    #[Locked]
     public array $statusFlows = [];
 
     protected ServiceOrderSettingsServiceInterface $settingsService;
@@ -51,10 +55,10 @@ class ServiceOrderSettingsManagement extends Component
     {
         return [
             'initialOrderNumber' => ['required', 'integer', 'min:1', 'max:999999999'],
-            'workingDays' => ['required', 'array', 'min:1'],
-            'workingDays.*' => ['required', 'in:' . implode(',', ServiceOrderSetting::DAY_KEYS)],
-            'holidayDates' => ['nullable', 'array'],
-            'holidayDates.*' => ['nullable', 'date_format:Y-m-d'],
+            'workingDays' => ['required', 'array', 'min:1', 'max:7'],
+            'workingDays.*' => ['required', 'in:'.implode(',', ServiceOrderSetting::DAY_KEYS)],
+            'holidayDates' => ['nullable', 'array', 'max:366'],
+            'holidayDates.*' => ['nullable', 'date_format:Y-m-d', 'distinct'],
         ];
     }
 
@@ -75,6 +79,11 @@ class ServiceOrderSettingsManagement extends Component
 
     public function save()
     {
+        $this->holidayDates = collect($this->holidayDates)
+            ->map(fn ($date) => trim((string) $date))
+            ->values()
+            ->all();
+
         $validated = $this->validate();
 
         $holidays = collect((array) ($validated['holidayDates'] ?? []))
@@ -90,7 +99,7 @@ class ServiceOrderSettingsManagement extends Component
             'holidays_json' => $holidays,
         ]);
 
-        return redirect()->route('service-order-settings-show');
+        return redirect()->route('settings-service-order-show');
     }
 
     public function render()
@@ -98,5 +107,3 @@ class ServiceOrderSettingsManagement extends Component
         return view('settings::livewire.service-order.service-order-settings-management');
     }
 }
-
-

@@ -4,7 +4,7 @@
     <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">{{ trans('settings::messages.service_order_settings_form_title') }}</h5>
-            <a class="btn btn-label-secondary" href="{{ route('service-order-settings-show') }}">
+            <a class="btn btn-label-secondary" href="{{ route('settings-service-order-show') }}">
                 {{ trans('settings::messages.back_to_list') }}
             </a>
         </div>

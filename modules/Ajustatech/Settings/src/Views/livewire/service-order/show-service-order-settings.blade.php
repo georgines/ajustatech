@@ -2,7 +2,7 @@
 
 <div>
     <div class="d-flex justify-content-end mb-3">
-        <a class="btn btn-primary" href="{{ route('service-order-settings-edit') }}">
+        <a class="btn btn-primary" href="{{ route('settings-service-order-edit') }}">
             <i class="ti ti-settings me-1"></i>{{ trans('settings::messages.edit_settings') }}
         </a>
     </div>
