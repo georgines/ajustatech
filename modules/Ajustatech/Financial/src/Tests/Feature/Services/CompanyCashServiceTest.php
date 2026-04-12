@@ -13,6 +13,7 @@ class CompanyCashServiceTest extends TestCase
     use RefreshDatabase;
 
     protected CompanyCashService $cashService;
+
     protected CompanyCash $companyCash;
 
     protected function setUp(): void
@@ -38,12 +39,12 @@ class CompanyCashServiceTest extends TestCase
             'agency' => '1234',
             'account' => '567890',
             'description' => 'Sample cash for testing',
-            'is_online' => true
+            'is_online' => true,
         ]);
 
         $this->assertDatabaseHas('company_cash_balances', [
             'company_cash_id' => $cash->id,
-            'balance' => $initialBalance
+            'balance' => $initialBalance,
         ]);
     }
 
@@ -55,12 +56,12 @@ class CompanyCashServiceTest extends TestCase
         $this->assertDatabaseHas('company_cashes', [
             'cash_name' => 'Physical Cash',
             'description' => 'Sample cash for testing',
-            'is_online' => false
+            'is_online' => false,
         ]);
 
         $this->assertDatabaseHas('company_cash_balances', [
             'company_cash_id' => $cash->id,
-            'balance' => $initialBalance
+            'balance' => $initialBalance,
         ]);
     }
 
@@ -75,7 +76,7 @@ class CompanyCashServiceTest extends TestCase
         $this->assertDatabaseHas('company_cash_transactions', [
             'company_cash_id' => $cash->id,
             'amount' => $depositAmount,
-            'is_inflow' => true
+            'is_inflow' => true,
         ]);
 
         $this->assertEquals(1250.5, $this->cashService->calculateBalance());
@@ -104,7 +105,7 @@ class CompanyCashServiceTest extends TestCase
         $this->assertDatabaseHas('company_cash_transactions', [
             'company_cash_id' => $cash->id,
             'amount' => $withdrawAmount,
-            'is_inflow' => false
+            'is_inflow' => false,
         ]);
 
         $this->assertEquals(500.00, $this->cashService->calculateBalance());
@@ -138,7 +139,7 @@ class CompanyCashServiceTest extends TestCase
         $this->assertDatabaseHas('company_cash_transactions', [
             'company_cash_id' => $cash->id,
             'amount' => $receiveAmount,
-            'is_inflow' => true
+            'is_inflow' => true,
         ]);
 
         $this->assertEquals($receiveAmount, $this->cashService->calculateBalance());
@@ -156,7 +157,7 @@ class CompanyCashServiceTest extends TestCase
         $this->assertDatabaseHas('company_cash_transactions', [
             'company_cash_id' => $cash->id,
             'amount' => $payAmount,
-            'is_inflow' => false
+            'is_inflow' => false,
         ]);
 
         $this->assertEquals(750.00, $this->cashService->calculateBalance());
@@ -173,7 +174,7 @@ class CompanyCashServiceTest extends TestCase
         $this->assertDatabaseHas('company_cash_transactions', [
             'company_cash_id' => $cash->id,
             'amount' => $feeAmount,
-            'is_inflow' => false
+            'is_inflow' => false,
         ]);
 
         $this->assertEquals(950.00, $this->cashService->calculateBalance());
@@ -191,7 +192,7 @@ class CompanyCashServiceTest extends TestCase
         $this->assertDatabaseHas('company_cash_transactions', [
             'company_cash_id' => $cash->id,
             'amount' => $refundAmount,
-            'is_inflow' => true
+            'is_inflow' => true,
         ]);
 
         $this->assertEquals(1200.00, $this->cashService->calculateBalance());
@@ -208,7 +209,7 @@ class CompanyCashServiceTest extends TestCase
 
         $this->assertDatabaseHas('company_cash_transactions', [
             'id' => $transaction->id,
-            'amount' => $newAmount
+            'amount' => $newAmount,
         ]);
 
         $this->assertEquals(1200, $this->cashService->calculateBalance());
@@ -216,26 +217,29 @@ class CompanyCashServiceTest extends TestCase
 
     public function test_get_all_company_cashes_with_balances_should_return_correct_data()
     {
-        CompanyCash::createNew([
-            "cash_name" => "Cash 1",
-            "balance_amount" => 1000,
-            "balance_description" => "Initial balance",
-            "is_online" => true,
-            "is_active" => true
+        $cash1 = CompanyCash::createNew([
+            'cash_name' => 'Cash 1',
+            'balance_amount' => 1000,
+            'balance_description' => 'Initial balance',
+            'is_online' => true,
+            'is_active' => true,
         ]);
 
-        CompanyCash::createNew([
-            "cash_name" => "Cash 2",
-            "balance_amount" => 2000,
-            "balance_description" => "Initial balance",
-            "is_online" => true,
-            "is_active" => true
+        $cash2 = CompanyCash::createNew([
+            'cash_name' => 'Cash 2',
+            'balance_amount' => 2000,
+            'balance_description' => 'Initial balance',
+            'is_online' => true,
+            'is_active' => true,
         ]);
 
         $cashesWithBalances = CompanyCashService::getAllCompanyCashs();
 
         $this->assertCount(2, $cashesWithBalances);
-        $this->assertEquals(1000, $cashesWithBalances[0]->balance);
-        $this->assertEquals(2000, $cashesWithBalances[1]->balance);
+        $balancesByCashId = collect($cashesWithBalances)
+            ->mapWithKeys(fn ($cash) => [$cash->id => (float) $cash->balance]);
+
+        $this->assertEquals(1000.0, $balancesByCashId->get($cash1->id));
+        $this->assertEquals(2000.0, $balancesByCashId->get($cash2->id));
     }
 }

@@ -13,8 +13,11 @@ class SeedServiceOrderSettingsCommand extends Command
     public function handle(): void
     {
         $this->call('db:seed', [
+            '--class' => 'Ajustatech\Settings\Database\Seeders\Company\CompanySettingsSeeder',
+        ]);
+
+        $this->call('db:seed', [
             '--class' => 'Ajustatech\Settings\Database\Seeders\ServiceOrder\ServiceOrderSettingsSeeder',
         ]);
     }
 }
-

@@ -4,8 +4,11 @@ namespace Ajustatech\Settings\Providers;
 
 use Ajustatech\Core\Helpers\MenuManagerInterface;
 use Ajustatech\Settings\Commands\ServiceOrder\SeedServiceOrderSettingsCommand;
+use Ajustatech\Settings\Livewire\Company\CompanySettingsManagement;
 use Ajustatech\Settings\Livewire\ServiceOrder\ServiceOrderSettingsManagement;
 use Ajustatech\Settings\Livewire\ServiceOrder\ShowServiceOrderSettings;
+use Ajustatech\Settings\Services\Company\CompanySettingsService;
+use Ajustatech\Settings\Services\Company\Contracts\CompanySettingsServiceInterface;
 use Ajustatech\Settings\Services\ServiceOrder\Contracts\ServiceOrderSettingsServiceInterface;
 use Ajustatech\Settings\Services\ServiceOrder\ServiceOrderSettingsService;
 use Illuminate\Support\ServiceProvider;
@@ -17,15 +20,23 @@ class SettingsServiceProvider extends ServiceProvider
 
     public function register(): void
     {
+        $this->mergeConfigFrom("{$this->path}/config/settings.php", 'settings');
+
         $this->app->bind(
             ServiceOrderSettingsServiceInterface::class,
             ServiceOrderSettingsService::class
+        );
+
+        $this->app->bind(
+            CompanySettingsServiceInterface::class,
+            CompanySettingsService::class
         );
     }
 
     public function boot(): void
     {
         $this->loadRoutesFrom("{$this->path}/Routes/service-order.php");
+        $this->loadRoutesFrom("{$this->path}/Routes/company.php");
         $this->loadViewsFrom("{$this->path}/Views", 'settings');
         $this->loadMigrationsFrom("{$this->path}/Database/Migrations");
         $this->loadTranslationsFrom("{$this->path}/Lang", 'settings');
@@ -48,6 +59,7 @@ class SettingsServiceProvider extends ServiceProvider
     {
         Livewire::component('show-service-order-settings', ShowServiceOrderSettings::class);
         Livewire::component('service-order-settings-management', ServiceOrderSettingsManagement::class);
+        Livewire::component('company-settings-management', CompanySettingsManagement::class);
     }
 
     private function loadCommands(): void
@@ -57,4 +69,3 @@ class SettingsServiceProvider extends ServiceProvider
         ]);
     }
 }
-

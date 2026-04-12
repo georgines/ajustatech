@@ -4,8 +4,8 @@ namespace Ajustatech\Financial\Tests\Feature\Livewire\PaymentMethods;
 
 use Ajustatech\Financial\Database\Models\FinancialCardBrand;
 use Ajustatech\Financial\Database\Models\FinancialPaymentMethod;
-use Ajustatech\Financial\Livewire\ShowPaymentMethods;
 use Ajustatech\Financial\Livewire\PaymentMethodManagement;
+use Ajustatech\Financial\Livewire\ShowPaymentMethods;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -140,10 +140,18 @@ class PaymentMethodManagementTest extends TestCase
             'receipt_channel' => 'link',
         ]);
 
-        Livewire::test(PaymentMethodManagement::class, ['id' => $method->id])
-            ->call('editCost', 1)
+        $component = Livewire::test(PaymentMethodManagement::class, ['id' => $method->id]);
+
+        $indexToEdit = collect($component->get('costs'))
+            ->search(fn (array $cost) => ($cost['receipt_channel'] ?? null) === 'link' && (int) ($cost['installments'] ?? 0) === 6);
+
+        $this->assertNotFalse($indexToEdit);
+
+        $component
+            ->call('editCost', (int) $indexToEdit)
             ->set('percentCost', 4.35)
             ->set('installments', 8)
+            ->set('receiptChannel', 'link')
             ->call('updateCost')
             ->call('save')
             ->assertHasNoErrors();
