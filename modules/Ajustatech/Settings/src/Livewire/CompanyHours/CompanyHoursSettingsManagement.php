@@ -81,6 +81,19 @@ class CompanyHoursSettingsManagement extends Component
         ];
     }
 
+    protected function validationAttributes(): array
+    {
+        return [
+            'workingDays' => 'dias em que a empresa esta aberta',
+            'workingDays.*' => 'dias em que a empresa esta aberta',
+            'holidays' => 'feriados e datas sem atendimento',
+            'holidays.*.name' => 'nome do feriado',
+            'holidays.*.date' => 'data do feriado',
+            'holidayName' => 'nome do feriado',
+            'holidayDate' => 'data do feriado',
+        ];
+    }
+
     public function openHolidayModal(): void
     {
         $this->resetValidation(['holidayName', 'holidayDate']);
@@ -114,7 +127,7 @@ class CompanyHoursSettingsManagement extends Component
 
     public function saveHolidayFromModal(): void
     {
-        $validated = $this->validate($this->holidayModalRules());
+        $validated = $this->validate($this->holidayModalRules(), [], $this->validationAttributes());
 
         $alreadyExists = collect($this->holidays)
             ->contains(function (array $holiday, int $index) use ($validated): bool {
@@ -182,7 +195,7 @@ class CompanyHoursSettingsManagement extends Component
             ->values()
             ->all();
 
-        $validated = $this->validate();
+        $validated = $this->validate($this->rules(), [], $this->validationAttributes());
 
         $savedSettings = $this->settingsService->saveSettings([
             'working_days' => (array) $validated['workingDays'],

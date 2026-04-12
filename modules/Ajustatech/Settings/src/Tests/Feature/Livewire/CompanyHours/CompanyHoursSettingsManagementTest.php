@@ -132,6 +132,21 @@ class CompanyHoursSettingsManagementTest extends TestCase
             ->assertSet('holidays.0.date', '2026-06-04');
     }
 
+    public function test_validates_holiday_modal_fields_in_portuguese(): void
+    {
+        Livewire::test(CompanyHoursSettingsManagement::class)
+            ->call('openHolidayModal')
+            ->set('holidayName', '')
+            ->set('holidayDate', '')
+            ->call('saveHolidayFromModal')
+            ->assertHasErrors([
+                'holidayName' => 'required',
+                'holidayDate' => 'required',
+            ])
+            ->assertSeeText('O campo nome do feriado é obrigatório.')
+            ->assertSeeText('O campo data do feriado é obrigatório.');
+    }
+
     public function test_confirm_remove_holiday_dispatches_switchalert(): void
     {
         Livewire::test(CompanyHoursSettingsManagement::class)
