@@ -64,7 +64,7 @@
                                 <button
                                     type="button"
                                     class="btn btn-sm btn-icon"
-                                    wire:click="removeHoliday({{ $index }})"
+                                    wire:click="confirmRemoveHoliday({{ $index }})"
                                     title="{{ trans('settings::messages.delete') }}"
                                     aria-label="{{ trans('settings::messages.delete') }}">
                                     <i class="text-primary ti ti-trash"></i>

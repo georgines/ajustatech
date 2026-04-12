@@ -2,15 +2,19 @@
 
 namespace Ajustatech\Settings\Livewire\CompanyHours;
 
+use Ajustatech\Core\Traits\SwitchAlertDispatch;
 use Ajustatech\Settings\Database\Models\CompanyHours\CompanyHour;
 use Ajustatech\Settings\Services\CompanyHours\Contracts\CompanyHoursSettingsServiceInterface;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 #[Layout('core::layouts.app')]
 class CompanyHoursSettingsManagement extends Component
 {
+    use SwitchAlertDispatch;
+
     #[Locked]
     public string $title = '';
 
@@ -141,6 +145,21 @@ class CompanyHoursSettingsManagement extends Component
         $this->closeHolidayModal();
     }
 
+    public function confirmRemoveHoliday(int $index): void
+    {
+        if (! array_key_exists($index, $this->holidays)) {
+            return;
+        }
+
+        $this->dispatchConfirmation(trans('settings::messages.confirm_delete_holiday'))
+            ->to('remove-holiday', index: $index)
+            ->typeWarning()
+            ->setButtonOK(trans('settings::messages.confirm_yes'))
+            ->setButtonCancel(trans('settings::messages.confirm_no'))
+            ->run();
+    }
+
+    #[On('remove-holiday')]
     public function removeHoliday(int $index): void
     {
         if (! array_key_exists($index, $this->holidays)) {

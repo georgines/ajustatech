@@ -88,6 +88,26 @@ class CompanyHoursSettingsManagementTest extends TestCase
             ->assertSet('holidays.0.date', '2026-06-04');
     }
 
+    public function test_confirm_remove_holiday_dispatches_switchalert(): void
+    {
+        Livewire::test(CompanyHoursSettingsManagement::class)
+            ->set('holidays', [
+                ['name' => 'Confraternizacao Universal', 'date' => '2026-01-01'],
+            ])
+            ->call('confirmRemoveHoliday', 0)
+            ->assertDispatched('confirmation');
+    }
+
+    public function test_remove_holiday_after_confirmation_removes_item(): void
+    {
+        Livewire::test(CompanyHoursSettingsManagement::class)
+            ->set('holidays', [
+                ['name' => 'Confraternizacao Universal', 'date' => '2026-01-01'],
+            ])
+            ->dispatch('remove-holiday', index: 0)
+            ->assertSet('holidays', []);
+    }
+
     public function test_blocks_duplicate_holiday_date_in_modal(): void
     {
         Livewire::test(CompanyHoursSettingsManagement::class)
