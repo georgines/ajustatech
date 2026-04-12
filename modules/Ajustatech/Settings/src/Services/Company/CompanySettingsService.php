@@ -81,19 +81,31 @@ class CompanySettingsService implements CompanySettingsServiceInterface
 
     public function validateLogo(UploadedFile $logo): void
     {
-        $this->validateUploadedFile(
-            file: $logo,
-            field: 'logo',
-            maxSizeKb: $this->maxSizeKb(),
-            allowedExtensions: $this->allowedExtensions(),
-            allowedMimeTypes: $this->allowedMimeTypes(),
-            mustBeImage: true
-        );
-
         Validator::make(
             ['logo' => $logo],
-            ['logo' => ['required', 'dimensions:width=1080,height=1080']],
-            ['logo.dimensions' => 'A logo deve ter exatamente 1080x1080 pixels.']
+            [
+                'logo' => [
+                    'required',
+                    'file',
+                    'image',
+                    'max:'.max($this->maxSizeKb(), 1),
+                    'extensions:'.implode(',', $this->allowedExtensions()),
+                    'mimetypes:'.implode(',', $this->allowedMimeTypes()),
+                    'dimensions:width=1080,height=1080',
+                ],
+            ],
+            [
+                'logo.required' => trans('settings::messages.company_logo_image_error'),
+                'logo.file' => trans('settings::messages.company_logo_image_error'),
+                'logo.image' => trans('settings::messages.company_logo_image_error'),
+                'logo.max' => trans('settings::messages.company_logo_image_error'),
+                'logo.extensions' => trans('settings::messages.company_logo_image_error'),
+                'logo.mimetypes' => trans('settings::messages.company_logo_image_error'),
+                'logo.dimensions' => trans('settings::messages.company_logo_dimensions_error'),
+            ],
+            [
+                'logo' => trans('settings::messages.company_logo_label'),
+            ]
         )->validate();
     }
 
@@ -108,14 +120,14 @@ class CompanySettingsService implements CompanySettingsServiceInterface
     {
         $validated = Validator::make($payload, [
             'company_name' => ['required', 'string', 'max:255'],
-            'cnpj' => ['nullable', 'string', 'max:20', new CnpjValidation],
-            'address_line' => ['nullable', 'string', 'max:255'],
-            'neighborhood' => ['nullable', 'string', 'max:120'],
-            'city' => ['nullable', 'string', 'max:120'],
-            'state' => ['nullable', 'string', 'size:2'],
-            'phone' => ['nullable', 'string', 'max:30'],
-            'email' => ['nullable', 'email', 'max:255'],
-        ])->validate();
+            'cnpj' => ['required', 'string', 'max:20', new CnpjValidation],
+            'address_line' => ['required', 'string', 'max:255'],
+            'neighborhood' => ['required', 'string', 'max:120'],
+            'city' => ['required', 'string', 'max:120'],
+            'state' => ['required', 'string', 'size:2'],
+            'phone' => ['required', 'string', 'max:30'],
+            'email' => ['required', 'email', 'max:255'],
+        ], [], $this->validationAttributes())->validate();
 
         return [
             'company_name' => $this->sanitizeText($validated['company_name'] ?? null, 255),
@@ -254,5 +266,19 @@ class CompanySettingsService implements CompanySettingsServiceInterface
             ->filter()
             ->values()
             ->all();
+    }
+
+    private function validationAttributes(): array
+    {
+        return [
+            'company_name' => trans('settings::messages.company_name_label'),
+            'cnpj' => trans('settings::messages.company_cnpj_label'),
+            'address_line' => trans('settings::messages.company_address_label'),
+            'neighborhood' => trans('settings::messages.company_neighborhood_label'),
+            'city' => trans('settings::messages.company_city_label'),
+            'state' => trans('settings::messages.company_state_label'),
+            'phone' => trans('settings::messages.company_phone_label'),
+            'email' => trans('settings::messages.company_email_label'),
+        ];
     }
 }

@@ -69,9 +69,12 @@ return [
     'company_state_label' => 'State',
     'company_logo_title' => 'Company logo',
     'company_logo_input_label' => 'Select logo',
+    'company_logo_label' => 'Company logo',
     'company_logo_accept_hint' => 'Allowed formats',
     'company_logo_preview_current' => 'Current logo',
     'company_logo_preview_new' => 'New logo preview',
     'company_logo_preview_empty' => 'No logo registered.',
+    'company_logo_image_error' => 'The company logo must be a valid image.',
+    'company_logo_dimensions_error' => 'The company logo must be exactly 1080x1080 pixels.',
     'company_settings_saved_success' => 'Company data saved successfully.',
 ];

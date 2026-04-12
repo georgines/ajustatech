@@ -44,6 +44,82 @@ class CompanySettingsManagementTest extends TestCase
         $this->assertTrue(Storage::disk('public')->exists((string) $setting->logo_path));
     }
 
+    public function test_shows_logo_preview_before_saving(): void
+    {
+        Storage::fake('public');
+        config()->set('settings.company.logo.disk', 'public');
+        config()->set('settings.company.logo.directory', 'settings/company/logo');
+
+        Livewire::test(CompanySettingsManagement::class)
+            ->set('logo', UploadedFile::fake()->image('logo-preview.png', 1080, 1080))
+            ->assertSeeText(trans('settings::messages.company_logo_preview_new'))
+            ->assertHasNoErrors();
+    }
+
+    public function test_validates_required_fields_and_logo_messages_in_portuguese(): void
+    {
+        Storage::fake('public');
+        config()->set('settings.company.logo.disk', 'public');
+
+        Livewire::test(CompanySettingsManagement::class)
+            ->set('companyName', '')
+            ->set('cnpj', '')
+            ->set('addressLine', '')
+            ->set('neighborhood', '')
+            ->set('city', '')
+            ->set('state', '')
+            ->set('phone', '')
+            ->set('email', '')
+            ->call('save')
+            ->assertHasErrors([
+                'companyName' => 'required',
+                'cnpj' => 'required',
+                'addressLine' => 'required',
+                'neighborhood' => 'required',
+                'city' => 'required',
+                'state' => 'required',
+                'phone' => 'required',
+                'email' => 'required',
+            ])
+            ->assertSeeText('O campo Nome da empresa é obrigatório.')
+            ->assertSeeText('O campo CNPJ é obrigatório.');
+    }
+
+    public function test_validates_logo_mime_type_and_dimensions_in_portuguese(): void
+    {
+        Storage::fake('public');
+        config()->set('settings.company.logo.disk', 'public');
+        config()->set('settings.company.logo.directory', 'settings/company/logo');
+
+        Livewire::test(CompanySettingsManagement::class)
+            ->set('companyName', 'TechNova Assistencia')
+            ->set('cnpj', '12.345.678/0001-95')
+            ->set('addressLine', 'Rua das Oficinas, 245')
+            ->set('neighborhood', 'Distrito Industrial')
+            ->set('city', 'Fortaleza')
+            ->set('state', 'CE')
+            ->set('phone', '(85) 4000-1234')
+            ->set('email', 'contato@technova.com.br')
+            ->set('logo', UploadedFile::fake()->create('logo-invalida.txt', 20, 'text/plain'))
+            ->call('save')
+            ->assertHasErrors(['logo' => 'image'])
+            ->assertSeeText('A logo da empresa deve ser uma imagem válida.');
+
+        Livewire::test(CompanySettingsManagement::class)
+            ->set('companyName', 'TechNova Assistencia')
+            ->set('cnpj', '12.345.678/0001-95')
+            ->set('addressLine', 'Rua das Oficinas, 245')
+            ->set('neighborhood', 'Distrito Industrial')
+            ->set('city', 'Fortaleza')
+            ->set('state', 'CE')
+            ->set('phone', '(85) 4000-1234')
+            ->set('email', 'contato@technova.com.br')
+            ->set('logo', UploadedFile::fake()->image('logo-invalida.png', 900, 900))
+            ->call('save')
+            ->assertHasErrors(['logo' => 'dimensions'])
+            ->assertSeeText('A logo da empresa deve ter exatamente 1080x1080 pixels.');
+    }
+
     public function test_save_uses_minimum_queries_without_redirect(): void
     {
         $setting = CompanySetting::singleton();
@@ -80,6 +156,7 @@ class CompanySettingsManagementTest extends TestCase
     {
         $setting = CompanySetting::singleton();
         $existingLogoPath = 'settings/company/logo/'.$setting->id.'/logo-atual.png';
+        $expectedLogoUrl = route('settings-company-logo', ['v' => sha1($existingLogoPath)]);
 
         CompanySetting::updateSingleton([
             'logo_disk' => 'public',
@@ -92,6 +169,13 @@ class CompanySettingsManagementTest extends TestCase
         Livewire::test(CompanySettingsManagement::class)
             ->set('companyName', 'TechNova Assistencia')
             ->set('cnpj', '12.345.678/0001-95')
+            ->set('addressLine', 'Rua das Oficinas, 245')
+            ->set('neighborhood', 'Distrito Industrial')
+            ->set('city', 'Fortaleza')
+            ->set('state', 'CE')
+            ->set('phone', '(85) 4000-1234')
+            ->set('email', 'contato@technova.com.br')
+            ->assertSet('currentLogoUrl', $expectedLogoUrl)
             ->call('save')
             ->assertHasNoErrors()
             ->assertDispatched('settings-saved');
@@ -107,7 +191,11 @@ class CompanySettingsManagementTest extends TestCase
         Livewire::test(CompanySettingsManagement::class)
             ->set('companyName', '')
             ->set('cnpj', '00.000.000/0000-00')
+            ->set('addressLine', 'Rua das Oficinas, 245')
+            ->set('neighborhood', 'Distrito Industrial')
+            ->set('city', 'Fortaleza')
             ->set('state', 'Ceara')
+            ->set('phone', '(85) 4000-1234')
             ->set('email', 'invalido')
             ->call('save')
             ->assertHasErrors([
@@ -128,6 +216,12 @@ class CompanySettingsManagementTest extends TestCase
         Livewire::test(CompanySettingsManagement::class)
             ->set('companyName', 'TechNova Assistencia')
             ->set('cnpj', '12.345.678/0001-95')
+            ->set('addressLine', 'Rua das Oficinas, 245')
+            ->set('neighborhood', 'Distrito Industrial')
+            ->set('city', 'Fortaleza')
+            ->set('state', 'CE')
+            ->set('phone', '(85) 4000-1234')
+            ->set('email', 'contato@technova.com.br')
             ->set('logo', UploadedFile::fake()->image('logo-invalida.png', 900, 900))
             ->call('save')
             ->assertHasErrors(['logo' => 'dimensions']);
@@ -154,6 +248,12 @@ class CompanySettingsManagementTest extends TestCase
         Livewire::test(CompanySettingsManagement::class)
             ->set('companyName', 'TechNova Assistencia')
             ->set('cnpj', '12.345.678/0001-95')
+            ->set('addressLine', 'Rua das Oficinas, 245')
+            ->set('neighborhood', 'Distrito Industrial')
+            ->set('city', 'Fortaleza')
+            ->set('state', 'CE')
+            ->set('phone', '(85) 4000-1234')
+            ->set('email', 'contato@technova.com.br')
             ->set('logo', UploadedFile::fake()->image('logo-nova.png', 1080, 1080))
             ->call('save')
             ->assertHasNoErrors();

@@ -4,12 +4,12 @@ namespace Ajustatech\Settings\Livewire\Company;
 
 use Ajustatech\Core\Rules\CnpjValidation;
 use Ajustatech\Core\Traits\HandlesFileUploads;
+use Ajustatech\Settings\Database\Models\Company\CompanySetting;
 use Ajustatech\Settings\Services\Company\Contracts\CompanySettingsServiceInterface;
 use Illuminate\Http\UploadedFile;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
 
 #[Layout('core::layouts.app')]
@@ -69,20 +69,20 @@ class CompanySettingsManagement extends Component
         $this->state = $settings->state;
         $this->phone = $settings->phone;
         $this->email = $settings->email;
-        $this->currentLogoUrl = $settings->hasLogo() ? route('settings-company-logo') : null;
+        $this->currentLogoUrl = $this->buildCurrentLogoUrl($settings);
     }
 
     protected function rules(): array
     {
         return [
             'companyName' => ['required', 'string', 'max:255'],
-            'cnpj' => ['nullable', 'string', 'max:20', new CnpjValidation],
-            'addressLine' => ['nullable', 'string', 'max:255'],
-            'neighborhood' => ['nullable', 'string', 'max:120'],
-            'city' => ['nullable', 'string', 'max:120'],
-            'state' => ['nullable', 'string', 'size:2'],
-            'phone' => ['nullable', 'string', 'max:30'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'cnpj' => ['required', 'string', 'max:20', new CnpjValidation],
+            'addressLine' => ['required', 'string', 'max:255'],
+            'neighborhood' => ['required', 'string', 'max:120'],
+            'city' => ['required', 'string', 'max:120'],
+            'state' => ['required', 'string', 'size:2'],
+            'phone' => ['required', 'string', 'max:30'],
+            'email' => ['required', 'email', 'max:255'],
         ];
     }
 
@@ -97,12 +97,15 @@ class CompanySettingsManagement extends Component
             'state' => trans('settings::messages.company_state_label'),
             'phone' => trans('settings::messages.company_phone_label'),
             'email' => trans('settings::messages.company_email_label'),
+            'logo' => trans('settings::messages.company_logo_label'),
         ];
     }
 
     public function updatedLogo(): void
     {
         if (! $this->logo) {
+            $this->temporaryLogoUrl = null;
+
             return;
         }
 
@@ -115,8 +118,8 @@ class CompanySettingsManagement extends Component
     {
         $this->validate($this->rules(), [], $this->validationAttributes());
         $logo = $this->selectedLogoForSave();
-
-        $this->settingsService->saveSettings(
+        /** @var CompanySetting $updatedSettings */
+        $updatedSettings = $this->settingsService->saveSettings(
             settingId: $this->companySettingId,
             payload: [
                 'company_name' => $this->companyName,
@@ -131,6 +134,10 @@ class CompanySettingsManagement extends Component
             logo: $logo
         );
 
+        $this->currentLogoUrl = $this->buildCurrentLogoUrl($updatedSettings);
+        $this->temporaryLogoUrl = null;
+        $this->logo = null;
+
         $this->dispatch('settings-saved', [
             'message' => trans('settings::messages.company_settings_saved_success'),
         ]);
@@ -143,19 +150,21 @@ class CompanySettingsManagement extends Component
 
     private function selectedLogoForSave(): mixed
     {
-        if (! $this->logo instanceof TemporaryUploadedFile) {
-            return $this->logo instanceof UploadedFile ? $this->logo : null;
+        if ($this->logo instanceof UploadedFile) {
+            return $this->logo;
         }
 
-        $realPath = $this->logo->getRealPath();
+        return null;
+    }
 
-        if (! is_string($realPath) || $realPath === '' || ! is_file($realPath)) {
-            $this->logo = null;
-            $this->temporaryLogoUrl = null;
-
+    private function buildCurrentLogoUrl(CompanySetting $settings): ?string
+    {
+        if (! $settings->hasLogo()) {
             return null;
         }
 
-        return $this->logo;
+        return route('settings-company-logo', [
+            'v' => sha1((string) $settings->logo_path),
+        ]);
     }
 }

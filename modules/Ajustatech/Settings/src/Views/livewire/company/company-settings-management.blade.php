@@ -10,49 +10,49 @@
             <div class="row g-3">
                 <div class="col-12 col-md-6">
                     <label class="form-label">{{ trans('settings::messages.company_name_label') }}</label>
-                    <input class="form-control" type="text" wire:model.blur="companyName">
+                    <input class="form-control" type="text" wire:model.blur="companyName" required maxlength="255">
                     @error('companyName') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                 </div>
 
                 <div class="col-12 col-md-6">
                     <label class="form-label">{{ trans('settings::messages.company_cnpj_label') }}</label>
-                    <input class="form-control" type="text" wire:model.blur="cnpj" inputmode="numeric">
+                    <input class="form-control" type="text" wire:model.blur="cnpj" inputmode="numeric" required maxlength="20">
                     @error('cnpj') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                 </div>
 
                 <div class="col-12 col-md-6">
                     <label class="form-label">{{ trans('settings::messages.company_phone_label') }}</label>
-                    <input class="form-control" type="text" wire:model.blur="phone">
+                    <input class="form-control" type="text" wire:model.blur="phone" required maxlength="30" inputmode="tel">
                     @error('phone') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                 </div>
 
                 <div class="col-12 col-md-6">
                     <label class="form-label">{{ trans('settings::messages.company_email_label') }}</label>
-                    <input class="form-control" type="email" wire:model.blur="email">
+                    <input class="form-control" type="email" wire:model.blur="email" required maxlength="255">
                     @error('email') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                 </div>
 
                 <div class="col-12">
                     <label class="form-label">{{ trans('settings::messages.company_address_label') }}</label>
-                    <input class="form-control" type="text" wire:model.blur="addressLine">
+                    <input class="form-control" type="text" wire:model.blur="addressLine" required maxlength="255">
                     @error('addressLine') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                 </div>
 
                 <div class="col-12 col-md-6">
                     <label class="form-label">{{ trans('settings::messages.company_neighborhood_label') }}</label>
-                    <input class="form-control" type="text" wire:model.blur="neighborhood">
+                    <input class="form-control" type="text" wire:model.blur="neighborhood" required maxlength="120">
                     @error('neighborhood') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                 </div>
 
                 <div class="col-8 col-md-4">
                     <label class="form-label">{{ trans('settings::messages.company_city_label') }}</label>
-                    <input class="form-control" type="text" wire:model.blur="city">
+                    <input class="form-control" type="text" wire:model.blur="city" required maxlength="120">
                     @error('city') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                 </div>
 
                 <div class="col-4 col-md-2">
                     <label class="form-label">{{ trans('settings::messages.company_state_label') }}</label>
-                    <input class="form-control text-uppercase" type="text" maxlength="2" wire:model.blur="state">
+                    <input class="form-control text-uppercase" type="text" maxlength="2" wire:model.blur="state" required>
                     @error('state') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                 </div>
             </div>
@@ -75,10 +75,10 @@
                 <div class="col-12 col-md-6">
                     @if ($temporaryLogoUrl)
                         <small class="text-muted d-block mb-2">{{ trans('settings::messages.company_logo_preview_new') }}</small>
-                        <img src="{{ $temporaryLogoUrl }}" alt="Preview logo" class="rounded border" width="96" height="96">
+                        <img src="{{ $temporaryLogoUrl }}" alt="Preview da logo" class="rounded border object-fit-cover" width="160" height="160">
                     @elseif ($currentLogoUrl)
                         <small class="text-muted d-block mb-2">{{ trans('settings::messages.company_logo_preview_current') }}</small>
-                        <img src="{{ $currentLogoUrl }}" alt="Logo atual" class="rounded border" width="96" height="96">
+                        <img src="{{ $currentLogoUrl }}" alt="Logo atual" class="rounded border object-fit-cover" width="160" height="160">
                     @else
                         <small class="text-muted d-block">{{ trans('settings::messages.company_logo_preview_empty') }}</small>
                     @endif

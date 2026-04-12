@@ -69,9 +69,12 @@ return [
     'company_state_label' => 'UF',
     'company_logo_title' => 'Logo da empresa',
     'company_logo_input_label' => 'Selecionar logo',
+    'company_logo_label' => 'Logo da empresa',
     'company_logo_accept_hint' => 'Formatos permitidos',
     'company_logo_preview_current' => 'Logo atual',
     'company_logo_preview_new' => 'Preview da nova logo',
     'company_logo_preview_empty' => 'Nenhuma logo cadastrada.',
+    'company_logo_image_error' => 'A logo da empresa deve ser uma imagem válida.',
+    'company_logo_dimensions_error' => 'A logo da empresa deve ter exatamente 1080x1080 pixels.',
     'company_settings_saved_success' => 'Dados da empresa salvos com sucesso.',
 ];

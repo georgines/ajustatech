@@ -3,8 +3,8 @@
 namespace Ajustatech\Core\Traits;
 
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -16,9 +16,9 @@ trait HandlesFileUploads
     {
         $disks = (array) config('filesystems.disks', []);
 
-        if (!array_key_exists($disk, $disks)) {
+        if (! array_key_exists($disk, $disks)) {
             throw ValidationException::withMessages([
-                $field => 'Disco de upload configurado nao existe.',
+                $field => 'Disco de upload configurado não existe.',
             ]);
         }
     }
@@ -32,19 +32,19 @@ trait HandlesFileUploads
         bool $mustBeImage = false
     ): void {
         $rules = [
-            $field => ['required', 'file', 'max:' . max($maxSizeKb, 1)],
+            $field => ['required', 'file', 'max:'.max($maxSizeKb, 1)],
         ];
 
         if ($mustBeImage) {
             $rules[$field][] = 'image';
         }
 
-        if (!empty($allowedExtensions)) {
-            $rules[$field][] = 'extensions:' . implode(',', $allowedExtensions);
+        if (! empty($allowedExtensions)) {
+            $rules[$field][] = 'extensions:'.implode(',', $allowedExtensions);
         }
 
-        if (!empty($allowedMimeTypes)) {
-            $rules[$field][] = 'mimetypes:' . implode(',', $allowedMimeTypes);
+        if (! empty($allowedMimeTypes)) {
+            $rules[$field][] = 'mimetypes:'.implode(',', $allowedMimeTypes);
         }
 
         Validator::make([$field => $file], $rules)->validate();
@@ -57,9 +57,9 @@ trait HandlesFileUploads
     ): string {
         $extension = strtolower((string) ($file->guessExtension() ?: $file->getClientOriginalExtension()));
 
-        if (!empty($allowedExtensions) && !in_array($extension, $allowedExtensions, true)) {
+        if (! empty($allowedExtensions) && ! in_array($extension, $allowedExtensions, true)) {
             throw ValidationException::withMessages([
-                $field => 'Extensao de arquivo nao permitida.',
+                $field => 'Extensão de arquivo não permitida.',
             ]);
         }
 
@@ -80,7 +80,7 @@ trait HandlesFileUploads
             $safe = $fallbackName;
         }
 
-        return Str::limit($safe, $maxLength, '') . '.' . $extension;
+        return Str::limit($safe, $maxLength, '').'.'.$extension;
     }
 
     protected function storeUploadedFile(
@@ -113,7 +113,7 @@ trait HandlesFileUploads
 
     protected function temporaryUploadedFileUrl(?UploadedFile $file): ?string
     {
-        if (!$file || !method_exists($file, 'temporaryUrl')) {
+        if (! $file || ! method_exists($file, 'temporaryUrl')) {
             return null;
         }
 
@@ -130,7 +130,7 @@ trait HandlesFileUploads
 
         $storage = Storage::disk($disk);
 
-        if (!$storage->exists($path)) {
+        if (! $storage->exists($path)) {
             abort(404);
         }
 
@@ -148,7 +148,7 @@ trait HandlesFileUploads
         }, 200, [
             'Content-Type' => (string) $resolvedMimeType,
             'Cache-Control' => $cacheControl,
-            'Last-Modified' => gmdate('D, d M Y H:i:s', $lastModified) . ' GMT',
+            'Last-Modified' => gmdate('D, d M Y H:i:s', $lastModified).' GMT',
         ]);
     }
 }
