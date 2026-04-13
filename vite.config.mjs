@@ -1,41 +1,8 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import html from '@rollup/plugin-html';
-import { glob } from 'glob';
 import dotenv from 'dotenv';
 dotenv.config();
-/**
- * Get Files from a directory
- * @param {string} query
- * @returns array
- */
-function GetFilesArray(query) {
-  return glob.sync(query);
-}
-/**
- * Js Files
- */
-// Page JS Files
-const pageJsFiles = GetFilesArray('resources/assets/js/*.js');
-
-// Processing Vendor JS Files
-const vendorJsFiles = GetFilesArray('resources/assets/vendor/js/*.js');
-
-// Processing Libs JS Files
-const LibsJsFiles = GetFilesArray('resources/assets/vendor/libs/**/*.js');
-
-/**
- * Scss Files
- */
-// Processing Core, Themes & Pages Scss Files
-const CoreScssFiles = GetFilesArray('resources/assets/vendor/scss/**/!(_)*.scss');
-
-// Processing Libs Scss & Css Files
-const LibsScssFiles = GetFilesArray('resources/assets/vendor/libs/**/!(_)*.scss');
-const LibsCssFiles = GetFilesArray('resources/assets/vendor/libs/**/*.css');
-
-// Processing Fonts Scss Files
-const FontsScssFiles = GetFilesArray('resources/assets/vendor/fonts/!(_)*.scss');
 
 // Processing Window Assignment for Libs like jKanban, pdfMake
 function libsWindowAssignment() {
@@ -70,15 +37,22 @@ export default defineConfig({
         'resources/css/app.css',
         'resources/assets/css/demo.css',
         'resources/js/app.js',
-        ...pageJsFiles,
-        ...vendorJsFiles,
-        ...LibsJsFiles,
-        'resources/js/laravel-user-management.js', // Processing Laravel User Management CRUD JS File
-        ...CoreScssFiles,
-        ...LibsScssFiles,
-        ...LibsCssFiles,
-        ...FontsScssFiles,
-        'modules/Ajustatech/UI/resources/assets/scss/cupom.scss'
+          'resources/assets/js/config.js',
+          'resources/assets/js/front-config.js',
+          'resources/assets/js/front-main.js',
+          'resources/assets/vendor/js/helpers.js',
+          'resources/assets/vendor/js/template-customizer.js',
+          'resources/assets/vendor/js/dropdown-hover.js',
+          'resources/assets/vendor/js/mega-dropdown.js',
+          'resources/assets/vendor/js/bootstrap.js',
+          'resources/assets/vendor/js/menu.js',
+          'resources/assets/vendor/libs/popper/popper.js',
+          'resources/assets/vendor/libs/node-waves/node-waves.js',
+          'resources/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js',
+          'resources/assets/vendor/libs/hammer/hammer.js',
+          'resources/assets/vendor/libs/typeahead-js/typeahead.js',
+          'resources/assets/js/bundles/dashboard-analytics.scss',
+          'resources/assets/js/bundles/dashboard-analytics.js'
       ],
       refresh: [
         'modules/Ajustatech/**/src/Views/**/*.blade.php',

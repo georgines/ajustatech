@@ -2,11 +2,8 @@
 
 <div>
     <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card-header">
             <h5 class="mb-0">{{ trans('settings::messages.service_order_settings_form_title') }}</h5>
-            <a class="btn btn-label-secondary" href="{{ route('service-order-settings-show') }}">
-                {{ trans('settings::messages.back_to_list') }}
-            </a>
         </div>
 
         <div class="card-body">
@@ -23,58 +20,6 @@
                         wire:model.blur="initialOrderNumber">
                     @error('initialOrderNumber') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                 </div>
-
-                <div class="col-12">
-                    <label class="form-label d-block">{{ trans('settings::messages.company_open_days') }}</label>
-                    <div class="row g-2">
-                        @foreach ($dayOptions as $option)
-                            <div class="col-6 col-md-3">
-                                <label class="switch mb-0">
-                                    <input class="switch-input" type="checkbox" value="{{ $option['value'] }}" wire:model.live="workingDays" />
-                                    <span class="switch-toggle-slider">
-                                        <span class="switch-on"></span>
-                                        <span class="switch-off"></span>
-                                    </span>
-                                    <span class="switch-label">{{ $option['label'] }}</span>
-                                </label>
-                            </div>
-                        @endforeach
-                    </div>
-                    @error('workingDays') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
-                </div>
-
-                <div class="col-12">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <label class="form-label mb-0">{{ trans('settings::messages.company_holidays') }}</label>
-                        <button type="button" class="btn btn-sm btn-outline-primary" wire:click="addHolidayDate">
-                            {{ trans('settings::messages.add_holiday_date') }}
-                        </button>
-                    </div>
-
-                    <div class="d-flex flex-column gap-2">
-                        @forelse ($holidayDates as $index => $holidayDate)
-                            <div class="d-flex align-items-center gap-2">
-                                <input
-                                    class="form-control"
-                                    type="date"
-                                    wire:model.blur="holidayDates.{{ $index }}"
-                                    max="2100-12-31"
-                                    min="2000-01-01">
-                                <button
-                                    type="button"
-                                    class="btn btn-sm btn-icon"
-                                    wire:click="removeHolidayDate({{ $index }})"
-                                    title="{{ trans('settings::messages.delete') }}"
-                                    aria-label="{{ trans('settings::messages.delete') }}">
-                                    <i class="text-primary ti ti-trash"></i>
-                                </button>
-                            </div>
-                            @error('holidayDates.'.$index) <small class="text-danger d-block">{{ $message }}</small> @enderror
-                        @empty
-                            <div class="text-muted">{{ trans('settings::messages.no_holidays_registered') }}</div>
-                        @endforelse
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -85,16 +30,29 @@
             <small class="text-muted">{{ trans('settings::messages.service_order_status_flow_auto_hint') }}</small>
         </div>
         <div class="card-body">
-            <div class="d-flex flex-wrap gap-2">
+            <div class="d-flex flex-column gap-2">
                 @foreach ($statusFlows as $flow)
-                    <span class="badge bg-label-secondary">{{ $flow['name'] }}</span>
+                    <div class="border rounded-2 p-2">
+                        <div class="d-flex align-items-center justify-content-between gap-2">
+                            <div class="fw-semibold">{{ $flow['name'] }}</div>
+                            <div class="d-flex align-items-center gap-1">
+                                @if ($flow['is_default_initial'])
+                                    <span class="badge bg-label-primary">{{ trans('settings::messages.status_flow_initial') }}</span>
+                                @endif
+                                @if ($flow['is_terminal'])
+                                    <span class="badge bg-label-secondary">{{ trans('settings::messages.status_flow_terminal') }}</span>
+                                @endif
+                            </div>
+                        </div>
+                        <small class="text-muted d-block mt-1">{{ $flow['description'] }}</small>
+                    </div>
                 @endforeach
             </div>
         </div>
     </div>
 
     <div class="d-flex justify-content-end">
-        <button type="button" class="btn btn-primary" wire:click="save">
+        <button type="button" class="btn btn-primary" wire:click="save" wire:loading.attr="disabled" wire:target="save">
             {{ trans('settings::messages.save') }}
         </button>
     </div>

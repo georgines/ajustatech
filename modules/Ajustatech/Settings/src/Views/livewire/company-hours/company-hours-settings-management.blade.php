@@ -1,0 +1,123 @@
+<x-slot name="page_title">{{ $title }}</x-slot>
+
+<div>
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">{{ trans('settings::messages.company_hours_form_title') }}</h5>
+        </div>
+
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label d-block">{{ trans('settings::messages.company_open_days') }}</label>
+                    <div class="row g-2">
+                        @foreach ($dayOptions as $option)
+                            <div class="col-6 col-md-3">
+                                <label class="switch mb-0">
+                                    <input class="switch-input" type="checkbox" value="{{ $option['value'] }}" wire:model.live="workingDays" />
+                                    <span class="switch-toggle-slider">
+                                        <span class="switch-on"></span>
+                                        <span class="switch-off"></span>
+                                    </span>
+                                    <span class="switch-label">{{ $option['label'] }}</span>
+                                </label>
+                            </div>
+                        @endforeach
+                    </div>
+                    @error('workingDays') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <h5 class="mb-0">{{ trans('settings::messages.company_holidays') }}</h5>
+            <button type="button" class="btn btn-sm btn-outline-primary" wire:click="openHolidayModal">
+                {{ trans('settings::messages.add_holiday_date') }}
+            </button>
+        </div>
+        <div class="card-body">
+            @if (count($holidays) > 0)
+                <ul class="list-group list-group-flush border rounded-2">
+                    @foreach ($holidays as $index => $holiday)
+                        @php
+                            $holidayDate = (string) ($holiday['date'] ?? '');
+                            $formattedDate = preg_match('/^\d{4}-\d{2}-\d{2}$/', $holidayDate) === 1
+                                ? \Carbon\Carbon::parse($holidayDate)->format('d/m/Y')
+                                : $holidayDate;
+                        @endphp
+                        <li class="list-group-item d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                            <div>
+                                <div class="fw-semibold">{{ $holiday['name'] }}</div>
+                                <small class="text-muted"><i class="ti ti-calendar me-1"></i>{{ $formattedDate }}</small>
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-icon"
+                                    wire:click="openHolidayEditModal({{ $index }})"
+                                    title="{{ trans('settings::messages.edit') }}"
+                                    aria-label="{{ trans('settings::messages.edit') }}">
+                                    <i class="text-primary ti ti-pencil"></i>
+                                </button>
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-icon"
+                                    wire:click="confirmRemoveHoliday({{ $index }})"
+                                    title="{{ trans('settings::messages.delete') }}"
+                                    aria-label="{{ trans('settings::messages.delete') }}">
+                                    <i class="text-primary ti ti-trash"></i>
+                                </button>
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            @else
+                <div class="text-muted">{{ trans('settings::messages.no_holidays_registered') }}</div>
+            @endif
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end">
+        <button type="button" class="btn btn-primary" wire:click="save" wire:loading.attr="disabled" wire:target="save">
+            {{ trans('settings::messages.save') }}
+        </button>
+    </div>
+
+    @if ($isHolidayModalOpen)
+        <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true" style="z-index: 3000;" wire:ignore.self wire:click.self="closeHolidayModal">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            {{ $editingHolidayIndex !== null ? trans('settings::messages.holiday_modal_title_edit') : trans('settings::messages.holiday_modal_title_create') }}
+                        </h5>
+                        <button type="button" class="btn-close" aria-label="{{ trans('settings::messages.close') }}" wire:click="closeHolidayModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">{{ trans('settings::messages.holiday_name_label') }}</label>
+                            <input type="text" class="form-control" maxlength="100" wire:model="holidayName" placeholder="{{ trans('settings::messages.holiday_name_placeholder') }}">
+                            @error('holidayName') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
+                        </div>
+                        <div>
+                            <label class="form-label">{{ trans('settings::messages.holiday_date_label') }}</label>
+                            <input type="date" class="form-control" min="2000-01-01" max="2100-12-31" wire:model="holidayDate">
+                            @error('holidayDate') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" wire:click="closeHolidayModal">
+                            {{ trans('settings::messages.cancel') }}
+                        </button>
+                        <button type="button" class="btn btn-primary" wire:click="saveHolidayFromModal">
+                            {{ $editingHolidayIndex !== null ? trans('settings::messages.update') : trans('settings::messages.add') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show" style="z-index: 2990;" wire:key="company-hours-holiday-backdrop"></div>
+    @endif
+</div>

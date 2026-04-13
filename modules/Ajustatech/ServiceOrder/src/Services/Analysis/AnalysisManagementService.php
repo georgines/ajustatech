@@ -615,7 +615,7 @@ class AnalysisManagementService implements AnalysisManagementServiceInterface
                 ->all();
         }
 
-        return ServiceOrderProcedure::query()->pluck('id')->mapWithKeys(fn ($id) => [(string) $id => true])->all();
+        return ServiceOrderProcedure::idMap();
     }
 
     private function getSubquestionInsertIndexForParent(AnalysisManagement $component, int $parentIndex): int

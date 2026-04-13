@@ -11,12 +11,10 @@ class ServiceOrderSettingTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_can_create_service_order_setting_with_days_and_holidays(): void
+    public function test_can_create_service_order_setting_with_initial_number(): void
     {
         $setting = ServiceOrderSetting::factory()->create([
             'initial_order_number' => 1200,
-            'working_days_json' => ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
-            'holidays_json' => ['2026-12-25'],
         ]);
 
         $this->assertDatabaseHas('service_order_settings', [
@@ -40,5 +38,3 @@ class ServiceOrderSettingTest extends TestCase
         ]);
     }
 }
-
-

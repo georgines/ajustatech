@@ -3,8 +3,8 @@
 namespace Ajustatech\ServiceOrder\Database\Models\Procedure;
 
 use Ajustatech\ServiceOrder\Database\Factories\Procedure\ServiceOrderProcedureFactory;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -41,6 +41,31 @@ class ServiceOrderProcedure extends Model
         return $this->hasMany(ServiceOrderProcedureMedia::class, 'procedure_id')
             ->orderBy('sort_order')
             ->orderBy('created_at');
+    }
+
+    public function toSelectionOption(): array
+    {
+        return [
+            'id' => (string) $this->id,
+            'name' => (string) $this->name,
+        ];
+    }
+
+    public static function listForSelection(): array
+    {
+        return static::query()
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn (self $procedure) => $procedure->toSelectionOption())
+            ->all();
+    }
+
+    public static function idMap(): array
+    {
+        return static::query()
+            ->pluck('id')
+            ->mapWithKeys(fn ($id) => [(string) $id => true])
+            ->all();
     }
 
     public static function listWithMedia(): Collection

@@ -2,24 +2,20 @@
 
 namespace Ajustatech\Settings\Livewire\ServiceOrder;
 
-use Ajustatech\Settings\Database\Models\ServiceOrder\ServiceOrderSetting;
 use Ajustatech\Settings\Services\ServiceOrder\Contracts\ServiceOrderSettingsServiceInterface;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 #[Layout('core::layouts.app')]
 class ServiceOrderSettingsManagement extends Component
 {
+    #[Locked]
     public string $title = '';
 
     public int $initialOrderNumber = 1000;
 
-    public array $workingDays = [];
-
-    public array $holidayDates = [];
-
-    public array $dayOptions = [];
-
+    #[Locked]
     public array $statusFlows = [];
 
     protected ServiceOrderSettingsServiceInterface $settingsService;
@@ -36,12 +32,12 @@ class ServiceOrderSettingsManagement extends Component
         $settings = $this->settingsService->getSettings();
 
         $this->initialOrderNumber = (int) $settings->initial_order_number;
-        $this->workingDays = (array) ($settings->working_days_json ?? []);
-        $this->holidayDates = array_values((array) ($settings->holidays_json ?? []));
-        $this->dayOptions = $this->settingsService->dayOptions();
         $this->statusFlows = $this->settingsService->listStatusFlows()
             ->map(fn ($flow) => [
+                'code' => $flow->code,
                 'name' => $flow->name,
+                'description' => trans("settings::messages.service_order_status_flow_description_{$flow->code}"),
+                'is_default_initial' => (bool) $flow->is_default_initial,
                 'is_terminal' => (bool) $flow->is_terminal,
             ])
             ->all();
@@ -51,46 +47,22 @@ class ServiceOrderSettingsManagement extends Component
     {
         return [
             'initialOrderNumber' => ['required', 'integer', 'min:1', 'max:999999999'],
-            'workingDays' => ['required', 'array', 'min:1'],
-            'workingDays.*' => ['required', 'in:' . implode(',', ServiceOrderSetting::DAY_KEYS)],
-            'holidayDates' => ['nullable', 'array'],
-            'holidayDates.*' => ['nullable', 'date_format:Y-m-d'],
         ];
-    }
-
-    public function addHolidayDate(): void
-    {
-        $this->holidayDates[] = '';
-    }
-
-    public function removeHolidayDate(int $index): void
-    {
-        if (! array_key_exists($index, $this->holidayDates)) {
-            return;
-        }
-
-        unset($this->holidayDates[$index]);
-        $this->holidayDates = array_values($this->holidayDates);
     }
 
     public function save()
     {
         $validated = $this->validate();
 
-        $holidays = collect((array) ($validated['holidayDates'] ?? []))
-            ->map(fn ($date) => trim((string) $date))
-            ->filter(fn (string $date) => $date !== '')
-            ->unique()
-            ->values()
-            ->all();
-
-        $this->settingsService->saveSettings([
+        $settings = $this->settingsService->saveSettings([
             'initial_order_number' => (int) $validated['initialOrderNumber'],
-            'working_days_json' => (array) $validated['workingDays'],
-            'holidays_json' => $holidays,
         ]);
 
-        return redirect()->route('service-order-settings-show');
+        $this->initialOrderNumber = (int) $settings->initial_order_number;
+
+        $this->dispatch('settings-saved', [
+            'message' => trans('settings::messages.service_order_settings_saved_success'),
+        ]);
     }
 
     public function render()
@@ -98,5 +70,3 @@ class ServiceOrderSettingsManagement extends Component
         return view('settings::livewire.service-order.service-order-settings-management');
     }
 }
-
-

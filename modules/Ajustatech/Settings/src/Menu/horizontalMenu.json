@@ -7,8 +7,18 @@
 			"submenu": [
 				{
 					"url": "",
+					"name": "Dados da empresa",
+					"slug": "settings-company-edit"
+				},
+				{
+					"url": "",
+					"name": "Horarios da empresa",
+					"slug": "settings-company-hours-edit"
+				},
+				{
+					"url": "",
 					"name": "Ordem de servico",
-					"slug": "service-order-settings-show"
+					"slug": "settings-service-order-edit"
 				}
 			]
 		}

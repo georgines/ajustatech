@@ -47,6 +47,17 @@ class ServiceOrderAnalysisService extends Model
             ->orderBy('created_at');
     }
 
+    public function toServiceOrderOption(): array
+    {
+        return [
+            'id' => (string) $this->id,
+            'name' => (string) $this->name,
+            'description' => (string) ($this->description ?? ''),
+            'value' => (float) $this->value,
+            'questions_count' => (int) ($this->questions_count ?? 0),
+        ];
+    }
+
     public static function listForIndex(): Collection
     {
         return static::query()
@@ -95,14 +106,7 @@ class ServiceOrderAnalysisService extends Model
 
     public static function listProcedureOptions(): array
     {
-        return ServiceOrderProcedure::query()
-            ->orderBy('name')
-            ->get(['id', 'name'])
-            ->map(fn ($item) => [
-                'id' => $item->id,
-                'name' => $item->name,
-            ])
-            ->all();
+        return ServiceOrderProcedure::listForSelection();
     }
 
     public static function createWithQuestions(array $data, array $questions): self
@@ -126,7 +130,7 @@ class ServiceOrderAnalysisService extends Model
             $serviceRows = [];
             $questionSyncPayload = [];
 
-            foreach ($items as $index => $item) {
+            foreach ($items as $item) {
                 $serviceData = (array) ($item['service'] ?? []);
                 $serviceId = (string) ($serviceData['id'] ?? Str::uuid());
 
@@ -176,7 +180,7 @@ class ServiceOrderAnalysisService extends Model
                 ->whereKey($id)
                 ->update(array_merge($data, ['updated_at' => $now]));
 
-            $service = new static;
+            $service = new static();
             $service->setRawAttributes(['id' => $id] + $data, true);
             $service->exists = true;
             $service->questions()->delete();

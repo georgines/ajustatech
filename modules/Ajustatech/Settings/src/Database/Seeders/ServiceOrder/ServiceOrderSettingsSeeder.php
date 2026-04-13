@@ -14,13 +14,6 @@ class ServiceOrderSettingsSeeder extends Seeder
 
         ServiceOrderSetting::updateSingleton([
             'initial_order_number' => 1000,
-            'working_days_json' => ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
-            'holidays_json' => [
-                now()->startOfYear()->format('Y-m-d'),
-                now()->startOfYear()->addMonths(11)->addDays(24)->format('Y-m-d'),
-            ],
         ]);
     }
 }
-
-

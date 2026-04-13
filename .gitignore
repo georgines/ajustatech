@@ -19,6 +19,10 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+/.codex
+/.github
+/.agents
+AGENTS.md
 
 !/public/assets
 !/public/assets/*

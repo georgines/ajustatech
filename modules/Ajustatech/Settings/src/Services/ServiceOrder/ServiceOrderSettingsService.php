@@ -16,8 +16,6 @@ class ServiceOrderSettingsService implements ServiceOrderSettingsServiceInterfac
 
     public function listStatusFlows(): Collection
     {
-        ServiceOrderStatusFlow::ensureDefaultRows();
-
         return ServiceOrderStatusFlow::listForSettings();
     }
 
@@ -25,19 +23,6 @@ class ServiceOrderSettingsService implements ServiceOrderSettingsServiceInterfac
     {
         return ServiceOrderSetting::updateSingleton([
             'initial_order_number' => (int) ($payload['initial_order_number'] ?? 1),
-            'working_days_json' => (array) ($payload['working_days_json'] ?? []),
-            'holidays_json' => (array) ($payload['holidays_json'] ?? []),
         ]);
     }
-
-    public function dayOptions(): array
-    {
-        return collect(ServiceOrderSetting::DAY_KEYS)
-            ->map(fn (string $day) => [
-                'value' => $day,
-                'label' => trans("settings::messages.weekday_{$day}"),
-            ])
-            ->all();
-    }
 }
-

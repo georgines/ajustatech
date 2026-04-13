@@ -1,39 +1,20 @@
-# Seguranca e Integridade
+﻿# Seguranca e Integridade
 
-## Escopo
-Diretrizes de seguranca para Laravel + Livewire no contexto modular Ajustatech.
+## Regras
+- Proteger mass assignment (`fillable` coerente; evitar `guarded = []` sem justificativa).
+- Validar e autorizar antes de persistir alteracoes sensiveis.
+- Em operacoes com multiplas escritas relacionadas, usar transacao.
+- Em Livewire, tratar propriedade publica como entrada nao confiavel.
 
-## Validacao
-- Validar entradas no componente Livewire e/ou Form Request antes de persistir.
-- Reutilizar regras do Core quando aplicavel (`CpfValidator`, `CnpjValidation`).
-- Em edicao, usar `Rule::unique(...)->ignore($id)` para evitar falso positivo de unicidade.
+## Acoes destrutivas
+- Fluxos de delete/remove/destroy devem exigir confirmacao explicita antes da persistencia.
 
-## Mass Assignment
-- Garantir `fillable` consistente em todos os Models modulares.
-- Nunca usar `guarded = []` sem justificativa formal.
+## Rotas
+- Nomear rotas de modulo e preparar para middleware/policies.
 
-## Integridade transacional
-- Operacoes financeiras devem usar transacao quando houver mais de uma escrita relacionada.
-- Manter consistencia entre transacoes e saldos (ex.: cash + balances + transactions).
-
-## Eventos de UI sensiveis
-- Confirmacoes de acao devem passar por `SwitchAlertDispatch` quando houver impacto em dados.
-- Evitar executar alteracoes destrutivas sem confirmacao.
-- Toda funcao/acao de exclusao (delete, remove, destroy ou equivalente) deve exibir `SwitchAlertDispatch` para confirmar se o usuario realmente deseja deletar antes de persistir a exclusao.
-
-## Rotas e autorizacao
-- Cada rota de modulo deve ser nomeada e preparada para middleware/policies.
-- Nao assumir que tela Livewire ja implica autorizacao.
-
-## Seed e ambiente
-- Seeds modulares (`module:seed-*`) devem ser idempotentes quando possivel.
+## Seeds
 - Evitar dados sensiveis hardcoded.
+- Priorizar idempotencia quando fizer sentido.
 
-## Referencia Vuexy
-`templete/Vuexy/resources` e apenas referencia de layout.
-- Nao inserir regras de negocio ali.
-- Nao usar pasta de referencia como origem de assets sensiveis de producao.
-
-## Pontos de atencao atuais do projeto
-- Validar encoding UTF-8 em textos PT-BR para evitar caracteres corrompidos.
-- Revisar consistencia de nomes de pasta `menu` vs `Menu` entre modulos para compatibilidade cross-platform.
+## UI referencia
+- `templete/Vuexy/resources` e referencia visual, nao fonte de negocio.

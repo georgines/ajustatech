@@ -97,12 +97,12 @@ class CustomerManagement extends Component
         $customer = Customer::findOrFail($this->customer_['id']);
         $this->validateData($customer->id);
         $updated = $customer->update($this->customer_);
-        if ($updated) {
-            if ($this->embedded) {
-                $this->dispatch('customer-created', id: $customer->id, name: $customer->name);
-                return;
-            }
+        if ($this->embedded) {
+            $this->dispatch('customer-created', id: $customer->id, name: $customer->name);
+            return;
+        }
 
+        if ($updated) {
             $message = 'Cliente atualizado!';
 
             $this->dispatchConfirmation($message)

@@ -50,6 +50,20 @@ class ServiceOrderEquipmentTypeDocument extends Model
         return $this->belongsTo(ServiceOrderEquipmentType::class, 'equipment_type_id');
     }
 
+    public function toServiceOrderDocument(): array
+    {
+        return [
+            'id' => (string) $this->id,
+            'title' => (string) ($this->title ?? ''),
+            'document_type' => (string) $this->document_type,
+            'template_content' => (string) ($this->template_content ?? ''),
+            'path' => $this->path,
+            'disk' => $this->disk,
+            'original_name' => $this->original_name,
+            'variables_json' => $this->variables_json ?? [],
+        ];
+    }
+
     public static function createManyForEquipmentType(string $equipmentTypeId, array $documents): void
     {
         if (empty($documents)) {
