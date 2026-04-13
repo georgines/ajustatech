@@ -2,7 +2,7 @@
 
 namespace Ajustatech\ServiceOrder\Livewire\Analysis;
 
-use Ajustatech\ServiceOrder\Database\Models\Analysis\ServiceOrderAnalysisService;
+use Ajustatech\ServiceOrder\Services\Analysis\Contracts\AnalysisServiceInterface;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -21,16 +21,21 @@ class ShowAnalysisServices extends Component
 
     public function deleteAnalysisService(string $id): void
     {
-        ServiceOrderAnalysisService::deleteById($id);
+        $this->analysisService()->deleteAnalysisService($id);
         $this->analysisServices = array_values(array_filter(
             $this->analysisServices,
             fn (array $item) => ($item['id'] ?? null) !== $id
         ));
     }
 
+    public function render()
+    {
+        return view('service-order::livewire.analysis.show-analysis-services');
+    }
+
     private function mapRows(): array
     {
-        return ServiceOrderAnalysisService::listForIndex()
+        return $this->analysisService()->listAnalysisServices()
             ->map(fn ($analysis) => [
                 'id' => $analysis->id,
                 'name' => $analysis->name,
@@ -41,8 +46,8 @@ class ShowAnalysisServices extends Component
             ->all();
     }
 
-    public function render()
+    private function analysisService(): AnalysisServiceInterface
     {
-        return view('service-order::livewire.analysis.show-analysis-services');
+        return app(AnalysisServiceInterface::class);
     }
 }

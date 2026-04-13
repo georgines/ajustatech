@@ -53,6 +53,17 @@ class ServiceOrderEquipmentTypeModel extends Model
         return $query->where('name', 'like', "%{$term}%");
     }
 
+    public function toServiceOrderOption(): array
+    {
+        return [
+            'id' => (string) $this->id,
+            'equipment_type_brand_id' => (string) $this->equipment_type_brand_id,
+            'name' => (string) $this->name,
+            'usage_count' => (int) $this->usage_count,
+            'last_used_at' => optional($this->last_used_at)?->toDateTimeString(),
+        ];
+    }
+
     public static function listForBrand(string $brandId, string $search = ''): Collection
     {
         $term = trim($search);
@@ -67,6 +78,13 @@ class ServiceOrderEquipmentTypeModel extends Model
             ->orderByDesc('usage_count')
             ->orderBy('name')
             ->get(['id', 'equipment_type_brand_id', 'name', 'usage_count', 'last_used_at']);
+    }
+
+    public static function findForBrand(string $brandId, string $modelId): ?self
+    {
+        return static::query()
+            ->where('equipment_type_brand_id', $brandId)
+            ->find($modelId);
     }
 
     public static function recordUsage(string $brandId, string $name): self

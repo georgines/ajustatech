@@ -2,9 +2,9 @@
 
 namespace Ajustatech\ServiceOrder\Livewire\ServiceOrder;
 
-use Ajustatech\Customer\Database\Models\Customer;
-use Ajustatech\ServiceOrder\Database\Models\EquipmentType\ServiceOrderEquipmentType;
-use Ajustatech\ServiceOrder\Services\ServiceOrder\Contracts\ServiceOrderServiceInterface;
+use Ajustatech\ServiceOrder\Services\ServiceOrder\Contracts\ServiceOrderCustomerServiceInterface;
+use Ajustatech\ServiceOrder\Services\ServiceOrder\Contracts\ServiceOrderEquipmentCatalogServiceInterface;
+use Ajustatech\ServiceOrder\Services\ServiceOrder\Contracts\ServiceOrderRecordServiceInterface;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -36,15 +36,7 @@ class CreateServiceOrderWizard extends Component
     public function openWizard(): void
     {
         if ($this->equipmentTypes === []) {
-            $service = app(ServiceOrderServiceInterface::class);
-
-            $this->equipmentTypes = $service->listActiveEquipmentTypes()
-                ->map(fn ($equipmentType) => [
-                    'id' => (string) $equipmentType->id,
-                    'name' => (string) $equipmentType->name,
-                ])
-                ->values()
-                ->all();
+            $this->equipmentTypes = $this->equipmentCatalogService()->listActiveEquipmentTypes();
         }
 
         $this->showCreateWizardModal = true;
@@ -109,19 +101,7 @@ class CreateServiceOrderWizard extends Component
             return;
         }
 
-        $service = app(ServiceOrderServiceInterface::class);
-
-        $this->wizardCustomerCandidates = $service->searchCustomers($this->createWizardCustomerSearch, 20)
-            ->map(function ($customer) {
-                return [
-                    'id' => $customer->id,
-                    'name' => $customer->name,
-                    'cpf_cnpj' => (string) $customer->cpf_cnpj,
-                    'document_masked' => $this->maskDocument((string) $customer->cpf_cnpj),
-                ];
-            })
-            ->values()
-            ->all();
+        $this->wizardCustomerCandidates = $this->customerService()->searchCustomers($this->createWizardCustomerSearch, 20);
     }
 
     public function selectCreateWizardCustomerCandidate(string $customerId): void
@@ -138,10 +118,7 @@ class CreateServiceOrderWizard extends Component
         ]);
 
         $this->createWizard['customer_id'] = $validated['createWizardCustomerSelectedId'];
-
-        $customer = Customer::query()->findOrFail($this->createWizard['customer_id']);
-        $this->selectedWizardCustomer = $this->mapCustomerToSelection($customer);
-
+        $this->selectedWizardCustomer = $this->customerService()->findCustomerSelectionOrFail($this->createWizard['customer_id']);
         $this->closeCreateWizardCustomerSelectModal();
     }
 
@@ -152,18 +129,14 @@ class CreateServiceOrderWizard extends Component
             return;
         }
 
-        $customer = Customer::query()->findOrFail($id);
-
         $this->createWizard['customer_id'] = $id;
         $this->createWizardCustomerSelectedId = $id;
-        $this->selectedWizardCustomer = $this->mapCustomerToSelection($customer);
+        $this->selectedWizardCustomer = $this->customerService()->findCustomerSelectionOrFail($id);
         $this->closeCreateWizardCustomerCreateModal();
     }
 
     public function confirmCreateWizard(): void
     {
-        $service = app(ServiceOrderServiceInterface::class);
-
         $validated = $this->validate([
             'createWizard.equipment_type_id' => ['required', 'uuid', 'exists:service_order_equipment_types,id'],
             'createWizard.customer_id' => ['required', 'uuid', 'exists:customers,id'],
@@ -172,31 +145,16 @@ class CreateServiceOrderWizard extends Component
             'createWizard.customer_id' => $this->customerLabel(),
         ]);
 
-        $equipmentType = ServiceOrderEquipmentType::query()
-            ->where('is_active', true)
-            ->with(['fields:id,equipment_type_id,field_type,label,placeholder,is_required,default_text'])
-            ->findOrFail($validated['createWizard']['equipment_type_id']);
+        $equipmentType = $this->equipmentCatalogService()->findEquipmentTypeDetailOrFail($validated['createWizard']['equipment_type_id']);
 
-        $dynamicFields = collect($equipmentType?->fields ?? [])
-            ->map(fn ($field) => [
-                'equipment_type_field_id' => $field->id,
-                'field_type' => $field->field_type,
-                'field_label' => $field->label,
-                'field_placeholder' => $field->placeholder,
-                'is_required' => (bool) $field->is_required,
-                'value_text' => (string) ($field->default_text ?? ''),
-            ])
-            ->values()
-            ->all();
-
-        $created = $service->createServiceOrder([
+        $created = $this->recordService()->createServiceOrder([
             'customer_id' => $validated['createWizard']['customer_id'],
             'equipment_type_id' => $validated['createWizard']['equipment_type_id'],
             'selected_document_id' => null,
             'equipment_brand' => null,
             'equipment_model' => null,
             'equipment_serial_number' => null,
-            'dynamic_fields' => $dynamicFields,
+            'dynamic_fields' => (array) ($equipmentType['fields'] ?? []),
             'service_items' => [],
         ]);
 
@@ -204,45 +162,12 @@ class CreateServiceOrderWizard extends Component
         $this->redirectRoute('service-order-edit', ['serviceOrder' => $created->id]);
     }
 
-    public function render(ServiceOrderServiceInterface $service)
+    public function render()
     {
         return view('service-order::livewire.service-order.create-service-order-wizard', [
             'selectedWizardCustomer' => $this->selectedWizardCustomer,
             'wizardCustomerCandidates' => collect($this->wizardCustomerCandidates),
         ]);
-    }
-
-    private function maskDocument(string $document): string
-    {
-        $digits = preg_replace('/\D+/', '', $document);
-
-        if (strlen($digits) === 11) {
-            return substr($digits, 0, 3) . '.***.***-' . substr($digits, 9, 2);
-        }
-
-        if (strlen($digits) === 14) {
-            return substr($digits, 0, 2) . '.***.***/' . substr($digits, 8, 4) . '-' . substr($digits, 12, 2);
-        }
-
-        if ($digits === '') {
-            return '';
-        }
-
-        if (strlen($digits) <= 4) {
-            return str_repeat('*', strlen($digits));
-        }
-
-        return substr($digits, 0, 2) . str_repeat('*', max(0, strlen($digits) - 4)) . substr($digits, -2);
-    }
-
-    private function mapCustomerToSelection(Customer $customer): array
-    {
-        return [
-            'id' => $customer->id,
-            'name' => $customer->name,
-            'cpf_cnpj' => (string) $customer->cpf_cnpj,
-            'document_masked' => $this->maskDocument((string) $customer->cpf_cnpj),
-        ];
     }
 
     private function customerLabel(): string
@@ -253,5 +178,20 @@ class CreateServiceOrderWizard extends Component
     private function equipmentTypeLabel(): string
     {
         return app()->getLocale() === 'en' ? 'Equipment type' : 'Tipo de equipamento';
+    }
+
+    private function customerService(): ServiceOrderCustomerServiceInterface
+    {
+        return app(ServiceOrderCustomerServiceInterface::class);
+    }
+
+    private function equipmentCatalogService(): ServiceOrderEquipmentCatalogServiceInterface
+    {
+        return app(ServiceOrderEquipmentCatalogServiceInterface::class);
+    }
+
+    private function recordService(): ServiceOrderRecordServiceInterface
+    {
+        return app(ServiceOrderRecordServiceInterface::class);
     }
 }

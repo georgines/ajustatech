@@ -4,9 +4,8 @@ namespace Ajustatech\ServiceOrder\Services\ServiceOrder\Contracts;
 
 use Ajustatech\ServiceOrder\Database\Models\ServiceOrder\ServiceOrder;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
 
-interface ServiceOrderServiceInterface
+interface ServiceOrderRecordServiceInterface
 {
     public function listServiceOrders(
         string $search = '',
@@ -27,18 +26,4 @@ interface ServiceOrderServiceInterface
     public function duplicateServiceOrder(string $id): ServiceOrder;
 
     public function deleteServiceOrder(string $id): void;
-
-    public function listStatusFlows(): Collection;
-
-    public function listActiveEquipmentTypes(): Collection;
-
-    public function listProcedures(): Collection;
-
-    public function listAnalysisServices(): Collection;
-
-    public function searchCustomers(string $search = '', int $limit = 15): Collection;
-
-    public function workingDays(): array;
-
-    public function holidays(): array;
 }

@@ -44,7 +44,7 @@
                         <div class="card shadow-none bg-label-secondary h-100 mb-0">
                             <div class="card-body py-3">
                                 <small class="text-body-secondary d-block mb-1">{{ trans('service-order::messages.service_order_number') }}</small>
-                                <h6 class="mb-0 text-secondary">{{ $currentServiceOrder?->order_number ? '#'.$currentServiceOrder->order_number : trans('service-order::messages.automatic_after_create') }}</h6>
+                                <h6 class="mb-0 text-secondary">{{ data_get($currentServiceOrder, 'order_number') ? '#'.data_get($currentServiceOrder, 'order_number') : trans('service-order::messages.automatic_after_create') }}</h6>
                             </div>
                         </div>
                     </div>
@@ -53,7 +53,7 @@
                         <div class="card shadow-none bg-label-secondary h-100 mb-0">
                             <div class="card-body py-3">
                                 <small class="text-body-secondary d-block mb-1">{{ trans('service-order::messages.opened_at') }}</small>
-                                <h6 class="mb-0 text-secondary">{{ $currentServiceOrder?->opened_at?->format('d/m/Y H:i') ?? '-' }}</h6>
+                                <h6 class="mb-0 text-secondary">{{ data_get($currentServiceOrder, 'opened_at_display', '-') }}</h6>
                             </div>
                         </div>
                     </div>
@@ -62,7 +62,7 @@
                         <div class="card shadow-none bg-label-secondary h-100 mb-0">
                             <div class="card-body py-3">
                                 <small class="text-body-secondary d-block mb-1">{{ trans('service-order::messages.finished_at') }}</small>
-                                <h6 class="mb-0 text-secondary">{{ $currentServiceOrder?->finished_at?->format('d/m/Y H:i') ?? '-' }}</h6>
+                                <h6 class="mb-0 text-secondary">{{ data_get($currentServiceOrder, 'finished_at_display', '-') }}</h6>
                             </div>
                         </div>
                     </div>
@@ -72,10 +72,10 @@
                             <div class="card-body py-3">
                                 <small class="text-body-secondary d-block mb-1">{{ trans('service-order::messages.status') }}</small>
                                 <h6 class="mb-0 text-primary">
-                                    @if (($currentServiceOrder?->statusFlow?->code ?? null) === 'entrada')
+                                    @if (data_get($currentServiceOrder, 'status_flow.code') === 'entrada')
                                         {{ trans('service-order::messages.open_status') }}
                                     @else
-                                        {{ $currentServiceOrder?->statusFlow?->name ?? trans('service-order::messages.status_flow_auto') }}
+                                        {{ data_get($currentServiceOrder, 'status_flow.name', trans('service-order::messages.status_flow_auto')) }}
                                     @endif
                                 </h6>
                             </div>
@@ -111,19 +111,19 @@
                             <ul class="list-group list-group-flush">
                                 <li class="list-group-item px-0 d-flex flex-column flex-sm-row justify-content-between gap-1">
                                     <span class="fw-medium text-heading">{{ trans('service-order::messages.customer_name') }}</span>
-                                    <span class="text-break text-sm-end">{{ $selectedCustomer->name }}</span>
+                                    <span class="text-break text-sm-end">{{ data_get($selectedCustomer, 'name') }}</span>
                                 </li>
                                 <li class="list-group-item px-0 d-flex flex-column flex-sm-row justify-content-between gap-1">
                                     <span class="fw-medium text-heading">{{ trans('service-order::messages.customer_document') }}</span>
-                                    <span class="text-break text-sm-end">{{ $selectedCustomer->cpf_cnpj }}</span>
+                                    <span class="text-break text-sm-end">{{ data_get($selectedCustomer, 'cpf_cnpj') }}</span>
                                 </li>
                                 <li class="list-group-item px-0 d-flex flex-column flex-sm-row justify-content-between gap-1">
                                     <span class="fw-medium text-heading">{{ trans('service-order::messages.customer_phone') }}</span>
-                                    <span class="text-break text-sm-end">{{ $selectedCustomer->cellphone ?: '-' }}</span>
+                                    <span class="text-break text-sm-end">{{ data_get($selectedCustomer, 'cellphone') ?: '-' }}</span>
                                 </li>
                                 <li class="list-group-item px-0 pb-0 d-flex flex-column flex-sm-row justify-content-between gap-1">
                                     <span class="fw-medium text-heading">{{ trans('service-order::messages.customer_email') }}</span>
-                                    <span class="text-break text-sm-end">{{ $selectedCustomer->email ?: '-' }}</span>
+                                    <span class="text-break text-sm-end">{{ data_get($selectedCustomer, 'email') ?: '-' }}</span>
                                 </li>
                             </ul>
                         </div>
@@ -149,7 +149,7 @@
                 <div class="card shadow-none bg-label-primary mb-3">
                     <div class="card-body py-3">
                         <small class="text-primary d-block mb-1">{{ trans('service-order::messages.equipment_type') }}</small>
-                        <div class="fw-semibold text-primary">{{ $selectedEquipmentType?->name ?? '-' }}</div>
+                        <div class="fw-semibold text-primary">{{ data_get($selectedEquipmentType, 'name', '-') }}</div>
                     </div>
                 </div>
 
@@ -245,7 +245,7 @@
                                             <select class="form-select" wire:change="applyAnalysisServiceToItem({{ $index }}, $event.target.value)" @disabled($mode === 'view')>
                                                 <option value="">{{ trans('service-order::messages.select_service') }}</option>
                                                 @foreach ($analysisServices as $analysisService)
-                                                    <option value="{{ $analysisService->id }}">{{ $analysisService->name }}</option>
+                                                    <option value="{{ data_get($analysisService, 'id') }}">{{ data_get($analysisService, 'name') }}</option>
                                                 @endforeach
                                             </select>
                                         @else
@@ -402,10 +402,10 @@
                                 <tbody>
                                     @foreach ($availableCustomers as $customer)
                                         <tr>
-                                            <td>{{ $customer->name }}</td>
-                                            <td>{{ $customer->cpf_cnpj }}</td>
+                                            <td>{{ data_get($customer, 'name') }}</td>
+                                            <td>{{ data_get($customer, 'cpf_cnpj') }}</td>
                                             <td>
-                                                <button type="button" class="btn btn-sm btn-primary" wire:click="selectCustomer('{{ $customer->id }}')">{{ trans('service-order::messages.select') }}</button>
+                                                <button type="button" class="btn btn-sm btn-primary" wire:click="selectCustomer('{{ data_get($customer, 'id') }}')">{{ trans('service-order::messages.select') }}</button>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -488,7 +488,7 @@
                     <button type="button" class="btn-close" wire:click="closeEquipmentBrandModal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    @if ($equipmentBrandSearchActive && $equipmentTypeBrands->isEmpty())
+                    @if ($equipmentBrandSearchActive && empty($equipmentTypeBrands))
                         <p class="text-body-secondary small mb-3">
                             {{ trans('service-order::messages.equipment_brand_no_results') }}
                         </p>
@@ -501,10 +501,10 @@
                     </div>
 
                     <div class="list-group">
-                        @if ($equipmentBrandSearchActive && $equipmentTypeBrands->isNotEmpty())
+                        @if ($equipmentBrandSearchActive && ! empty($equipmentTypeBrands))
                             @foreach ($equipmentTypeBrands as $brand)
-                                <button type="button" class="list-group-item list-group-item-action" wire:click="selectEquipmentBrand('{{ $brand->id }}')">
-                                    {{ $brand->name }}
+                                <button type="button" class="list-group-item list-group-item-action" wire:click="selectEquipmentBrand('{{ data_get($brand, 'id') }}')">
+                                    {{ data_get($brand, 'name') }}
                                 </button>
                             @endforeach
                         @endif
@@ -515,7 +515,7 @@
                         type="button"
                         class="btn btn-primary"
                         wire:click="saveEquipmentBrand"
-                        @disabled(blank($equipmentBrandSearch) || $equipmentTypeBrands->isNotEmpty())
+                        @disabled(blank($equipmentBrandSearch) || ! empty($equipmentTypeBrands))
                     >
                         {{ trans('service-order::messages.save') }}
                     </button>
@@ -535,7 +535,7 @@
                     <button type="button" class="btn-close" wire:click="closeEquipmentModelModal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    @if ($selectedEquipmentBrandId && $equipmentModelSearchActive && $equipmentTypeModels->isEmpty())
+                    @if ($selectedEquipmentBrandId && $equipmentModelSearchActive && empty($equipmentTypeModels))
                         <p class="text-body-secondary small mb-3">
                             {{ trans('service-order::messages.equipment_model_no_results') }}
                         </p>
@@ -548,10 +548,10 @@
                     </div>
 
                     <div class="list-group">
-                        @if ($selectedEquipmentBrandId && $equipmentModelSearchActive && $equipmentTypeModels->isNotEmpty())
+                        @if ($selectedEquipmentBrandId && $equipmentModelSearchActive && ! empty($equipmentTypeModels))
                             @foreach ($equipmentTypeModels as $equipmentModel)
-                                <button type="button" class="list-group-item list-group-item-action" wire:click="selectEquipmentModel('{{ $equipmentModel->id }}')">
-                                    {{ $equipmentModel->name }}
+                                <button type="button" class="list-group-item list-group-item-action" wire:click="selectEquipmentModel('{{ data_get($equipmentModel, 'id') }}')">
+                                    {{ data_get($equipmentModel, 'name') }}
                                 </button>
                             @endforeach
                         @endif
@@ -562,7 +562,7 @@
                         type="button"
                         class="btn btn-primary"
                         wire:click="saveEquipmentModel"
-                        @disabled(blank($equipmentModelSearch) || blank($selectedEquipmentBrandId) || $equipmentTypeModels->isNotEmpty())
+                        @disabled(blank($equipmentModelSearch) || blank($selectedEquipmentBrandId) || ! empty($equipmentTypeModels))
                     >
                         {{ trans('service-order::messages.save') }}
                     </button>
@@ -573,7 +573,7 @@
     <div class="modal-backdrop fade show"></div>
 @endif
 
-@if ($selectedCustomer)
+@if ($selectedCustomer && $customerForCorrectionModal)
     <div class="modal fade" id="customerCorrectionModal" tabindex="-1" aria-hidden="true" wire:ignore.self>
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
@@ -646,7 +646,7 @@
                     >
                         <option value="">{{ trans('service-order::messages.select') }}</option>
                         @foreach ($equipmentTypes as $equipmentType)
-                            <option value="{{ $equipmentType->id }}">{{ $equipmentType->name }}</option>
+                            <option value="{{ data_get($equipmentType, 'id') }}">{{ data_get($equipmentType, 'name') }}</option>
                         @endforeach
                     </select>
                     @error('equipmentTypeDraftId')

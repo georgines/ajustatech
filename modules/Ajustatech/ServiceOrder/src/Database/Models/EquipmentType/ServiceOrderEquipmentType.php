@@ -71,6 +71,36 @@ class ServiceOrderEquipmentType extends Model
             ->orderBy('name');
     }
 
+    public function toServiceOrderOption(): array
+    {
+        return [
+            'id' => (string) $this->id,
+            'name' => (string) $this->name,
+        ];
+    }
+
+    public function toServiceOrderDetail(): array
+    {
+        $documents = $this->relationLoaded('documents') ? $this->documents : $this->documents()->get();
+        $fields = $this->relationLoaded('fields') ? $this->fields : $this->fields()->get();
+
+        return [
+            'id' => (string) $this->id,
+            'name' => (string) $this->name,
+            'documents' => $documents->map(fn (ServiceOrderEquipmentTypeDocument $document) => $document->toServiceOrderDocument())->all(),
+            'fields' => $fields->map(fn (ServiceOrderEquipmentTypeField $field) => $field->toServiceOrderDynamicField())->all(),
+        ];
+    }
+
+    public function defaultDynamicFields(): array
+    {
+        $fields = $this->relationLoaded('fields') ? $this->fields : $this->fields()->get();
+
+        return $fields
+            ->map(fn (ServiceOrderEquipmentTypeField $field) => $field->toServiceOrderDynamicField())
+            ->all();
+    }
+
     public static function listForIndex(string $search = '', string $status = 'all', int $limitPerPage = 10): Collection
     {
         $statusFilter = in_array($status, ['all', 'active', 'inactive'], true) ? $status : 'all';
@@ -92,6 +122,36 @@ class ServiceOrderEquipmentType extends Model
             ->latest()
             ->limit($limitPerPage)
             ->get();
+    }
+
+    public static function listActiveOptions(): Collection
+    {
+        return static::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+    }
+
+    public static function findActiveWithDetails(string $id): ?self
+    {
+        return static::query()
+            ->where('is_active', true)
+            ->with([
+                'documents:id,equipment_type_id,document_type,title,template_content,path,disk,original_name,variables_json',
+                'fields:id,equipment_type_id,field_type,label,placeholder,is_required,default_text',
+            ])
+            ->find($id);
+    }
+
+    public static function findActiveWithDetailsOrFail(string $id): self
+    {
+        return static::query()
+            ->where('is_active', true)
+            ->with([
+                'documents:id,equipment_type_id,document_type,title,template_content,path,disk,original_name,variables_json',
+                'fields:id,equipment_type_id,field_type,label,placeholder,is_required,default_text',
+            ])
+            ->findOrFail($id);
     }
 
     public function scopeSearch(Builder $query, string $search): Builder

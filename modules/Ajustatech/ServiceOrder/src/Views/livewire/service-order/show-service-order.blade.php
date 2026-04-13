@@ -80,7 +80,7 @@
                     <select id="soStatus" class="form-select" wire:model.live="statusFlowId">
                         <option value="">{{ trans('service-order::messages.status_all') }}</option>
                         @foreach ($statusFlows as $statusFlow)
-                            <option value="{{ $statusFlow->id }}">{{ $statusFlow->name }}</option>
+                            <option value="{{ data_get($statusFlow, 'id') }}">{{ data_get($statusFlow, 'name') }}</option>
                         @endforeach
                     </select>
                 </div>

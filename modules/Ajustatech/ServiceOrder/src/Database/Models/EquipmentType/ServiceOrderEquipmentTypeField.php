@@ -50,6 +50,18 @@ class ServiceOrderEquipmentTypeField extends Model
         return $this->belongsTo(ServiceOrderEquipmentType::class, 'equipment_type_id');
     }
 
+    public function toServiceOrderDynamicField(): array
+    {
+        return [
+            'equipment_type_field_id' => (string) $this->id,
+            'field_type' => (string) $this->field_type,
+            'field_label' => (string) $this->label,
+            'field_placeholder' => (string) ($this->placeholder ?? ''),
+            'is_required' => (bool) $this->is_required,
+            'value_text' => (string) ($this->default_text ?? ''),
+        ];
+    }
+
     public static function createManyForEquipmentType(string $equipmentTypeId, array $fields): void
     {
         if (empty($fields)) {

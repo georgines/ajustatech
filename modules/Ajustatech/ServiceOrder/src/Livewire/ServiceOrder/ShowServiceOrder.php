@@ -2,7 +2,9 @@
 
 namespace Ajustatech\ServiceOrder\Livewire\ServiceOrder;
 
-use Ajustatech\ServiceOrder\Services\ServiceOrder\Contracts\ServiceOrderServiceInterface;
+use Ajustatech\ServiceOrder\Services\ServiceOrder\Contracts\ServiceOrderCalendarServiceInterface;
+use Ajustatech\ServiceOrder\Services\ServiceOrder\Contracts\ServiceOrderCatalogServiceInterface;
+use Ajustatech\ServiceOrder\Services\ServiceOrder\Contracts\ServiceOrderRecordServiceInterface;
 use Carbon\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -25,11 +27,20 @@ class ShowServiceOrder extends Component
 
     public int $limitePerPage = 10;
 
+    public array $workingDays = [];
+
+    public array $holidays = [];
+
+    public array $statusFlows = [];
+
     public function mount(): void
     {
         $this->title = app()->getLocale() === 'en' ? 'Service Orders' : 'Ordens de Servico';
         $this->openedFrom = Carbon::now()->startOfMonth()->format('Y-m-d');
         $this->openedTo = Carbon::now()->endOfMonth()->format('Y-m-d');
+        $this->workingDays = $this->calendarService()->workingDays();
+        $this->holidays = $this->calendarService()->holidays();
+        $this->statusFlows = $this->catalogService()->listStatusFlows();
     }
 
     public function updatedSearch(): void
@@ -63,23 +74,21 @@ class ShowServiceOrder extends Component
         $this->resetPage();
     }
 
-    public function deleteServiceOrder(string $id, ServiceOrderServiceInterface $service): void
+    public function deleteServiceOrder(string $id): void
     {
-        $service->deleteServiceOrder($id);
+        $this->recordService()->deleteServiceOrder($id);
         $this->resetPage();
     }
 
-    public function duplicateServiceOrder(string $id, ServiceOrderServiceInterface $service): void
+    public function duplicateServiceOrder(string $id): void
     {
-        $service->duplicateServiceOrder($id);
+        $this->recordService()->duplicateServiceOrder($id);
         $this->resetPage();
     }
 
-    public function render(ServiceOrderServiceInterface $service)
+    public function render()
     {
-        $workingDays = $service->workingDays();
-        $holidays = $service->holidays();
-        $serviceOrders = $service->listServiceOrders(
+        $serviceOrders = $this->recordService()->listServiceOrders(
             $this->search,
             $this->statusFlowId,
             $this->openedFrom,
@@ -87,7 +96,7 @@ class ShowServiceOrder extends Component
             $this->limitePerPage
         )->onEachSide(1);
 
-        $rows = $serviceOrders->through(function ($serviceOrder) use ($workingDays, $holidays) {
+        $rows = $serviceOrders->through(function ($serviceOrder) {
             $snapshot = $serviceOrder->customer_snapshot_json ?? [];
 
             return [
@@ -95,8 +104,8 @@ class ShowServiceOrder extends Component
                 'order_number' => $serviceOrder->order_number,
                 'opened_at' => $serviceOrder->opened_at,
                 'business_days' => $serviceOrder->businessDaysSinceCreation(
-                    $workingDays,
-                    $holidays
+                    $this->workingDays,
+                    $this->holidays
                 ),
                 'customer_name' => $snapshot['name'] ?? $serviceOrder->customer?->name,
                 'status_name' => $serviceOrder->statusFlow?->name,
@@ -106,7 +115,22 @@ class ShowServiceOrder extends Component
 
         return view('service-order::livewire.service-order.show-service-order', [
             'serviceOrders' => $rows,
-            'statusFlows' => $service->listStatusFlows(),
+            'statusFlows' => $this->statusFlows,
         ]);
+    }
+
+    private function recordService(): ServiceOrderRecordServiceInterface
+    {
+        return app(ServiceOrderRecordServiceInterface::class);
+    }
+
+    private function catalogService(): ServiceOrderCatalogServiceInterface
+    {
+        return app(ServiceOrderCatalogServiceInterface::class);
+    }
+
+    private function calendarService(): ServiceOrderCalendarServiceInterface
+    {
+        return app(ServiceOrderCalendarServiceInterface::class);
     }
 }

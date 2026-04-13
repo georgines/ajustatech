@@ -12,7 +12,7 @@ use Ajustatech\ServiceOrder\Database\Models\EquipmentType\ServiceOrderEquipmentT
 use Ajustatech\ServiceOrder\Database\Models\Procedure\ServiceOrderProcedure;
 use Ajustatech\ServiceOrder\Database\Models\ServiceOrder\ServiceOrder;
 use Ajustatech\ServiceOrder\Livewire\ServiceOrder\ServiceOrderManagement;
-use Ajustatech\ServiceOrder\Services\ServiceOrder\Contracts\ServiceOrderServiceInterface;
+use Ajustatech\ServiceOrder\Services\ServiceOrder\Contracts\ServiceOrderRecordServiceInterface;
 use Ajustatech\Settings\Database\Models\ServiceOrder\ServiceOrderStatusFlow;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -106,7 +106,7 @@ class ServiceOrderManagementTest extends TestCase
             'name' => 'Notebook',
         ]);
 
-        $serviceOrder = app(ServiceOrderServiceInterface::class)->createServiceOrder([
+        $serviceOrder = app(ServiceOrderRecordServiceInterface::class)->createServiceOrder([
             'customer_id' => $customer->id,
             'equipment_type_id' => $equipmentType->id,
             'selected_document_id' => null,
@@ -140,7 +140,7 @@ class ServiceOrderManagementTest extends TestCase
             'name' => 'Notebook',
         ]);
 
-        $serviceOrder = app(ServiceOrderServiceInterface::class)->createServiceOrder([
+        $serviceOrder = app(ServiceOrderRecordServiceInterface::class)->createServiceOrder([
             'customer_id' => $customer->id,
             'equipment_type_id' => $equipmentType->id,
             'selected_document_id' => null,
@@ -267,7 +267,7 @@ class ServiceOrderManagementTest extends TestCase
             'title' => 'Termo de recebimento',
         ]);
 
-        $serviceOrder = app(ServiceOrderServiceInterface::class)->createServiceOrder([
+        $serviceOrder = app(ServiceOrderRecordServiceInterface::class)->createServiceOrder([
             'customer_id' => $customer->id,
             'equipment_type_id' => $equipmentType->id,
             'selected_document_id' => $document->id,
@@ -317,7 +317,7 @@ class ServiceOrderManagementTest extends TestCase
             'usage_count' => 3,
         ]);
 
-        $serviceOrder = app(ServiceOrderServiceInterface::class)->createServiceOrder([
+        $serviceOrder = app(ServiceOrderRecordServiceInterface::class)->createServiceOrder([
             'customer_id' => $customer->id,
             'equipment_type_id' => $equipmentType->id,
             'selected_document_id' => null,
@@ -386,7 +386,7 @@ class ServiceOrderManagementTest extends TestCase
             'name' => 'ThinkPad E14',
         ]);
 
-        $serviceOrder = app(ServiceOrderServiceInterface::class)->createServiceOrder([
+        $serviceOrder = app(ServiceOrderRecordServiceInterface::class)->createServiceOrder([
             'customer_id' => $customer->id,
             'equipment_type_id' => $equipmentType->id,
             'selected_document_id' => null,
@@ -443,7 +443,7 @@ class ServiceOrderManagementTest extends TestCase
             'default_text' => '000000000000000',
         ]);
 
-        $serviceOrder = app(ServiceOrderServiceInterface::class)->createServiceOrder([
+        $serviceOrder = app(ServiceOrderRecordServiceInterface::class)->createServiceOrder([
             'customer_id' => $customer->id,
             'equipment_type_id' => $currentEquipmentType->id,
             'selected_document_id' => null,
@@ -476,7 +476,7 @@ class ServiceOrderManagementTest extends TestCase
 
         $equipmentType = ServiceOrderEquipmentType::factory()->create();
 
-        $serviceOrder = app(ServiceOrderServiceInterface::class)->createServiceOrder([
+        $serviceOrder = app(ServiceOrderRecordServiceInterface::class)->createServiceOrder([
             'customer_id' => $customer->id,
             'equipment_type_id' => $equipmentType->id,
             'selected_document_id' => null,
