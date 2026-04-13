@@ -87,6 +87,8 @@ class CreateServiceOrderWizard extends Component
     public function closeCreateWizardCustomerSelectModal(): void
     {
         $this->showCreateWizardCustomerSelectModal = false;
+        $this->createWizardCustomerSearch = '';
+        $this->wizardCustomerCandidates = [];
         $this->createWizardCustomerSelectedId = null;
         $this->resetValidation(['createWizardCustomerSearch', 'createWizardCustomerSelectedId']);
     }
@@ -125,12 +127,6 @@ class CreateServiceOrderWizard extends Component
     public function selectCreateWizardCustomerCandidate(string $customerId): void
     {
         $this->createWizardCustomerSelectedId = $customerId;
-
-        $customer = collect($this->wizardCustomerCandidates)->firstWhere('id', $customerId);
-
-        if ($customer) {
-            $this->selectedWizardCustomer = $customer;
-        }
     }
 
     public function confirmCreateWizardSelectedCustomer(): void
@@ -138,21 +134,13 @@ class CreateServiceOrderWizard extends Component
         $validated = $this->validate([
             'createWizardCustomerSelectedId' => ['required', 'uuid', 'exists:customers,id'],
         ], [], [
-            'createWizardCustomerSelectedId' => trans('service-order::messages.customer'),
+            'createWizardCustomerSelectedId' => $this->customerLabel(),
         ]);
 
         $this->createWizard['customer_id'] = $validated['createWizardCustomerSelectedId'];
 
-        if ($this->selectedWizardCustomer === []) {
-            $customer = Customer::query()->findOrFail($this->createWizard['customer_id']);
-
-            $this->selectedWizardCustomer = [
-                'id' => $customer->id,
-                'name' => $customer->name,
-                'cpf_cnpj' => (string) $customer->cpf_cnpj,
-                'document_masked' => $this->maskDocument((string) $customer->cpf_cnpj),
-            ];
-        }
+        $customer = Customer::query()->findOrFail($this->createWizard['customer_id']);
+        $this->selectedWizardCustomer = $this->mapCustomerToSelection($customer);
 
         $this->closeCreateWizardCustomerSelectModal();
     }
@@ -168,12 +156,7 @@ class CreateServiceOrderWizard extends Component
 
         $this->createWizard['customer_id'] = $id;
         $this->createWizardCustomerSelectedId = $id;
-        $this->selectedWizardCustomer = [
-            'id' => $customer->id,
-            'name' => $customer->name,
-            'cpf_cnpj' => (string) $customer->cpf_cnpj,
-            'document_masked' => $this->maskDocument((string) $customer->cpf_cnpj),
-        ];
+        $this->selectedWizardCustomer = $this->mapCustomerToSelection($customer);
         $this->closeCreateWizardCustomerCreateModal();
     }
 
@@ -185,8 +168,8 @@ class CreateServiceOrderWizard extends Component
             'createWizard.equipment_type_id' => ['required', 'uuid', 'exists:service_order_equipment_types,id'],
             'createWizard.customer_id' => ['required', 'uuid', 'exists:customers,id'],
         ], [], [
-            'createWizard.equipment_type_id' => trans('service-order::messages.equipment_type'),
-            'createWizard.customer_id' => trans('service-order::messages.customer'),
+            'createWizard.equipment_type_id' => $this->equipmentTypeLabel(),
+            'createWizard.customer_id' => $this->customerLabel(),
         ]);
 
         $equipmentType = ServiceOrderEquipmentType::query()
@@ -250,5 +233,25 @@ class CreateServiceOrderWizard extends Component
         }
 
         return substr($digits, 0, 2) . str_repeat('*', max(0, strlen($digits) - 4)) . substr($digits, -2);
+    }
+
+    private function mapCustomerToSelection(Customer $customer): array
+    {
+        return [
+            'id' => $customer->id,
+            'name' => $customer->name,
+            'cpf_cnpj' => (string) $customer->cpf_cnpj,
+            'document_masked' => $this->maskDocument((string) $customer->cpf_cnpj),
+        ];
+    }
+
+    private function customerLabel(): string
+    {
+        return app()->getLocale() === 'en' ? 'Customer' : 'Cliente';
+    }
+
+    private function equipmentTypeLabel(): string
+    {
+        return app()->getLocale() === 'en' ? 'Equipment type' : 'Tipo de equipamento';
     }
 }

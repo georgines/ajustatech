@@ -94,6 +94,57 @@ class ShowServiceOrderTest extends TestCase
         $this->assertStringNotContainsString('from `customers`', $sql);
     }
 
+    public function test_canceling_customer_selection_does_not_apply_it_to_the_main_wizard_card(): void
+    {
+        $customer = Customer::factory()->create();
+
+        Livewire::test(CreateServiceOrderWizard::class)
+            ->call('openWizard')
+            ->set('showCreateWizardCustomerSelectModal', true)
+            ->set('createWizardCustomerSearch', 'jor')
+            ->set('wizardCustomerCandidates', [[
+                'id' => $customer->id,
+                'name' => $customer->name,
+                'cpf_cnpj' => (string) $customer->cpf_cnpj,
+                'document_masked' => '37.***.***/0001-33',
+            ]])
+            ->call('selectCreateWizardCustomerCandidate', $customer->id)
+            ->call('closeCreateWizardCustomerSelectModal')
+            ->call('openCreateWizardCustomerSelectModal')
+            ->assertSet('createWizardCustomerSearch', '')
+            ->assertSet('wizardCustomerCandidates', [])
+            ->assertSet('createWizard.customer_id', '')
+            ->assertSet('createWizardCustomerSelectedId', null)
+            ->assertSet('selectedWizardCustomer', []);
+    }
+
+    public function test_confirming_a_new_customer_replaces_the_previous_selection(): void
+    {
+        $firstCustomer = Customer::factory()->create([
+            'name' => 'Cliente Antigo',
+        ]);
+
+        $secondCustomer = Customer::factory()->create([
+            'name' => 'Cliente Novo',
+        ]);
+
+        Livewire::test(CreateServiceOrderWizard::class)
+            ->call('openWizard')
+            ->set('selectedWizardCustomer', [
+                'id' => $firstCustomer->id,
+                'name' => $firstCustomer->name,
+                'cpf_cnpj' => (string) $firstCustomer->cpf_cnpj,
+                'document_masked' => '11.***.***-11',
+            ])
+            ->set('createWizard.customer_id', $firstCustomer->id)
+            ->set('showCreateWizardCustomerSelectModal', true)
+            ->set('createWizardCustomerSelectedId', $secondCustomer->id)
+            ->call('confirmCreateWizardSelectedCustomer')
+            ->assertSet('createWizard.customer_id', $secondCustomer->id)
+            ->assertSet('selectedWizardCustomer.name', $secondCustomer->name)
+            ->assertSet('selectedWizardCustomer.id', $secondCustomer->id);
+    }
+
     public function test_can_duplicate_service_order_with_related_items(): void
     {
         ServiceOrderStatusFlow::ensureDefaultRows();
